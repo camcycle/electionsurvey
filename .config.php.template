@@ -1,0 +1,42 @@
+<?php
+
+# Define the settings
+$settings = array (
+	
+	# Database
+	'hostname'	=> 'localhost',
+	'database'	=> 'YOUR_DATABASE_NAME_HERE',
+	'username'	=> 'YOUR_DATABASE_USERNAME_HERE',
+	'password'	=> 'YOUR_DATABASE_PASSWORD_HERE',
+	'tablePrefix'	=> 'elections_',	// If any
+	
+	# E-mail addresses
+	'webmaster' => 'YOUR_WEBMASTER_EMAIL_HERE',
+	'recipient' => 'YOUR_MAIN_EMAIL_HERE',	// Responses are also e-mailed, as a backup
+	
+	# Texts
+	'welcomeTextHtml' => "
+		<p>Welcome to ORGANISATION NAME's Elections section, which profiles what candidates standing in the elections are saying about cycling (and walking) issues. Use your vote to raise the profile of cycling and walking in this election.</p>",
+
+	'introductoryTextHtml' => "
+		<p><img align=\"right\" src=\"/elections/pollingstations.jpg\" width=\"89\" height=\"121\" alt=\"Ballot box\" class=\"shiftup\" />
+		<p>We have sent a short list of questions to each candidate standing to find out what they think about improving provision for cycling in our area. Their responses can be seen online within these pages.</p>",
+	
+	'imprint' => 'ORGANISATION NAME is a non-partisan body. All candidates are given an equal opportunity to submit their views. Information published by ORGANISATION NAME, ADDRESS.',
+	
+	# Pre-formatted letters
+	'letterheadHtml' => '
+		<p>ORGANISATION NAME<br />
+		ORGANISATION ADDRESS LINE 1<br />
+		ORGANISATION ADDRESS LINE 2<br />
+		ETC.</p>
+		',
+	'organisationIntroduction' => "By way of introduction, ORGANISATION NAME is BLURB. Full information about our activities and views can be found on our extensive website, at URL .",
+	'letterSignatureName' => 'YOUR_SIGNATORY_NAME_HERE',
+	'letterSignaturePosition' => 'YOUR_SIGNATORY_POSITION_HERE',
+	'letterSignatureOrganisationName' => 'YOUR_ORGANISATION_NAME_HERE',
+	'postSubmissionHtml' => '<p>Have you thought about joining our organisation? BLURB</p>',
+	'postSubmissionHtmlLetters' => '<p>P.S. Have you thought about joining our organisation? BLURB</p>',
+);
+
+?>

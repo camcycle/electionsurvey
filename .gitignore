@@ -1,0 +1,11 @@
+# Files to ignore
+
+# Application exclusions
+.config.php
+
+# Locally-specific exclusions
+.title.txt
+.menu.html
+header.php
+20*
+
