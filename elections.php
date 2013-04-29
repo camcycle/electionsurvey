@@ -854,6 +854,15 @@ class elections
 		# Start the HTML
 		$html  = '';
 		
+		# In wards-only mode, if there is only one ward, just return its name - no point showing the jumplist
+		if ($wardsOnly) {
+			if (count ($this->wards) == 1) {
+				$ward = array_shift (array_values ($this->wards));
+				$html = $this->wardName ($ward);
+				return $html;
+			}
+		}
+		
 		# Start the list
 		$list = array ();
 		if (!$wardsOnly) {
@@ -872,6 +881,7 @@ class elections
 		$selected = $_SERVER['SCRIPT_URL'];
 		
 		# Convert to a droplist
+		#!# NB This doesn't work in IE7, probably because the window.location.href presumably needs a full URL rather than a location; fix needed upstream in pureContent library
 		require_once ('pureContent.php');
 		$submitTo = "{$this->baseUrl}/{$this->election['id']}/";
 		$html = pureContent::htmlJumplist ($list, $selected, $submitTo, 'jumplist', $parentTabLevel = 3, ($wardsOnly ? '' : 'jumplist'), ($wardsOnly ? '' : 'Jump to:'));
