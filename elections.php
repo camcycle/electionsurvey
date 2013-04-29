@@ -288,6 +288,12 @@ class elections
 		require_once ('application.php');
 		require_once ('database.php');
 		
+		# Get the base URL
+		$this->baseUrl = application::getBaseUrl ();
+		
+		# Load the local stylesheet
+		echo "\n<style type=\"text/css\" media=\"all\">@import \"{$this->baseUrl}/elections.css\";</style>";
+		
 		# Function to merge the arguments; note that $errors returns the errors by reference and not as a result from the method
 		$this->errors = array ();
 		if (!$this->settings = $this->mergeConfiguration ($this->defaults, $settings)) {
@@ -312,9 +318,6 @@ class elections
 			$this->pageNotFound ();
 			return false;
 		}
-		
-		# Get the base URL
-		$this->baseUrl = application::getBaseUrl ();
 		
 		# Get the elections available
 		$this->elections = $this->getElections ();

@@ -1,0 +1,20 @@
+/* Elections */
+body.elections table.header td.letterhead {text-align: top; width: 45%;}
+body.elections table.header td.letterhead p {text-align: right;}
+body.elections table.header td.address {text-align: top; padding-top: 3cm; padding-left: 1cm; width: 7cm;}
+body.elections hr {height: 2px; color: gray;}
+body.elections p.links {margin-bottom: 0; text-indent: 1.9em; font-size: 0.92em; color: gray;}
+body.elections ul.links {margin-top: 2px; font-size: 0.92em;}
+body.elections h4.question {margin-top: 2.5em; border-bottom: 1px solid #d7d7d7; padding-bottom: 2px; margin-bottom: 0;}
+body.elections h4 span {font-weight: normal;}
+body.elections p.noresponse {margin-left: 2em;}
+body.elections table.questions td.value p {margin-top: 0;}
+body.elections table tr.elected td, body.elections span.elected {background-color: #ddd;}
+body.elections span.elected {padding: 2px 4px;}
+@media print {
+	body.elections {font-size: 10pt;}
+	body.elections #location, body.elections h1, body.elections h2, body.elections #footer {display: none;}
+	body.elections #content {width: 90%;}
+	body.elections .pagebreak {page-break-after: always;} /* Done this way to avoid first page being blank */
+	body.elections table.header {width: 100%;}
+}
