@@ -162,13 +162,8 @@
 		'recipient' => 'elections@lists.example.com',
 		
 		# Texts
-		'welcomeTextHtml' => "
-			<p>Welcome to BLAH's Elections section, which profiles what candidates standing in the elections are saying about BLAH issues. Use your vote to raise the profile of BLAH in this election.</p>",
-		
-		'introductoryTextHtml' => "
-			<p>We have sent a short list of questions to each candidate standing to find out what they think about improving BLAH. Their responses can be seen online within these pages.</p>
-			<p>We've done this survey online so that constituents - including our members - in each ward can see what each candidate thinks. Voters can then take these views into account alongside other issues of concern to them. The questions we've posed are relevant/specific to each ward.</p>",
-		
+		'welcomeTextHtml' => "<p>Welcome to BLAH's Elections section, which profiles what candidates standing in the elections are saying about BLAH issues. Use your vote to raise the profile of BLAH in this election.</p>",
+		'introductoryTextHtml' => "<p>We have sent a short list of questions to each candidate standing to find out what they think about improving BLAH. Their responses can be seen online within these pages.</p>",
 		'imprint' => 'BLAH is a non-partisan body. All candidates are given an equal opportunity to submit their views. Information published by BLAH.',
 		
 		# Pre-formatted letters
@@ -287,6 +282,7 @@ class elections
 		# Load external libraries
 		require_once ('application.php');
 		require_once ('database.php');
+		require_once ('pureContent.php');
 		
 		# Get the base URL
 		$this->baseUrl = application::getBaseUrl ();
@@ -345,8 +341,13 @@ class elections
 			$this->candidate = ((isSet ($_GET['candidate']) && isSet ($this->wards[$_GET['candidate']])) ? $this->candidates[$_GET['candidate']] : false);
 		}
 		
-		# Take action
+		# Show the heading
 		echo "\n<h1>Elections</h1>";
+		if ($this->election) {
+			echo $this->droplistNavigation ();
+		}
+		
+		# Take action
 		$this->action = $_GET['action'];
 		$this->{$this->action} ();
 		
@@ -371,6 +372,7 @@ class elections
 	{
 		# Introductory text
 		$html  = $this->settings['welcomeTextHtml'];
+		$html .= "<p><img align=\"right\" src=\"/elections/pollingstations.jpg\" width=\"89\" height=\"121\" alt=\"Ballot box\" class=\"shiftup\" /></p>";
 		$html .= $this->settings['introductoryTextHtml'];
 		
 		# Show current elections
@@ -406,6 +408,7 @@ class elections
 		$html  = $this->settings['introductoryTextHtml'];
 		
 		# Add the summary table and wards
+		$html .= "<p><img align=\"right\" src=\"/elections/pollingstations.jpg\" width=\"89\" height=\"121\" alt=\"Ballot box\" class=\"shiftup\" /></p>";
 		$html .= $this->showOverviewDetails ($this->election);
 		
 		# Show the HTML
@@ -706,7 +709,7 @@ class elections
 		$html  = "\n<h2>{$election['name']}" . ($this->ward ? ': ' . $this->wardName ($this->ward) : '') . "</h2>";
 		$table['Summary'] = (!$this->ward ? $election['description'] : "<a href=\"{$this->baseUrl}/{$election['id']}/\">{$election['description']}</a>");
 		$table['Polling date'] = $election['polling date'];
-		if ($this->ward) {$table['Ward'] = $this->wardName ($this->ward);}
+		if ($this->ward) {$table['Ward'] = $this->droplistNavigation (true);}
 		
 		# List the candidates
 		if ($this->ward) {
@@ -843,6 +846,43 @@ class elections
 		# Return the data
 		return $data;
 	}
+	
+	
+	# Function to add a droplist navigation
+	private function droplistNavigation ($wardsOnly = false)
+	{
+		# Start the HTML
+		$html  = '';
+		
+		# Start the list
+		$list = array ();
+		if (!$wardsOnly) {
+			$list["{$this->baseUrl}/{$this->election['id']}/"] = 'Overview page';
+			$list["{$this->baseUrl}/{$this->election['id']}/questions/"] = 'Questions index';
+			$list["{$this->baseUrl}/{$this->election['id']}/respondents.html"] = 'Respondents';
+		}
+		
+		# Add each ward
+		foreach ($this->wards as $key => $ward) {
+			$location = "{$this->baseUrl}/{$this->election['id']}/{$ward['id']}/";
+			$list[$location] = $this->wardName ($ward);
+		}
+		
+		# Set the current page as the selected item
+		$selected = $_SERVER['SCRIPT_URL'];
+		
+		# Convert to a droplist
+		require_once ('pureContent.php');
+		$submitTo = "{$this->baseUrl}/{$this->election['id']}/";
+		$html = pureContent::htmlJumplist ($list, $selected, $submitTo, 'jumplist', $parentTabLevel = 3, ($wardsOnly ? '' : 'jumplist'), ($wardsOnly ? '' : 'Jump to:'));
+		
+		# Create a processor to handle changes
+		pureContent::jumplistProcessor ();
+		
+		# Return the HTML
+		return $html;
+	}
+	
 	
 	
 	# Function to show wards

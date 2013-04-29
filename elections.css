@@ -11,6 +11,7 @@ body.elections p.noresponse {margin-left: 2em;}
 body.elections table.questions td.value p {margin-top: 0;}
 body.elections table tr.elected td, body.elections span.elected {background-color: #ddd;}
 body.elections span.elected {padding: 2px 4px;}
+body.elections .jumplist {float: right; margin-left: 2em; margin-bottom: 1em;}
 @media print {
 	body.elections {font-size: 10pt;}
 	body.elections #location, body.elections h1, body.elections h2, body.elections #footer {display: none;}

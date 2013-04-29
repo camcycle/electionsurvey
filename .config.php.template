@@ -15,13 +15,8 @@ $settings = array (
 	'recipient' => 'YOUR_MAIN_EMAIL_HERE',	// Responses are also e-mailed, as a backup
 	
 	# Texts
-	'welcomeTextHtml' => "
-		<p>Welcome to ORGANISATION NAME's Elections section, which profiles what candidates standing in the elections are saying about cycling (and walking) issues. Use your vote to raise the profile of cycling and walking in this election.</p>",
-
-	'introductoryTextHtml' => "
-		<p><img align=\"right\" src=\"/elections/pollingstations.jpg\" width=\"89\" height=\"121\" alt=\"Ballot box\" class=\"shiftup\" />
-		<p>We have sent a short list of questions to each candidate standing to find out what they think about improving provision for cycling in our area. Their responses can be seen online within these pages.</p>",
-	
+	'welcomeTextHtml' => "<p>Welcome to ORGANISATION NAME's Elections section, which profiles what candidates standing in the elections are saying about cycling (and walking) issues. Use your vote to raise the profile of cycling and walking in this election.</p>",
+	'introductoryTextHtml' => "<p>We have sent a short list of questions to each candidate standing to find out what they think about improving provision for cycling in our area. Their responses can be seen online within these pages.</p>",
 	'imprint' => 'ORGANISATION NAME is a non-partisan body. All candidates are given an equal opportunity to submit their views. Information published by ORGANISATION NAME, ADDRESS.',
 	
 	# Pre-formatted letters
