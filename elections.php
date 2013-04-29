@@ -131,7 +131,7 @@
 	  `id` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Unique key',
 	  `prefix` varchar(255) collate utf8_unicode_ci default NULL COMMENT 'Ward name prefix',
 	  `ward` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Ward name',
-	  `districtCouncil` enum('','Cambridge City Council','South Cambridgeshire District Council') collate utf8_unicode_ci default NULL COMMENT 'District council',
+	  `districtCouncil` enum('','Cambridge City Council','South Cambridgeshire District Council','East Cambridgeshire District Council','Fenland District Council','Huntingdonshire District Council') collate utf8_unicode_ci default NULL COMMENT 'District council',
 	  `countyCouncil` enum('','Cambridgeshire County Council') collate utf8_unicode_ci default NULL COMMENT 'County Council',
 	  `districtCouncillors` tinyint(1) default NULL COMMENT 'District councillors',
 	  `countyCouncillors` tinyint(1) default NULL COMMENT 'County councillors',
@@ -950,7 +950,9 @@ class elections
 				{$this->settings['tablePrefix']}candidates.id as id,
 				{$this->settings['tablePrefix']}candidates.ward as wardId,
 				{$this->settings['tablePrefix']}candidates.elected,
-				private, prefix, {$this->settings['tablePrefix']}wards.ward,
+				private, prefix,
+				{$this->settings['tablePrefix']}wards.ward,
+				{$this->settings['tablePrefix']}wards.districtCouncil,
 				forename, surname, verification, address, 
 				{$this->settings['tablePrefix']}affiliations.id AS affiliationId,
 				{$this->settings['tablePrefix']}affiliations.name as affiliation,
@@ -1689,6 +1691,7 @@ class elections
 				{$this->settings['database']}.{$this->settings['tablePrefix']}wards.id as wardId,
 				{$this->settings['database']}.{$this->settings['tablePrefix']}wards.prefix,
 				{$this->settings['database']}.{$this->settings['tablePrefix']}wards.ward,
+				{$this->settings['database']}.{$this->settings['tablePrefix']}wards.districtCouncil,
 				{$this->settings['database']}.{$this->settings['tablePrefix']}affiliations.name as affiliation,
 				{$this->settings['database']}.{$this->settings['tablePrefix']}affiliations.colour
 			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}responses
@@ -1699,21 +1702,25 @@ class elections
 				election = '{$this->election['id']}'
 			ORDER BY ward,surname
 		;";
-		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}responses");
+		$respondents = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}responses");
 		
 		# Count the responses
-		$total = count ($data);
+		$total = count ($respondents);
 		
-		# Regroup the data
-		$wards = application::regroup ($data, 'wardId', false);
+		# Regroup the data by ward
+		$wards = application::regroup ($respondents, 'wardId', false);
 		
 		# Get the total number of candidates standing
 		$allCandidates = $this->getCandidates (true);
 		$totalCandidates = count ($allCandidates);
 		$percentageReplied = round (($total / $totalCandidates) * 100);
 		
+		# Construct a table of district responses (if more than one being elected)
+		$responseRatesByDistrictTable = $this->responseRatesByDistrictTable ($allCandidates, $respondents);
+		
 		# Construct the HTML
-		$html .= "\n<p>The following is an index to all candidates ({$total}, out of {$totalCandidates} standing, i.e. {$percentageReplied}%) who have submitted public responses. Click on the {$this->settings['division']} name to see them.</p>";
+		$html .= "\n<p>The following is an index to all candidates " . ($responseRatesByDistrictTable ? '' : "({$total}, out of {$totalCandidates} standing, i.e. {$percentageReplied}%)") . " who have submitted public responses. Click on the {$this->settings['division']} name to see them.</p>";
+		$html .= $responseRatesByDistrictTable;
 		$html .= "\n<p><em>This list is ordered by {$this->settings['division']} and then surname.</em></p>";
 		foreach ($this->wards as $ward => $attributes) {
 			$html .= "<h4><a href=\"{$this->baseUrl}/{$this->election['id']}/{$ward}/\">{$this->wards[$ward]['_name']} <span>[view responses]</span></a>:</h4>";
@@ -1732,6 +1739,64 @@ class elections
 		
 		# Show the HTML
 		echo $html;
+	}
+	
+	
+	# Function to create a table of response rates by district
+	private function responseRatesByDistrictTable ($allCandidates, $respondents)
+	{
+		# Regroup the datasets by district Council
+		$districtCouncilGroupsStanding = application::regroup ($allCandidates, 'districtCouncil', false);
+		$districtCouncilGroupsResponded = application::regroup ($respondents, 'districtCouncil', false);
+		
+		# If only one grouping, end, as there is no need for a table
+		if (count ($districtCouncilGroupsStanding) == 1) {return;}
+		
+		# Assemble the data
+		$responseRatesByDistrict = array ();
+		$totalResponses = 0;
+		$totalCandidates = 0;
+		foreach ($districtCouncilGroupsStanding as $districtCouncilName => $candidatesThisDistrictCouncil) {
+			
+			# Exit if a district Council name is missing
+			#!# Need to report this to the Webmaster as indicating missing data
+			if (!strlen ($districtCouncilName)) {return false;}
+			
+			# Count the figures
+			$totalDistrictResponses = (isSet ($districtCouncilGroupsResponded[$districtCouncilName]) ? count ($districtCouncilGroupsResponded[$districtCouncilName]) : 0);
+			$totalDistrictCandidates = count ($candidatesThisDistrictCouncil);
+			$percentageDistrictReplied = round (($totalDistrictResponses / $totalDistrictCandidates) * 100);
+			
+			# Add to the global totals
+			$totalResponses += $totalDistrictResponses;
+			$totalCandidates += $totalDistrictCandidates;
+			
+			# Register this in the table
+			$responseRatesByDistrict[$districtCouncilName] = array (
+				'District'		=> $districtCouncilName,
+				'Response rate'	=> '<strong>' . $percentageDistrictReplied . '%' . '</strong>',
+				'Responses'		=> $totalDistrictResponses,
+				'Candidates'	=> $totalDistrictCandidates,
+			);
+		}
+		
+		# Add the global totals
+		$percentageReplied = round (($totalResponses / $totalCandidates) * 100);
+		$responseRatesByDistrict['Total'] = array (
+			'District'		=> 'Total',
+			'Response rate'	=> '<strong>' . $percentageReplied . '%' . '</strong>',
+			'Responses'		=> $totalResponses,
+			'Candidates'	=> $totalCandidates,
+		);
+		
+		# Sort by district name
+		ksort ($responseRatesByDistrict);
+		
+		# Compile as a table
+		$html = application::htmlTable ($responseRatesByDistrict, array (), 'responserates lines compressed', $keyAsFirstColumn = false, false, $allowHtml = true, $showColons = true);
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	

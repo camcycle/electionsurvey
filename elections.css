@@ -12,6 +12,7 @@ body.elections table.questions td.value p {margin-top: 0;}
 body.elections table tr.elected td, body.elections span.elected {background-color: #ddd;}
 body.elections span.elected {padding: 2px 4px;}
 body.elections .jumplist {float: right; margin-left: 2em; margin-bottom: 1em;}
+body.elections table.responserates th, body.elections table.responserates tr:last-child td {background-color: #f7f7f7;}
 @media print {
 	body.elections {font-size: 10pt;}
 	body.elections #location, body.elections h1, body.elections h2, body.elections #footer {display: none;}
