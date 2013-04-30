@@ -275,6 +275,7 @@ class elections
 		'questions' => 'List of questions for an election',
 		'respondents' => 'List of respondents',
 		'cabinet' => 'Restanding Cabinet members',
+		'admin' => 'Administrative functions',
 	);
 	
 	
@@ -386,12 +387,7 @@ class elections
 		# Show administrative options
 		if ($this->userIsAdministrator) {
 			$html .= "\n<h2>Administrative options</h2>";
-			$html .= "\n<p>As an administrator you can also:</p>";
-			$html .= "\n<ul>
-				<li><a href=\"{$this->baseUrl}/questions.html\">See every question available in the database</a></li>
-				<li><a href=\"{$this->baseUrl}/submit/\">Use/view the candidate submission form</a></li>
-				<li><a href=\"{$this->baseUrl}/allocations.html\">Convert an allocations spreadsheet into SQL</a></li>
-			</ul>";
+			$html .= "\n<p><a href=\"{$this->baseUrl}/admin/\">Administrative area</a></p>";
 		}
 		
 		# Show the HTML
@@ -695,24 +691,6 @@ class elections
 		
 		# Return the list
 		return $questions;
-	}
-	
-	
-	# List of all questions in the entire database
-	private function allquestions ()
-	{
-		# Ensure that an election is not being supplied
-		if ($this->election) {
-			header ('HTTP/1.0 404 Not Found');
-			echo $html = '<p>This listing is not election-specific. Please check the URL and try again.</p>';
-			return false;
-		}
-		
-		# Get data
-		$html = $this->showQuestions ();
-		
-		# Show the HTML
-		echo $html;
 	}
 	
 	
@@ -1102,7 +1080,7 @@ class elections
 			if ($this->election) {
 				$html .= application::htmlUl ($wardsHtml);
 				if ($this->userIsAdministrator) {
-					$html .= "\n<p>As an administrator you can also return to the <a href=\"{$this->baseUrl}/questions.html\">list of all questions available in the database</a>.</p>";
+					$html .= "\n<p>As an administrator you can also return to the <a href=\"{$this->baseUrl}/admin/allquestions.html\">list of all questions available in the database</a>.</p>";
 				}
 			}
 		}
@@ -1649,65 +1627,6 @@ class elections
 	}
 	
 	
-	# Admin helper function to create SQL INSERTS
-	private function allocations ()
-	{
-		# Start the HTML
-		$html  = '<h2>Create the question allocation SQL</h2>';
-		
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html  = '<p>You must be an administrator to access this page.</p>';
-			return false;
-		}
-		
-		# Assemble the elections list
-		$elections = array ();
-		foreach ($this->elections as $key => $value) {
-			$elections[$key] = $value['name'];
-		}
-		
-		# Create the form
-		require_once ('ultimateForm.php');
-		$form = new form (array (
-			'developmentEnvironment' => ini_get ('display_errors'),
-			'formCompleteText' => false,
-		));
-		$form->select (array (
-			'name'			=> 'election',
-			'title'			=> 'Which election',
-			'values'		=> $elections,
-		));
-		$form->textarea (array (
-			'name'			=> 'allocations',
-			'title'			=> "Enter the allocations, as wardname[tab]q1[tab]q2, etc., per line",
-			'required'		=> true,
-			'cols'			=> 80,
-			'rows'			=> 10,
-		));
-		
-		# Process the result
-		if (!$result = $form->process ()) {return false;}
-		
-		# Compile the SQL
-		$sql  = "INSERT INTO {$this->settings['database']}.{$this->settings['tablePrefix']}surveys (election,ward,question) VALUES \n";
-		$wards = explode ("\n", trim ($result['allocations']));
-		$set = array ();
-		foreach ($wards as $ward) {
-			list ($wardId, $questions) = preg_split ("/\s+/", trim ($ward), 2);
-			$allocations = preg_split ("/\s+/", trim ($questions));
-			foreach ($allocations as $allocation) {
-				$set[] .= "\t('{$result['election']}', '{$wardId}', {$allocation})";
-			}
-		}
-		$sql .= implode ($set, ",\n");
-		$sql .= "\n;";
-		
-		# Show the SQL
-		echo nl2br (htmlspecialchars ($sql));
-	}
-	
-	
 	# Function to show the list of respondents
 	private function respondents ()
 	{
@@ -1927,6 +1846,122 @@ class elections
 		
 		# Return the arguments
 		return $arguments;
+	}
+	
+	
+	# Admin area
+	private function admin ()
+	{
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			echo $html = '<p>You must be an administrator to access this page.</p>';
+			return false;
+		}
+		
+		# Start the HTML
+		$html  = "\n<h2>Administrative functions</h2>";
+		$html .= "\n<p><em>This section is accessible only to Administrators.</em></p>";
+		
+		# Candidate control
+		$html .= "\n<h3>Candidate control</h3>
+		<ul>
+			<li><a href=\"{$this->baseUrl}/admin/allquestions.html\">See every question available in the database</a></li>
+			<li><a href=\"{$this->baseUrl}/submit/\">Use/view the candidate submission form</a></li>
+			<li>See the printable letters to candidates for this election - currently accessed via the per-election pages</li>
+		</ul>";
+		
+		# Data import
+		$html .= "\n<h3>Data import</h3>
+		<ul>
+			<li><a href=\"{$this->baseUrl}/admin/allocations.html\">Convert an allocations spreadsheet into SQL</a></li>
+		</ul>";
+		
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# List of all questions in the entire database
+	private function allquestions ()
+	{
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			echo $html = '<p>You must be an administrator to access this page.</p>';
+			return false;
+		}
+		
+		# Ensure that an election is not being supplied
+		if ($this->election) {
+			header ('HTTP/1.0 404 Not Found');
+			echo $html = '<p>This listing is not election-specific. Please check the URL and try again.</p>';
+			return false;
+		}
+		
+		# Get data
+		$html = $this->showQuestions ();
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Admin helper function to create SQL INSERTS
+	private function allocations ()
+	{
+		# Start the HTML
+		$html  = '<h2>Create the question allocation SQL</h2>';
+		
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			echo $html  = '<p>You must be an administrator to access this page.</p>';
+			return false;
+		}
+		
+		# Assemble the elections list
+		$elections = array ();
+		foreach ($this->elections as $key => $value) {
+			$elections[$key] = $value['name'];
+		}
+		
+		# Create the form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'developmentEnvironment' => ini_get ('display_errors'),
+			'formCompleteText' => false,
+		));
+		$form->select (array (
+			'name'			=> 'election',
+			'title'			=> 'Which election',
+			'values'		=> $elections,
+		));
+		$form->textarea (array (
+			'name'			=> 'allocations',
+			'title'			=> "Enter the allocations, as wardname[tab]q1[tab]q2, etc., per line",
+			'required'		=> true,
+			'cols'			=> 80,
+			'rows'			=> 10,
+		));
+		
+		# Process the result
+		if (!$result = $form->process ()) {return false;}
+		
+		# Compile the SQL
+		$sql  = "INSERT INTO {$this->settings['database']}.{$this->settings['tablePrefix']}surveys (election,ward,question) VALUES \n";
+		$wards = explode ("\n", trim ($result['allocations']));
+		$set = array ();
+		foreach ($wards as $ward) {
+			list ($wardId, $questions) = preg_split ("/\s+/", trim ($ward), 2);
+			$allocations = preg_split ("/\s+/", trim ($questions));
+			foreach ($allocations as $allocation) {
+				$set[] .= "\t('{$result['election']}', '{$wardId}', {$allocation})";
+			}
+		}
+		$sql .= implode ($set, ",\n");
+		$sql .= "\n;";
+		
+		# Show the SQL
+		echo nl2br (htmlspecialchars ($sql));
 	}
 }
 
