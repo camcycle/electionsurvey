@@ -667,7 +667,7 @@ class elections
 	
 	
 	# Function to get all the questions being asked in a particular election
-	private function getQuestionsForElection ($electionId)
+	private function getQuestionsForElection ($electionId, $idToIndex = false)
 	{
 		# Get all the questions for this election
 		$data = $this->getQuestions (false, $electionId, $groupByQuestionId = true);
@@ -682,6 +682,15 @@ class elections
 			foreach ($relevantFields as $relevantField) {
 				$questions[$key][$relevantField] = $question[$relevantField];
 			}
+		}
+		
+		# Reverse the indexing as questionId => orderId if required
+		if ($idToIndex) {
+			$questionsIdToIndex = array ();
+			foreach ($questions as $order => $question) {
+				$questionsIdToIndex[$question['questionId']] = $order;
+			}
+			$questions = $questionsIdToIndex;
 		}
 		
 		# Return the list
@@ -1042,6 +1051,9 @@ class elections
 			$responses = $this->getResponses ($wardSurveyIds);
 		}
 		
+		# Get all the question index numbers in use in this election - i.e. the public numbers 1,2,3.. (as shown on the question index page) rather than the internal IDs
+		$questionNumbersPublic = $this->getQuestionsForElection ($this->election['id'], true);
+		
 		# Loop through each grouping
 		$questionsHtml = '';
 		foreach ($data as $ward => $questions) {
@@ -1069,8 +1081,9 @@ class elections
 				$i++;
 				$link = "question{$i}" . (!$limitToWard && $this->election ? $ward : '');
 				$questionsJumplist[] = "<strong><a href=\"#{$link}\">&nbsp;{$i}&nbsp;</a></strong>";
+				$questionNumberPublic = $questionNumbersPublic[$question['questionId']];
 				$list[$surveyId]  = "\n\n<h4 class=\"question\" id=\"{$link}\"><a href=\"#{$link}\">#</a> Question {$i}" . ($limitToWard ? '' : " &nbsp;[survey-id#{$surveyId}]") . '</h4>';	// In all-listing mode (i.e. admins-only), show the IDs
-				$list[$surveyId] .= $this->responsesBlock ($question, $this->candidates, $responses);
+				$list[$surveyId] .= $this->responsesBlock ($question, $this->candidates, $responses, false, $questionNumberPublic);
 			}
 			
 			# Construct the HTML
@@ -1096,7 +1109,7 @@ class elections
 	
 	
 	# Function to create the block of candidate responses to a question
-	private function responsesBlock ($question, $candidates, $responses, $crossWardMode = false)
+	private function responsesBlock ($question, $candidates, $responses, $crossWardMode = false, $questionNumberPublic = false)
 	{
 		# Start the HTML
 		$html  = '';
@@ -1110,6 +1123,11 @@ class elections
 		# Add the question box at the top
 		$question['question'] = htmlspecialchars ($question['question']);
 		$html .= $this->questionBox ($question);
+		
+		# Add a link to all responses in other wards if required
+		if ($questionNumberPublic) {
+			$html .= "\n<p class=\"allresponseslink\"><a href=\"{$this->baseUrl}/{$this->election['id']}/questions/{$questionNumberPublic}/\">Responses to this question from all wards&hellip;</a></p>";
+		}
 		
 		# End if no candidates
 		if (!$candidates) {return $html;}
