@@ -273,6 +273,7 @@ class elections
 		'allocations' => 'Create the question allocation SQL',
 		'questions' => 'List of questions for an election',
 		'respondents' => 'List of respondents',
+		'cabinet' => 'Restanding Cabinet members',
 	);
 	
 	
@@ -335,7 +336,7 @@ class elections
 		$this->candidate = false;
 		$this->candidates = array ();
 		if ($this->ward) {
-			$this->candidates = $this->getCandidates ();
+			$this->candidates = $this->getCandidates (false, $this->ward);
 			
 			# Determine which ward
 			$this->candidate = ((isSet ($_GET['candidate']) && isSet ($this->wards[$_GET['candidate']])) ? $this->candidates[$_GET['candidate']] : false);
@@ -621,7 +622,7 @@ class elections
 		$wards = $this->databaseConnection->getPairs ($wardsQuery);
 		
 		# Get the candidates having this question
-		$candidates = $this->getCandidates (false, $wards);
+		$candidates = $this->getCandidates (false, false, $wards);
 		
 		# Get the responses
 		$surveyIds = array_keys ($wards);
@@ -943,7 +944,7 @@ class elections
 	
 	
 	# Function to get candidates in an election
-	private function getCandidates ($all = false, $inWards = false)
+	private function getCandidates ($all = false, $onlyWard = false, $inWards = false)
 	{
 		# Get data
 		$query = "SELECT
@@ -963,7 +964,7 @@ class elections
 			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}wards ON {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.ward = {$this->settings['database']}.{$this->settings['tablePrefix']}wards.id
 			WHERE
 				election = '{$this->election['id']}'
-				" . ($inWards ? "AND {$this->settings['tablePrefix']}candidates.ward IN('" . implode ("','", $inWards) . "')" : ($this->ward ? "AND {$this->settings['tablePrefix']}candidates.ward = '{$this->ward['id']}'" : '')) . "
+				" . ($inWards ? "AND {$this->settings['tablePrefix']}candidates.ward IN('" . implode ("','", $inWards) . "')" : ($onlyWard ? "AND {$this->settings['tablePrefix']}candidates.ward = '{$onlyWard['id']}'" : '')) . "
 			ORDER BY " . ($inWards ? 'affiliation,surname,forename' : ($all ? 'wardId,surname' : 'surname,forename')) . "
 		;";
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}wards");
