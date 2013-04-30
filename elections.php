@@ -1372,7 +1372,6 @@ class elections
 			# Load and instantiate the form library
 			$form = new form (array (
 				'name' => 'verification',
-				'developmentEnvironment' => ini_get ('display_errors'),
 				'formCompleteText' => false,
 				'div'	=> false,
 				'display'	=> 'paragraphs',
@@ -1470,7 +1469,6 @@ class elections
 		# Create the form using the built template
 		$form = new form (array (
 			'name' => 'questions',
-			'developmentEnvironment' => ini_get ('display_errors'),
 			'formCompleteText' => false,
 			'div'	=> false,
 			'display'	=> 'template',
@@ -1927,7 +1925,6 @@ class elections
 		# Create the form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
-			'developmentEnvironment' => ini_get ('display_errors'),
 			'formCompleteText' => false,
 		));
 		$form->select (array (
