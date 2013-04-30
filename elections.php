@@ -479,6 +479,14 @@ class elections
 			return false;
 		}
 		
+		# Ensure there is an election supplied
+		if (!$this->election) {
+			$html .= "\n<p>Please select which election:</p>";
+			$html .= $this->listElections ($this->elections, true, false, 'letters.html');
+			echo $html;
+			return false;
+		}
+		
 		# Get the candidates
 		if (!$candidates = $this->getCandidates (true)) {
 			echo $html .= '<p>There are no candidates at present.</p>';
@@ -796,12 +804,12 @@ class elections
 	
 	
 	# Helper function to list elections
-	private function listElections ($elections, $archived = false, $class = false)
+	private function listElections ($elections, $archived = false, $class = false, $urlSuffix = false)
 	{
 		# Create the listing
 		foreach ($elections as $key => $election) {
 			if (!$this->settings['listArchived'] && !$election['active']) {continue;}
-			$list[$key] = "<a href=\"{$this->baseUrl}/{$election['id']}/\">{$election['name']}" . ($archived ? '' : "<br />(polling date: {$election['polling date']})") . '</a>';
+			$list[$key] = "<a href=\"{$this->baseUrl}/{$election['id']}/{$urlSuffix}\">{$election['name']}" . ($archived ? '' : "<br />(polling date: {$election['polling date']})") . '</a>';
 			if (!$archived) {
 				$list[$key] = "<strong>{$list[$key]}</strong>";
 			}
@@ -1865,7 +1873,7 @@ class elections
 		<ul>
 			<li><a href=\"{$this->baseUrl}/admin/allquestions.html\">See every question available in the database</a></li>
 			<li><a href=\"{$this->baseUrl}/submit/\">Use/view the candidate submission form</a></li>
-			<li>See the printable letters to candidates for this election - currently accessed via the per-election pages</li>
+			<li><a href=\"{$this->baseUrl}/admin/letters.html\">See the printable letters to candidates</a></li>
 		</ul>";
 		
 		# Data import
@@ -1873,7 +1881,6 @@ class elections
 		<ul>
 			<li><a href=\"{$this->baseUrl}/admin/allocations.html\">Convert an allocations spreadsheet into SQL</a></li>
 		</ul>";
-		
 		
 		# Show the HTML
 		echo $html;
