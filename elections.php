@@ -1715,8 +1715,8 @@ class elections
 		$totalCandidates = count ($allCandidates);
 		$percentageReplied = round (($total / $totalCandidates) * 100);
 		
-		# Construct a table of district responses (if more than one being elected)
-		$responseRatesByDistrictTable = $this->responseRatesByDistrictTable ($allCandidates, $respondents);
+		# Construct tables of response rates
+		$responseRatesByDistrictTable = $this->responseRatesByAspectTable ($allCandidates, $respondents, 'districtCouncil', 'District');
 		
 		# Construct the HTML
 		$html .= "\n<p>The following is an index to all candidates " . ($responseRatesByDistrictTable ? '' : "({$total}, out of {$totalCandidates} standing, i.e. {$percentageReplied}%)") . " who have submitted public responses. Click on the {$this->settings['division']} name to see them.</p>";
@@ -1742,58 +1742,61 @@ class elections
 	}
 	
 	
-	# Function to create a table of response rates by district
-	private function responseRatesByDistrictTable ($allCandidates, $respondents)
+	# Function to create a table of response rates by aspect (e.g. District)
+	private function responseRatesByAspectTable ($allCandidates, $respondents, $aspect, $aspectLabel)
 	{
-		# Regroup the datasets by district Council
-		$districtCouncilGroupsStanding = application::regroup ($allCandidates, 'districtCouncil', false);
-		$districtCouncilGroupsResponded = application::regroup ($respondents, 'districtCouncil', false);
+		# Regroup the datasets by aspect
+		$candidatesByAspectStanding = application::regroup ($allCandidates, $aspect, false);
+		$candidatesByAspectResponded = application::regroup ($respondents, $aspect, false);
 		
 		# If only one grouping, end, as there is no need for a table
-		if (count ($districtCouncilGroupsStanding) == 1) {return;}
+		if (count ($candidatesByAspectStanding) == 1) {return;}
+		
+		# Construct the aspect label
+		$aspectLabel = 'Response rates by ' . lcfirst ($aspectLabel);
 		
 		# Assemble the data
-		$responseRatesByDistrict = array ();
+		$responseRatesByAspect = array ();
 		$totalResponses = 0;
 		$totalCandidates = 0;
-		foreach ($districtCouncilGroupsStanding as $districtCouncilName => $candidatesThisDistrictCouncil) {
+		foreach ($candidatesByAspectStanding as $grouping => $candidatesThisAspect) {
 			
-			# Exit if a district Council name is missing
+			# Exit if an aspect name is missing (e.g. missing District Council name)
 			#!# Need to report this to the Webmaster as indicating missing data
-			if (!strlen ($districtCouncilName)) {return false;}
+			if (!strlen ($grouping)) {return false;}
 			
 			# Count the figures
-			$totalDistrictResponses = (isSet ($districtCouncilGroupsResponded[$districtCouncilName]) ? count ($districtCouncilGroupsResponded[$districtCouncilName]) : 0);
-			$totalDistrictCandidates = count ($candidatesThisDistrictCouncil);
-			$percentageDistrictReplied = round (($totalDistrictResponses / $totalDistrictCandidates) * 100);
+			$totalResponsesThisGrouping = (isSet ($candidatesByAspectResponded[$grouping]) ? count ($candidatesByAspectResponded[$grouping]) : 0);
+			$totalCandidatesThisGrouping = count ($candidatesThisAspect);
+			$percentageThisGroupingReplied = round (($totalResponsesThisGrouping / $totalCandidatesThisGrouping) * 100);
 			
 			# Add to the global totals
-			$totalResponses += $totalDistrictResponses;
-			$totalCandidates += $totalDistrictCandidates;
+			$totalResponses += $totalResponsesThisGrouping;
+			$totalCandidates += $totalCandidatesThisGrouping;
 			
 			# Register this in the table
-			$responseRatesByDistrict[$districtCouncilName] = array (
-				'District'		=> $districtCouncilName,
-				'Response rate'	=> '<strong>' . $percentageDistrictReplied . '%' . '</strong>',
-				'Responses'		=> $totalDistrictResponses,
-				'Candidates'	=> $totalDistrictCandidates,
+			$responseRatesByAspect[$grouping] = array (
+				$aspectLabel	=> $grouping,
+				'Response rate'	=> '<strong>' . $percentageThisGroupingReplied . '%' . '</strong>',
+				'Responses'		=> $totalResponsesThisGrouping,
+				'Candidates'	=> $totalCandidatesThisGrouping,
 			);
 		}
 		
+		# Sort by district name
+		ksort ($responseRatesByAspect);
+		
 		# Add the global totals
 		$percentageReplied = round (($totalResponses / $totalCandidates) * 100);
-		$responseRatesByDistrict['Total'] = array (
-			'District'		=> 'Total',
+		$responseRatesByAspect['Total'] = array (
+			$aspectLabel	=> 'Total',
 			'Response rate'	=> '<strong>' . $percentageReplied . '%' . '</strong>',
 			'Responses'		=> $totalResponses,
 			'Candidates'	=> $totalCandidates,
 		);
 		
-		# Sort by district name
-		ksort ($responseRatesByDistrict);
-		
 		# Compile as a table
-		$html = application::htmlTable ($responseRatesByDistrict, array (), 'responserates lines compressed', $keyAsFirstColumn = false, false, $allowHtml = true, $showColons = true);
+		$html = application::htmlTable ($responseRatesByAspect, array (), 'responserates lines compressed', $keyAsFirstColumn = false, false, $allowHtml = true, $showColons = true);
 		
 		# Return the HTML
 		return $html;
