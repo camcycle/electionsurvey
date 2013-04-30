@@ -467,113 +467,6 @@ class elections
 	}
 	
 	
-	# Function to produce printable letters to candidates containing questions for an election
-	private function letters ()
-	{
-		# Start the HTML
-		$html  = '<h2>Printable letters to candidates</h2>';
-		
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html .= '<p>You must be an administrator to access this page.</p>';
-			return false;
-		}
-		
-		# Ensure there is an election supplied
-		if (!$this->election) {
-			$html .= "\n<p>Please select which election:</p>";
-			$html .= $this->listElections ($this->elections, true, false, 'letters.html');
-			echo $html;
-			return false;
-		}
-		
-		# Get the candidates
-		if (!$candidates = $this->getCandidates (true)) {
-			echo $html .= '<p>There are no candidates at present.</p>';
-			return false;
-		}
-		
-		# Get the surveys
-		if (!$surveys = $this->getQuestions (false, $this->election['id'])) {
-			echo $html .= '<p>There are no questions at present.</p>';
-			return false;
-		}
-		
-		# Increase allowed execution time
-		ini_set ('max_execution_time', 3600);
-		
-		# Regroup
-		$surveys = application::regroup ($surveys, 'wardId', $removeGroupColumn = false);
-		$candidates = application::regroup ($candidates, 'wardId', $removeGroupColumn = false);
-		
-		# Loop through by ward having surveys
-		foreach ($surveys as $ward => $questionnaire) {
-			
-			# Miss out if no candidates in a ward
-			if (!isSet ($this->wards[$ward])) {continue;}
-			
-			# Loop through by candidate
-			foreach ($candidates[$ward] as $key => $candidate) {
-				
-				# Assemble the ward name
-				$wardName = $this->wardName ($candidate);
-				
-				# Avoid a house number appearing on its own
-				$candidate['address'] = preg_replace ('/^([0-9]+[a-zA-Z]?)\,/', '$1', $candidate['address']);
-				
-				# Show the letterhead
-				$html .= "
-					<table class=\"header\" cellpadding=\"0\" cellspacing=\"0\">
-						<tr>
-							<td class=\"address\">
-								{$candidate['_nameUncolouredNoAffiliation']},<br />
-								" . str_replace (',', ',<br />', htmlspecialchars ($candidate['address'])) . "
-							</td>
-							<td class=\"letterhead\">
-								{$this->settings['letterheadHtml']}
-								<p>" . date ('jS F Y') . "</p>
-							</td>
-						</tr>
-						<tr>
-							<td colspan=\"2\">
-								<p>&nbsp;</p>
-								<p>&nbsp;</p>
-								<p>Dear " . $wardName . ' ' . $this->settings['division'] . " candidate,</p>
-								<p>" . htmlspecialchars ($this->settings['organisationIntroduction']) . "</p>
-								<p>We write to you, as a candidate, to ask your views on a range of issues of concern to our " . htmlspecialchars ($this->settings['organisationConstituentsType']) . ". We would be most grateful if you could spend a few moments on the short survey below to let us know your views, as soon as you are able. All views submitted (as well as non-responses) will be shown on our website, for the information of voters. We would additionally be interested to hear from you if you have any other views or questions that we might be able to help with.</p>
-								<p>You can write back to us via the contact details above. However, if you have internet access, it would save us time if you could directly submit your responses via the automated facility on our website, if possible. Just go to: <u>" . ((substr ($_SERVER['SERVER_NAME'], 0, 4) != 'www.') ? 'http://' : '') . "{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
-								<p>Many thanks for your time.<br />Yours sincerely,</p>
-								<p>" . htmlspecialchars ($this->settings['letterSignatureName']) . ",<br />" . htmlspecialchars ($this->settings['letterSignaturePosition']) . ", " . htmlspecialchars ($this->settings['letterSignatureOrganisationName']) . "</p>
-								<p>&nbsp;</p>
-							</td>
-						</tr>
-					</table>
-				";
-				
-				# Show the questions
-				$i = 0;
-				foreach ($questionnaire as $key => $question) {
-					$i++;
-					$html .= '<hr />';
-					$question['question'] = htmlspecialchars ($question['question']);
-					$html .= "\n<p><strong>Question {$i}</strong>: {$question['question']}</p>";
-					$html .= "\n" . $this->formatLinks ($question['links'], true);
-					$html .= "\n<p>Your response (ideally, please submit this online - see above) :</p>";
-					$html .= "<p>&nbsp;</p><p>&nbsp;</p>";
-				}
-				
-				# Page break
-				$html .= "<p>&nbsp;</p><p>&nbsp;</p><p>(End of survey)</p>";
-				$html .= $this->settings['postSubmissionHtmlLetters'];
-				$html .= "<div class=\"pagebreak\"></div>";
-			}
-		}
-		
-		# Show the (printable) HTML
-		echo $html;
-	}
-	
-	
 	# Function to construct a list of all questions, or show all responses to a single question, for a particular election
 	private function questions ()
 	{
@@ -1966,6 +1859,113 @@ class elections
 		
 		# Show the SQL
 		echo nl2br (htmlspecialchars ($sql));
+	}
+	
+	
+	# Function to produce printable letters to candidates containing questions for an election
+	private function letters ()
+	{
+		# Start the HTML
+		$html  = '<h2>Printable letters to candidates</h2>';
+		
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			echo $html .= '<p>You must be an administrator to access this page.</p>';
+			return false;
+		}
+		
+		# Ensure there is an election supplied
+		if (!$this->election) {
+			$html .= "\n<p>Please select which election:</p>";
+			$html .= $this->listElections ($this->elections, true, false, 'letters.html');
+			echo $html;
+			return false;
+		}
+		
+		# Get the candidates
+		if (!$candidates = $this->getCandidates (true)) {
+			echo $html .= '<p>There are no candidates at present.</p>';
+			return false;
+		}
+		
+		# Get the surveys
+		if (!$surveys = $this->getQuestions (false, $this->election['id'])) {
+			echo $html .= '<p>There are no questions at present.</p>';
+			return false;
+		}
+		
+		# Increase allowed execution time
+		ini_set ('max_execution_time', 3600);
+		
+		# Regroup
+		$surveys = application::regroup ($surveys, 'wardId', $removeGroupColumn = false);
+		$candidates = application::regroup ($candidates, 'wardId', $removeGroupColumn = false);
+		
+		# Loop through by ward having surveys
+		foreach ($surveys as $ward => $questionnaire) {
+			
+			# Miss out if no candidates in a ward
+			if (!isSet ($this->wards[$ward])) {continue;}
+			
+			# Loop through by candidate
+			foreach ($candidates[$ward] as $key => $candidate) {
+				
+				# Assemble the ward name
+				$wardName = $this->wardName ($candidate);
+				
+				# Avoid a house number appearing on its own
+				$candidate['address'] = preg_replace ('/^([0-9]+[a-zA-Z]?)\,/', '$1', $candidate['address']);
+				
+				# Show the letterhead
+				$html .= "
+					<table class=\"header\" cellpadding=\"0\" cellspacing=\"0\">
+						<tr>
+							<td class=\"address\">
+								{$candidate['_nameUncolouredNoAffiliation']},<br />
+								" . str_replace (',', ',<br />', htmlspecialchars ($candidate['address'])) . "
+							</td>
+							<td class=\"letterhead\">
+								{$this->settings['letterheadHtml']}
+								<p>" . date ('jS F Y') . "</p>
+							</td>
+						</tr>
+						<tr>
+							<td colspan=\"2\">
+								<p>&nbsp;</p>
+								<p>&nbsp;</p>
+								<p>Dear " . $wardName . ' ' . $this->settings['division'] . " candidate,</p>
+								<p>" . htmlspecialchars ($this->settings['organisationIntroduction']) . "</p>
+								<p>We write to you, as a candidate, to ask your views on a range of issues of concern to our " . htmlspecialchars ($this->settings['organisationConstituentsType']) . ". We would be most grateful if you could spend a few moments on the short survey below to let us know your views, as soon as you are able. All views submitted (as well as non-responses) will be shown on our website, for the information of voters. We would additionally be interested to hear from you if you have any other views or questions that we might be able to help with.</p>
+								<p>You can write back to us via the contact details above. However, if you have internet access, it would save us time if you could directly submit your responses via the automated facility on our website, if possible. Just go to: <u>" . ((substr ($_SERVER['SERVER_NAME'], 0, 4) != 'www.') ? 'http://' : '') . "{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
+								<p>Many thanks for your time.<br />Yours sincerely,</p>
+								<p>" . htmlspecialchars ($this->settings['letterSignatureName']) . ",<br />" . htmlspecialchars ($this->settings['letterSignaturePosition']) . ", " . htmlspecialchars ($this->settings['letterSignatureOrganisationName']) . "</p>
+								<p>&nbsp;</p>
+							</td>
+						</tr>
+					</table>
+				";
+				
+				# Show the questions
+				$i = 0;
+				foreach ($questionnaire as $key => $question) {
+					$i++;
+					$html .= '<hr />';
+					$question['question'] = htmlspecialchars ($question['question']);
+					$html .= "\n<p><strong>Question {$i}</strong>: {$question['question']}</p>";
+					$html .= "\n" . $this->formatLinks ($question['links'], true);
+					$html .= "\n<p>Your response (ideally, please submit this online - see above) :</p>";
+					$html .= "<p>&nbsp;</p><p>&nbsp;</p>";
+				}
+				
+				# Page break
+				$html .= "<p>&nbsp;</p><p>&nbsp;</p><p>(End of survey)</p>";
+				$html .= $this->settings['postSubmissionHtmlLetters'];
+				$html .= "<div class=\"pagebreak\"></div>";
+			}
+		}
+		
+		# Show the (printable) HTML
+		echo $html;
 	}
 }
 
