@@ -311,11 +311,12 @@ class elections
 		require_once ('signin.php');
 		$this->userIsAdministrator = signin::user_has_privilege ('elections');
 		
-		# Check if invalid page supplied
+		# Set the action, checking that a valid page has been supplied
 		if (!isSet ($_GET['action']) || !array_key_exists ($_GET['action'], $this->actions)) {
 			$this->pageNotFound ();
 			return false;
 		}
+		$this->action = $_GET['action'];
 		
 		# Get the elections available
 		$this->elections = $this->getElections ();
@@ -352,8 +353,7 @@ class elections
 			echo $this->droplistNavigation ();
 		}
 		
-		# Take action
-		$this->action = $_GET['action'];
+		# Run the page action
 		$this->{$this->action} ();
 		
 		# End with disclaimer
@@ -899,6 +899,11 @@ class elections
 		
 		# Set the current page as the selected item
 		$selected = $_SERVER['SCRIPT_URL'];
+		
+		# Deal with the per-question pages not matching the URL
+		if ($this->action == 'questions') {
+			$selected = "{$this->baseUrl}/{$this->election['id']}/questions/";
+		}
 		
 		# Convert to a droplist
 		#!# NB This doesn't work in IE7, probably because the window.location.href presumably needs a full URL rather than a location; fix needed upstream in pureContent library
