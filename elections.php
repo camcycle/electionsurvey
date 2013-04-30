@@ -726,7 +726,7 @@ class elections
 			$table['Questions'] = "<a href=\"{$this->baseUrl}/{$election['id']}/questions/\">" . ($election['active'] ? '' : '<strong><img src="/images/icons/bullet_go.png" class="icon" /> ') .  'Index of all questions for this election' . ($election['active'] ? '' : '</strong>') .  '</a>';
 			$table['Respondents'] = "<a href=\"{$this->baseUrl}/{$election['id']}/respondents.html\">Index of all respondents" . ($election['active'] ? ' (so far)' : '') .  '</a>';
 			if ($this->cabinetRestanding) {
-				$table['Cabinet'] = "<a href=\"{$this->baseUrl}/{$election['id']}/cabinet.html\">Cabinet members restanding in this election</a>";
+				$table['Cabinet'] = "<a href=\"{$this->baseUrl}/{$election['id']}/cabinet.html\">Cabinet members in surveyed wards restanding in this election</a>";
 			}
 		}
 		
@@ -1777,7 +1777,7 @@ class elections
 		# End if no Cabinet members restanding in this election
 		if (!$this->cabinetRestanding) {
 			header ('HTTP/1.0 404 Not Found');
-			echo $html = '<p>There are no Cabinet members restanding in this election. Please check the URL and try again.</p>';
+			echo $html = '<p>There are no Cabinet members in wards we are surveying restanding in this election. Please check the URL and try again.</p>';
 			return false;
 		}
 		
@@ -1798,7 +1798,7 @@ class elections
 		}
 		
 		# Compile the HTML
-		$html  = "\n<h2>Cabinet members restanding in this election</h2>";
+		$html  = "\n<h2>Cabinet members in surveyed wards restanding in this election</h2>";
 		$html .= "\n<p>The <strong>Cabinet</strong> is the Executive of the Council, formed of members of the political party in power. They implement and drive the Council's policy. As such, their views arguably have greater effect than any other Councillors.</p>";
 		$html .= "\n<p>The listing below shows all the Cabinet members in wards we are surveying who are restanding in this election, and whether they have responded to our survey or not.</p>";
 		$html .= application::htmlTable ($cabinetMembers, array (), 'lines regulated', $keyAsFirstColumn = false, false, $allowHtml = true, $showColons = true);
