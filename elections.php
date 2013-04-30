@@ -1716,14 +1716,14 @@ class elections
 		$percentageReplied = round (($total / $totalCandidates) * 100);
 		
 		# Construct a table of response rates by district Council
-		$responseRatesByDistrictTable = $this->responseRatesByAspectTable ($allCandidates, $respondents, 'districtCouncil', 'District');
+		$responseRatesByDistrictTable = $this->responseRatesByAspectTable ($allCandidates, $respondents, 'districtCouncil', 'district');
 		
 		# Construct a table of response rates by affiliation (party)
 		$colours = array ();
 		foreach ($allCandidates as $candidate) {
 			$colours[$candidate['affiliation']] = $candidate['colour'];
 		}
-		$responseRatesByPartyTable = $this->responseRatesByAspectTable ($allCandidates, $respondents, 'affiliation', 'Affiliation (party)', $colours, true);
+		$responseRatesByPartyTable = $this->responseRatesByAspectTable ($allCandidates, $respondents, 'affiliation', 'affiliation (party)', $colours, true);
 		
 		# Construct the HTML
 		$html .= "\n<p>The following is an index to all candidates " . ($responseRatesByDistrictTable ? '' : "({$total}, out of {$totalCandidates} standing, i.e. {$percentageReplied}%)") . " who have submitted public responses. Click on the {$this->settings['division']} name to see them.</p>";
@@ -1761,7 +1761,7 @@ class elections
 		if (count ($candidatesByAspectStanding) == 1) {return;}
 		
 		# Construct the aspect label
-		$aspectLabel = 'Response rates by ' . lcfirst ($aspectLabel);
+		$aspectLabel = 'Response rates by ' . $aspectLabel;
 		
 		# Assemble the data
 		$responseRatesByAspect = array ();
