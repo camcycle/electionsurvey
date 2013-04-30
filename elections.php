@@ -86,6 +86,7 @@
 	  `address` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Address',
 	  `verification` varchar(6) collate utf8_unicode_ci NOT NULL COMMENT 'Verification number',
 	  `affiliation` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Affiliation (join to affiliations)',
+	  `cabinetRestanding` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'Whether the candidate is a restanding Cabinet member, and if so, their current Cabinet post',
 	  `private` int(1) default NULL,
 	  PRIMARY KEY  (`id`),
 	  UNIQUE KEY `verification` (`verification`)
@@ -341,6 +342,9 @@ class elections
 			# Determine which ward
 			$this->candidate = ((isSet ($_GET['candidate']) && isSet ($this->wards[$_GET['candidate']])) ? $this->candidates[$_GET['candidate']] : false);
 		}
+		
+		# Determine if there are any restanding Cabinet members in this election
+		$this->cabinetRestanding = $this->getCandidates (false, false, false, $cabinetRestanding = true);
 		
 		# Show the heading
 		echo "\n<h1>Elections</h1>";
@@ -721,6 +725,9 @@ class elections
 		if (!$this->ward) {
 			$table['Questions'] = "<a href=\"{$this->baseUrl}/{$election['id']}/questions/\">" . ($election['active'] ? '' : '<strong><img src="/images/icons/bullet_go.png" class="icon" /> ') .  'Index of all questions for this election' . ($election['active'] ? '' : '</strong>') .  '</a>';
 			$table['Respondents'] = "<a href=\"{$this->baseUrl}/{$election['id']}/respondents.html\">Index of all respondents" . ($election['active'] ? ' (so far)' : '') .  '</a>';
+			if ($this->cabinetRestanding) {
+				$table['Cabinet'] = "<a href=\"{$this->baseUrl}/{$election['id']}/cabinet.html\">Cabinet members restanding in this election</a>";
+			}
 		}
 		
 		# Compile the HTML
@@ -870,6 +877,9 @@ class elections
 			$list["{$this->baseUrl}/{$this->election['id']}/"] = 'Overview page';
 			$list["{$this->baseUrl}/{$this->election['id']}/questions/"] = 'Questions index';
 			$list["{$this->baseUrl}/{$this->election['id']}/respondents.html"] = 'Respondents';
+			if ($this->cabinetRestanding) {
+				$list["{$this->baseUrl}/{$this->election['id']}/cabinet.html"] = 'Cabinet restanding';
+			}
 		}
 		
 		# Add each ward
@@ -944,13 +954,14 @@ class elections
 	
 	
 	# Function to get candidates in an election
-	private function getCandidates ($all = false, $onlyWard = false, $inWards = false)
+	private function getCandidates ($all = false, $onlyWard = false, $inWards = false, $cabinetRestanding = false)
 	{
 		# Get data
 		$query = "SELECT
 				{$this->settings['tablePrefix']}candidates.id as id,
 				{$this->settings['tablePrefix']}candidates.ward as wardId,
 				{$this->settings['tablePrefix']}candidates.elected,
+				{$this->settings['tablePrefix']}candidates.cabinetRestanding,
 				private, prefix,
 				{$this->settings['tablePrefix']}wards.ward,
 				{$this->settings['tablePrefix']}wards.districtCouncil,
@@ -964,7 +975,8 @@ class elections
 			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}wards ON {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.ward = {$this->settings['database']}.{$this->settings['tablePrefix']}wards.id
 			WHERE
 				election = '{$this->election['id']}'
-				" . ($inWards ? "AND {$this->settings['tablePrefix']}candidates.ward IN('" . implode ("','", $inWards) . "')" : ($onlyWard ? "AND {$this->settings['tablePrefix']}candidates.ward = '{$onlyWard['id']}'" : '')) . "
+				" . ($inWards ? " AND {$this->settings['tablePrefix']}candidates.ward IN('" . implode ("','", $inWards) . "')" : ($onlyWard ? "AND {$this->settings['tablePrefix']}candidates.ward = '{$onlyWard['id']}'" : '')) . "
+				" . ($cabinetRestanding ? " AND ({$this->settings['tablePrefix']}candidates.cabinetRestanding IS NOT NULL AND {$this->settings['tablePrefix']}candidates.cabinetRestanding != '')" : '') . "
 			ORDER BY " . ($inWards ? 'affiliation,surname,forename' : ($all ? 'wardId,surname' : 'surname,forename')) . "
 		;";
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}wards");
@@ -1135,7 +1147,7 @@ class elections
 		$showsElected = 0;
 		foreach ($candidates as $candidateKey => $candidate) {
 			
-			# If theis is a multi-person ward election, determine the suffix to add to the unique ID below
+			# If this is a multi-person ward election, determine the suffix to add to the unique ID below
 			$multiPersonWardsIdSuffix = '';
 			if ($multiPersonWards) {
 				$multiPersonWardsIdSuffix = '_' . $affiliations[$candidate['affiliationId']][$candidateKey];
@@ -1314,7 +1326,8 @@ class elections
 				survey as surveyId,
 				response, timestamp
 			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}responses
-			WHERE survey REGEXP '^(" . implode ('|', $surveys) . ")$'
+			WHERE 1=1
+			" . ($surveys ? " AND survey REGEXP '^(" . implode ('|', $surveys) . ")$'" : '') . "
 			" . (is_array ($candidateId) ? " AND candidate IN(" . implode (',', $candidateId) . ")" : ($candidateId ? " AND candidate = '{$candidateId}'" : '')) . "
 			ORDER BY surveyId, candidateId
 		;";
@@ -1672,7 +1685,7 @@ class elections
 	}
 	
 	
-	# Function to show the list of respondents for Committee use
+	# Function to show the list of respondents
 	private function respondents ()
 	{
 		# Validate the election
@@ -1745,6 +1758,50 @@ class elections
 				$html .= application::htmlUl ($candidateList);
 			}
 		}
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Function to show the status of Cabinet members restanding in this election
+	private function cabinet ()
+	{
+		# Validate the election
+		if (!$this->election) {
+			header ('HTTP/1.0 404 Not Found');
+			echo $html = '<p>There is no such election. Please check the URL and try again.</p>';
+			return false;
+		}
+		
+		# End if no Cabinet members restanding in this election
+		if (!$this->cabinetRestanding) {
+			header ('HTTP/1.0 404 Not Found');
+			echo $html = '<p>There are no Cabinet members restanding in this election. Please check the URL and try again.</p>';
+			return false;
+		}
+		
+		# Get the responses
+		$candidateIds = array_keys ($this->cabinetRestanding);
+		$responses = $this->getResponses (false, $candidateIds);
+		
+		# Create a table
+		$cabinetMembers = array ();
+		foreach ($this->cabinetRestanding as $candidateId => $candidate) {
+			$surveyLink = "{$this->baseUrl}/{$this->election['id']}/{$candidate['wardId']}/";
+			$cabinetMembers[] = array (
+				'Candidate' => str_replace (' &nbsp;(', '<br />(', $candidate['_name']),
+				'Responded?' => (isSet ($responses[$candidateId]) ? "<a href=\"{$surveyLink}\"><strong>Yes - view responses</strong></a>" : '<span class="warning"><strong>No</strong>, the candidate ' . ($this->election['active'] ? 'has not (yet) responded' : 'did not respond') . '</span>'),
+				'Post' => $candidate['cabinetRestanding'],
+				'Ward' => "<a href=\"{$surveyLink}\">" . $candidate['ward'] . '</a>',
+			);
+		}
+		
+		# Compile the HTML
+		$html  = "\n<h2>Cabinet members restanding in this election</h2>";
+		$html .= "\n<p>The <strong>Cabinet</strong> is the Executive of the Council, formed of members of the political party in power. They implement and drive the Council's policy. As such, their views arguably have greater effect than any other Councillors.</p>";
+		$html .= "\n<p>The listing below shows all the Cabinet members in wards we are surveying who are restanding in this election, and whether they have responded to our survey or not.</p>";
+		$html .= application::htmlTable ($cabinetMembers, array (), 'lines regulated', $keyAsFirstColumn = false, false, $allowHtml = true, $showColons = true);
 		
 		# Show the HTML
 		echo $html;

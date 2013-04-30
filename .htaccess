@@ -23,7 +23,7 @@ RedirectMatch permanent ^/elections/([a-z0-9]+)$ /elections/$1/
 # List of all/per-ward questions available
 RewriteRule ^questions.html$ index.html?action=allquestions [L]
 RewriteRule ^allocations.html$ index.html?action=allocations [L]
-RewriteRule ^([a-z0-9]+)/(letters|respondents).html$ index.html?election=$1&action=$2 [L]
+RewriteRule ^([a-z0-9]+)/(letters|respondents|cabinet).html$ index.html?election=$1&action=$2 [L]
 RewriteRule ^([a-z0-9]+)/(questions)/$ index.html?election=$1&action=$2 [L]
 RedirectMatch permanent ^/elections/([a-z0-9]+)/(questions)$ /elections/$1/$2/
 RewriteRule ^([a-z0-9]+)/(questions)/([0-9]{1,2})/$ index.html?election=$1&action=$2&question=$3 [L]
