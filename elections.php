@@ -1715,12 +1715,20 @@ class elections
 		$totalCandidates = count ($allCandidates);
 		$percentageReplied = round (($total / $totalCandidates) * 100);
 		
-		# Construct tables of response rates
+		# Construct a table of response rates by district Council
 		$responseRatesByDistrictTable = $this->responseRatesByAspectTable ($allCandidates, $respondents, 'districtCouncil', 'District');
+		
+		# Construct a table of response rates by affiliation (party)
+		$colours = array ();
+		foreach ($allCandidates as $candidate) {
+			$colours[$candidate['affiliation']] = $candidate['colour'];
+		}
+		$responseRatesByPartyTable = $this->responseRatesByAspectTable ($allCandidates, $respondents, 'affiliation', 'Affiliation (party)', $colours);
 		
 		# Construct the HTML
 		$html .= "\n<p>The following is an index to all candidates " . ($responseRatesByDistrictTable ? '' : "({$total}, out of {$totalCandidates} standing, i.e. {$percentageReplied}%)") . " who have submitted public responses. Click on the {$this->settings['division']} name to see them.</p>";
 		$html .= $responseRatesByDistrictTable;
+		$html .= $responseRatesByPartyTable;
 		$html .= "\n<p><em>This list is ordered by {$this->settings['division']} and then surname.</em></p>";
 		foreach ($this->wards as $ward => $attributes) {
 			$html .= "<h4><a href=\"{$this->baseUrl}/{$this->election['id']}/{$ward}/\">{$this->wards[$ward]['_name']} <span>[view responses]</span></a>:</h4>";
@@ -1743,7 +1751,7 @@ class elections
 	
 	
 	# Function to create a table of response rates by aspect (e.g. District)
-	private function responseRatesByAspectTable ($allCandidates, $respondents, $aspect, $aspectLabel)
+	private function responseRatesByAspectTable ($allCandidates, $respondents, $aspect, $aspectLabel, $colours = array ())
 	{
 		# Regroup the datasets by aspect
 		$candidatesByAspectStanding = application::regroup ($allCandidates, $aspect, false);
@@ -1776,7 +1784,7 @@ class elections
 			
 			# Register this in the table
 			$responseRatesByAspect[$grouping] = array (
-				$aspectLabel	=> $grouping,
+				$aspectLabel	=> ($colours ? "<span style=\"color: #{$colours[$grouping]};\">" . htmlspecialchars ($grouping) . '</span>' : htmlspecialchars ($grouping)),
 				'Response rate'	=> '<strong>' . $percentageThisGroupingReplied . '%' . '</strong>',
 				'Responses'		=> $totalResponsesThisGrouping,
 				'Candidates'	=> $totalCandidatesThisGrouping,
@@ -1789,7 +1797,7 @@ class elections
 		# Add the global totals
 		$percentageReplied = round (($totalResponses / $totalCandidates) * 100);
 		$responseRatesByAspect['Total'] = array (
-			$aspectLabel	=> 'Total',
+			$aspectLabel	=> '<strong>Total</strong>',
 			'Response rate'	=> '<strong>' . $percentageReplied . '%' . '</strong>',
 			'Responses'		=> $totalResponses,
 			'Candidates'	=> $totalCandidates,
