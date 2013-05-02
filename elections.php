@@ -96,6 +96,7 @@
 	  `id` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Unique key',
 	  `name` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Name of election',
 	  `description` text collate utf8_unicode_ci NOT NULL COMMENT 'Description of election',
+	  `directionsUrl` varchar(255) collate utf8_unicode_ci NOT NULL default 'http://www.cyclestreets.net/' COMMENT 'Directions to cycle to polling stations',
 	  `startDate` date NOT NULL default '0000-00-00' COMMENT 'Start of election',
 	  `resultsDate` date NOT NULL default '0000-00-00' COMMENT 'Date of visibility of submissions',
 	  `endDate` date NOT NULL default '0000-00-00' COMMENT 'Close of election',
@@ -378,7 +379,7 @@ class elections
 	{
 		# Introductory text
 		$html  = $this->settings['welcomeTextHtml'];
-		$html .= "<p><img align=\"right\" src=\"/elections/pollingstations.jpg\" width=\"89\" height=\"121\" alt=\"Ballot box\" class=\"shiftup\" /></p>";
+		$html .= "<p class=\"graphic\"><img src=\"/elections/pollingstations.jpg\" width=\"89\" height=\"121\" alt=\"Ballot box\" /></p>";
 		$html .= $this->settings['introductoryTextHtml'];
 		
 		# Show current elections
@@ -409,7 +410,7 @@ class elections
 		$html  = $this->settings['introductoryTextHtml'];
 		
 		# Add the summary table and wards
-		$html .= "<p><img align=\"right\" src=\"/elections/pollingstations.jpg\" width=\"89\" height=\"121\" alt=\"Ballot box\" class=\"shiftup\" /></p>";
+		$html .= "<p class=\"graphic\"><img src=\"/elections/pollingstations.jpg\" width=\"89\" height=\"121\" alt=\"Ballot box\" /></p>";
 		$html .= $this->showOverviewDetails ($this->election);
 		
 		# Show the HTML
@@ -633,6 +634,7 @@ class elections
 		$query = "SELECT
 				*,
 				IF(endDate<(CAST(NOW() AS DATE)),0,1) AS active,
+				IF(endDate=(CAST(NOW() AS DATE)),1,0) AS votingToday,
 				IF((CAST(NOW() AS DATE))<resultsDate,0,1) AS resultsVisible,
 				IF((CAST(NOW() AS DATE))<respondentsDate,0,1) AS respondentsVisible,
 				DATE_FORMAT(endDate,'%W %D %M %Y') AS 'polling date',
@@ -768,6 +770,9 @@ class elections
 			if ($this->cabinetRestanding) {
 				$list["{$this->baseUrl}/{$this->election['id']}/cabinet.html"] = 'Cabinet restanding';
 			}
+			if ($this->election['votingToday']) {
+				$list[$this->election['directionsUrl']] = 'Directions to polling stations';
+			}
 		}
 		
 		# Add each ward
@@ -792,6 +797,18 @@ class elections
 		
 		# Create a processor to handle changes
 		pureContent::jumplistProcessor ();
+		
+		# Show directions to polling stations if required under the main jumplist
+		if ($this->election['votingToday']) {
+			if (!$wardsOnly) {
+				$html .= "<p class=\"directionsbutton\"><a class=\"actions right\" href=\"{$this->election['directionsUrl']}\">" . '<img src="/images/icons/map.png" class="icon" /> Cycle to your polling station - get directions</a></p>';
+			}
+		}
+		
+		# Surround with a div
+		if (!$wardsOnly) {
+			$html = "\n<div class=\"navigation\">\n" . $html . "\n</div>";
+		}
 		
 		# Return the HTML
 		return $html;

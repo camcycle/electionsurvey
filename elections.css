@@ -11,7 +11,10 @@ body.elections p.noresponse {margin-left: 2em;}
 body.elections table.questions td:last-child p {margin-top: 0;}
 body.elections table tr.elected td, body.elections span.elected {background-color: #ddd;}
 body.elections span.elected {padding: 2px 4px;}
-body.elections .jumplist {float: right; margin-left: 2em; margin-bottom: 1em;}
+body.elections .jumplist {float: right; margin-left: 2em; margin-bottom: 1em; display: block;}
+body.elections .navigation {float: right; background-color: white;}
+body.elections p.directionsbutton {clear: right;}
+body.elections .graphic {clear: right; float: right;}
 body.elections table.responserates th, body.elections table.responserates tr:last-child td {background-color: #f7f7f7;}
 body.elections table.responserates td:first-child {width: 20em;}
 body.elections p.allresponseslink {text-align: right; font-size: 0.83em; margin: 0; padding: 0; position: relative; top: -0.5em; opacity: 0.7;}
