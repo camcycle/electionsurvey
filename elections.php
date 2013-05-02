@@ -632,15 +632,15 @@ class elections
 		# Get data
 		$query = "SELECT
 				*,
-				IF(endDate<NOW(),0,1) AS active,
-				IF(NOW()<resultsDate,0,1) AS resultsVisible,
-				IF(NOW()<respondentsDate,0,1) AS respondentsVisible,
+				IF(endDate<(CAST(NOW() AS DATE)),0,1) AS active,
+				IF((CAST(NOW() AS DATE))<resultsDate,0,1) AS resultsVisible,
+				IF((CAST(NOW() AS DATE))<respondentsDate,0,1) AS respondentsVisible,
 				DATE_FORMAT(endDate,'%W %D %M %Y') AS 'polling date',
 				DATE_FORMAT(resultsDate,'%W %D %M %Y') AS 'visibilityDate',
 				DATE_FORMAT(respondentsDate,'%W %D %M %Y') AS respondentsDate,
 				IF(name LIKE '%county%',1,0) AS isCounty
 			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}elections
-			WHERE startDate <= NOW()
+			WHERE startDate <= (CAST(NOW() AS DATE))
 			ORDER BY endDate DESC, isCounty DESC /* County before others if on same day */
 		;";
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}elections");
@@ -667,7 +667,7 @@ class elections
 		$elections = application::regroup ($this->elections, 'active', false);
 		
 		# Start with current elections
-		$currentElectionsHeading = '<h2>Current election survey' . (count ($elections[1]) > 1 ? 's' : '') . '</h2>';
+		$currentElectionsHeading = '<h2>Current election survey' . ((isSet ($elections[1]) && (count ($elections[1]) > 1)) ? 's' : '') . '</h2>';
 		if (isSet ($elections[1])) {
 			if (count ($elections[1]) == 1) {
 				$currentElection = reset ($elections[1]);
@@ -1480,7 +1480,7 @@ class elections
 			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}elections ON {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.election = {$this->settings['database']}.{$this->settings['tablePrefix']}elections.id
 			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}wards ON {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.ward = {$this->settings['database']}.{$this->settings['tablePrefix']}wards.id
 			WHERE
-				{$this->settings['database']}.{$this->settings['tablePrefix']}elections.endDate >= NOW()
+				{$this->settings['database']}.{$this->settings['tablePrefix']}elections.endDate >= (CAST(NOW() AS DATE))
 			GROUP BY {$this->settings['tablePrefix']}candidates.ward
 			ORDER BY {$this->settings['tablePrefix']}candidates.ward
 		;";
