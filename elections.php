@@ -274,6 +274,7 @@ class elections
 		'submit' => 'Candidate response submission',
 		'allocations' => 'Create the question allocation SQL',
 		'questions' => 'List of questions for an election',
+		'elected' => 'Specify the elected candidates',
 		'respondents' => 'List of respondents',
 		'cabinet' => 'Restanding Cabinet members',
 		'admin' => 'Administrative functions',
@@ -1795,6 +1796,7 @@ class elections
 			<li><a href=\"{$this->baseUrl}/admin/allquestions.html\">See every question available in the database</a></li>
 			<li><a href=\"{$this->baseUrl}/submit/\">Use/view the candidate submission form</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/letters.html\">See the printable letters to candidates</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/elected.html\">Specify the elected candidates</a></li>
 		</ul>";
 		
 		# Data import
@@ -1993,6 +1995,102 @@ class elections
 		}
 		
 		# Show the (printable) HTML
+		echo $html;
+	}
+	
+	
+	# Function to specify the elected candidates
+	private function elected ()
+	{
+		# Start the HTML
+		$html  = '<h2>Specify the elected candidates</h2>';
+		
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			echo $html .= '<p>You must be an administrator to access this page.</p>';
+			return false;
+		}
+		
+		# Ensure there is an election supplied
+		if (!$this->election) {
+			$html .= "\n<p>Please select which election:</p>";
+			$html .= $this->listElections ($this->elections, true, false, 'elected.html');
+			echo $html;
+			return false;
+		}
+		
+		# Ensure the election is no longer active
+		if ($this->election['active']) {
+			echo $html .= '<p>This cannot be done until after the election is over.</p>';
+			return false;
+		}
+		
+		# Get the candidates
+		if (!$candidates = $this->getCandidates (true)) {
+			echo $html .= '<p>There are no candidates at present.</p>';
+			return false;
+		}
+		
+		# Arrange the candidates by ward
+		$candidates = application::regroup ($candidates, 'ward', false);
+		
+		# Arrange to be added to a multi-select
+		$candidatesByWard = array ();
+		$elected = array ();	// From a previous import - helpful to maintain this to avoid re-entry of every ward if there was a mistake
+		foreach ($candidates as $wardName => $candidatesThisWard) {
+			$elected[$wardName] = array ();
+			foreach ($candidatesThisWard as $candidateId => $candidate) {
+				$candidatesByWard[$wardName][$candidateId] = str_replace ('&nbsp;', '', $candidate['_nameUncoloured']);
+				if ($candidate['elected']) {
+					$elected[$wardName][] = $candidateId;
+				}
+			}
+		}
+		
+		# Create a form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'displayRestrictions'	=> false,
+			'nullText' => false,
+			'formCompleteText' => 'The results have been saved. These are now visible on the Ward and question pages.',
+		));
+		$form->heading ('p', 'Use this form to specify the elected candidates, which will be marked in the listings as having been elected.');
+		$i = 0;
+		foreach ($candidatesByWard as $wardName => $candidates) {
+			$form->select (array (
+				'name'			=> 'ward' . $i++,
+				'title'			=> $wardName,
+				'values'		=> $candidates,
+				'default'		=> $elected[$wardName],
+				// 'required'		=> true,
+				'multiple'		=> true,
+				'expandable'	=> true,
+			));
+		}
+		
+		# Process the form
+		if ($result = $form->process ($html)) {
+			
+			# Compile into a list
+			$electedCandidates = array ();
+			foreach ($result as $ward => $candidates) {
+				foreach ($candidates as $candidateId => $isElected) {
+					if ($isElected) {
+						$electedCandidates[] = $candidateId;
+					}
+				}
+			}
+			
+			# Clear any previous specification for this election
+			$this->databaseConnection->update ($this->settings['database'], "{$this->settings['tablePrefix']}candidates", array ('elected' => NULL), array ('election' => $this->election['id']));
+			
+			# Add the winning candidates
+			$in = implode (',', $electedCandidates);
+			$query = "UPDATE {$this->settings['database']}.{$this->settings['tablePrefix']}candidates SET elected = 1 WHERE id IN({$in});";
+			$this->databaseConnection->query ($query);
+		}
+		
+		# Show the HTML
 		echo $html;
 	}
 }
