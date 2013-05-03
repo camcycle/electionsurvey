@@ -633,8 +633,9 @@ class elections
 		# Get data
 		$query = "SELECT
 				*,
-				IF(endDate<(CAST(NOW() AS DATE)),0,1) AS active,
+				IF(endDate>=(CAST(NOW() AS DATE)),1,0) AS active,
 				IF(endDate=(CAST(NOW() AS DATE)),1,0) AS votingToday,
+				IF(((DATEDIFF(CAST(NOW() AS DATE),endDate) < 28) && endDate<(CAST(NOW() AS DATE))),1,0) AS isRecent,
 				IF((CAST(NOW() AS DATE))<resultsDate,0,1) AS resultsVisible,
 				IF((CAST(NOW() AS DATE))<respondentsDate,0,1) AS respondentsVisible,
 				DATE_FORMAT(endDate,'%W %D %M %Y') AS 'polling date',
@@ -684,7 +685,17 @@ class elections
 			$html .= "\n<p>There are no election surveys at present. Have a look at previous surveys below.</p>";
 		}
 		
-		# Now show archived elections
+		# Regroup by the election being recent or not
+		$elections = application::regroup ($this->elections, 'isRecent', false);
+		
+		# Now show recent elections
+		if (isSet ($elections[1])) {
+			$html .= '<h2>Recent election surveys</h2>';
+			$html .= $this->listElections ($elections[1], false, 'spaced');
+			$html .= "\n<br />";
+		}
+		
+		# Now show archived, non-recent elections
 		$html .= '<h2>Previous election surveys</h2>';
 		if (isSet ($elections[0])) {
 			$html .= $this->listElections ($elections[0], true);
@@ -699,13 +710,13 @@ class elections
 	
 	
 	# Helper function to list elections
-	private function listElections ($elections, $archived = false, $class = false, $urlSuffix = false)
+	private function listElections ($elections, $activeOrRecent = false, $class = false, $urlSuffix = false)
 	{
 		# Create the listing
 		foreach ($elections as $key => $election) {
 			if (!$this->settings['listArchived'] && !$election['active']) {continue;}
-			$list[$key] = "<a href=\"{$this->baseUrl}/{$election['id']}/{$urlSuffix}\">{$election['name']}" . ($archived ? '' : "<br />(polling date: {$election['polling date']})") . '</a>';
-			if (!$archived) {
+			$list[$key] = "<a href=\"{$this->baseUrl}/{$election['id']}/{$urlSuffix}\">{$election['name']}" . ($activeOrRecent ? '' : "<br />(polling date: {$election['polling date']})") . '</a>';
+			if (!$activeOrRecent) {
 				$list[$key] = "<strong>{$list[$key]}</strong>";
 			}
 		}
