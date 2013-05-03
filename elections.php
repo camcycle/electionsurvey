@@ -1782,7 +1782,7 @@ class elections
 	{
 		# Ensure the user is an administrator
 		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html = '<p>You must be an administrator to access this page.</p>';
+			echo $html = '<p>You must be signed in as an administrator to access this page.</p>';
 			return false;
 		}
 		
@@ -1815,7 +1815,7 @@ class elections
 	{
 		# Ensure the user is an administrator
 		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html = '<p>You must be an administrator to access this page.</p>';
+			echo $html = '<p>You must be signed in as an administrator to access this page.</p>';
 			return false;
 		}
 		
@@ -1842,7 +1842,7 @@ class elections
 		
 		# Ensure the user is an administrator
 		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html  = '<p>You must be an administrator to access this page.</p>';
+			echo $html  = '<p>You must be signed in as an administrator to access this page.</p>';
 			return false;
 		}
 		
@@ -1900,7 +1900,7 @@ class elections
 		
 		# Ensure the user is an administrator
 		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html .= '<p>You must be an administrator to access this page.</p>';
+			echo $html .= '<p>You must be signed in as an administrator to access this page.</p>';
 			return false;
 		}
 		
@@ -2007,7 +2007,7 @@ class elections
 		
 		# Ensure the user is an administrator
 		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html .= '<p>You must be an administrator to access this page.</p>';
+			echo $html .= '<p>You must be signed in as an administrator to access this page.</p>';
 			return false;
 		}
 		
