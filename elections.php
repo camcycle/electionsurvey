@@ -2053,6 +2053,7 @@ class elections
 			'displayRestrictions'	=> false,
 			'nullText' => false,
 			'formCompleteText' => 'The results have been saved. These are now visible on the Ward and question pages.',
+			'unsavedDataProtection' => true,
 		));
 		$form->heading ('p', 'Use this form to specify the elected candidates, which will be marked in the listings as having been elected.');
 		$i = 0;
