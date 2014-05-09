@@ -1188,7 +1188,7 @@ class elections
 		if (empty ($links)) {return '';}
 		
 		# Introduce the links
-		$html  = ($letterMode ? "\n<p class=\"links\">Further reading on our website:</p>" : "\n<p class=\"links\">Relevant links (each opens in a new window):</p>");
+		$html  = ($letterMode ? "\n<p class=\"links\">Further reading online:</p>" : "\n<p class=\"links\">Relevant links (each opens in a new window):</p>");
 		
 		# Split by newline
 		$list = array ();
