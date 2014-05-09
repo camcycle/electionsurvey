@@ -2,6 +2,8 @@
 
 # Application exclusions
 .config.php
+screenshot.png
+screenshot.pspimage
 
 # Locally-specific exclusions
 .title.txt
