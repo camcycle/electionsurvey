@@ -26,7 +26,9 @@ $settings = array (
 		ORGANISATION ADDRESS LINE 2<br />
 		ETC.</p>
 		',
-	'organisationIntroduction' => "By way of introduction, ORGANISATION NAME is BLURB. Full information about our activities and views can be found on our extensive website, at URL .",
+	'organisationIntroductionHtml' =>
+		"<p>By way of introduction, ORGANISATION NAME is BLURB. Full information about our activities and views can be found on our extensive website, at URL .</p>" .
+		"<p>We write to you, as a candidate, to ask your views on a range of issues of concern to our members. We would be most grateful if you could spend a few moments on the short survey below to let us know your views, as soon as you are able. All views submitted (as well as non-responses) will be shown on our website, for the information of voters. We would additionally be interested to hear from you if you have any other views or questions that we might be able to help with.</p>",
 	'letterSignatureName' => 'YOUR_SIGNATORY_NAME_HERE',
 	'letterSignaturePosition' => 'YOUR_SIGNATORY_POSITION_HERE',
 	'letterSignatureOrganisationName' => 'YOUR_ORGANISATION_NAME_HERE',

@@ -177,7 +177,9 @@
 			EMAIL<br />
 			WEBSITE</p>
 			',
-		'organisationIntroduction' => "By way of introduction, BLAH. We also enclose a leaflet giving a summary of information about us.",
+		'organisationIntroductionHtml' =>
+			"<p>By way of introduction, ORGANISATION NAME is BLURB. Full information about our activities and views can be found on our extensive website, at URL .</p>" .
+			"<p>We write to you, as a candidate, to ask your views on a range of issues of concern to our members. We would be most grateful if you could spend a few moments on the short survey below to let us know your views, as soon as you are able. All views submitted (as well as non-responses) will be shown on our website, for the information of voters. We would additionally be interested to hear from you if you have any other views or questions that we might be able to help with.</p>",
 		'letterSignatureName' => 'John Smith',
 		'letterSignaturePosition' => 'Media Officer',
 		'letterSignatureOrganisationName' => 'BLAH',
@@ -243,7 +245,7 @@ class elections
 		
 		# Pre-formatted letters
 		'letterheadHtml' => NULL,
-		'organisationIntroduction' => NULL,
+		'organisationIntroductionHtml' => NULL,
 		'organisationConstituentsType' => 'members',	// E.g. could be 'supporters' or similar instead
 		'letterSignatureName' => NULL,
 		'letterSignaturePosition' => NULL,
@@ -1972,8 +1974,7 @@ class elections
 								<p>&nbsp;</p>
 								<p>&nbsp;</p>
 								<p>Dear " . $wardName . ' ' . $this->settings['division'] . " candidate,</p>
-								<p>" . htmlspecialchars ($this->settings['organisationIntroduction']) . "</p>
-								<p>We write to you, as a candidate, to ask your views on a range of issues of concern to our " . htmlspecialchars ($this->settings['organisationConstituentsType']) . ". We would be most grateful if you could spend a few moments on the short survey below to let us know your views, as soon as you are able. All views submitted (as well as non-responses) will be shown on our website, for the information of voters. We would additionally be interested to hear from you if you have any other views or questions that we might be able to help with.</p>
+								" . $this->settings['organisationIntroductionHtml'] . "
 								<p>You can write back to us via the contact details above. However, if you have internet access, it would save us time if you could directly submit your responses via the automated facility on our website, if possible. Just go to: <u>" . ((substr ($_SERVER['SERVER_NAME'], 0, 4) != 'www.') ? 'http://' : '') . "{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
 								" . $screenshotHtml . "
 								<p>Many thanks for your time.<br />Yours sincerely,</p>
