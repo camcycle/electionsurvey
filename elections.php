@@ -3,7 +3,7 @@
 
 /*
 	Camcycle Elections: Elections survey system
-	Copyright (C) 2007-13  MLS and Cambridge Cycling Campaign
+	Copyright (C) 2007-14  MLS and Cambridge Cycling Campaign
 	Contributions welcome at: https://github.com/camcycle/electionsurvey
 	License: GPL3
 	
@@ -1711,7 +1711,7 @@ class elections
 			# If required, convert a single candidate response of 100% to 'Yes'
 			if ($showBooleanWhenSingleCandidateStanding) {
 				if ($totalCandidatesThisGrouping == 1) {
-					$percentageThisGroupingReplied = ($totalResponsesThisGrouping ? 'Yes' : 'No');
+					$percentageThisGroupingReplied = ($totalResponsesThisGrouping ? 'Yes' : '0%');
 				}
 			}
 			
