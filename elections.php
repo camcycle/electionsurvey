@@ -284,6 +284,7 @@ class elections
 		'cabinet' => 'Restanding Cabinet members',
 		'admin' => 'Administrative functions',
 		'addelection' => 'Add an election',
+		'addcandidates' => 'Add candidates',
 	);
 	
 	
@@ -1810,6 +1811,7 @@ class elections
 		$html .= "\n<h3>Data import</h3>
 		<ul>
 			<li><a href=\"{$this->baseUrl}/admin/addelection.html\">Add an election</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/addcandidates.html\">Add candidates</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/allocations.html\">Convert an allocations spreadsheet into SQL</a></li>
 		</ul>";
 		
@@ -1843,7 +1845,7 @@ class elections
 	
 	
 	# Function to add an election
-	private function addelection ()
+	public function addelection ()
 	{
 		# Ensure the user is an administrator
 		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
@@ -1888,6 +1890,122 @@ class elections
 	}
 	
 	
+	# Function to add candidates for an election
+	public function addcandidates ()
+	{
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			echo $html = '<p>You must be signed in as an administrator to access this page.</p>';
+			return false;
+		}
+		
+		# Start the HTML
+		$html  = "\n<h2>Add candidates</h2>";
+		$html .= "\n<p>Note that this will replace the data for the selected election.</p>";
+		
+		# Define the required fields
+		$requiredFields = array ('forename', 'surname', 'ward', 'affiliation', 'address');
+		
+		# Create a new form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'databaseConnection' => $this->databaseConnection,
+			'picker' => true,
+		));
+		$form->select (array (
+			'name'			=> 'election',
+			'title'			=> 'Which election',
+			'values'		=> $this->getElectionNames (),
+			'required'		=> true,
+		));
+		$form->textarea (array (
+			'name'			=> 'data',
+			'title'			=> 'Enter the candidate data, pasted from your spreadsheet, which must contain headings (in order): <strong>' . implode ('</strong>, <strong>', $requiredFields) . '</strong>',
+			'required'		=> true,
+			'cols'			=> 80,
+			'rows'			=> 10,
+		));
+		$data = array ();
+		if ($unfinalisedData = $form->getUnfinalisedData ()) {
+			if ($unfinalisedData['election'] && $unfinalisedData['data']) {
+				if (!$data = $this->getTsvData ($unfinalisedData['data'], $requiredFields, $errorMessage)) {
+					$form->registerProblem ('tsvinvalid', $errorMessage);
+				}
+				
+				#!# Need to verify the ward names and affiliations
+			}
+		}
+		if (!$result = $form->process ($html)) {
+			echo $html;
+			return;
+		}
+		
+		# Process the data to add fixed fields
+		foreach ($data as $index => $candidate) {
+			
+			# Add election ID
+			$data[$index]['election'] = $result['election'];
+			
+			# Add random verification number for candidate login; note that uniqueness across the dataset is not actually required
+			$data[$index]['verification'] = rand (100000, 999999);
+		}
+		
+		# Clear any existing data
+		$this->databaseConnection->delete ($this->settings['database'], 'elections_candidates', array ('election' => $result['election']));
+		
+		# Insert the data
+		if (!$this->databaseConnection->insertMany ($this->settings['database'], 'elections_candidates', $data)) {
+			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
+			echo $html;
+			return false;
+		}
+		
+		# Confirm success
+		$total = count ($data);
+		#!# Ideally the message should make clear if this was entirely new or a replacement
+		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The candidate data (total: {$total}) for this <a href=\"{$this->baseUrl}/{$result['election']}/\">election</a> has been entered.</p>";
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Function to process submitted TSV batch string and assemble the data from it
+	private function getTsvData ($tsv, $requiredFields, &$errorMessage = '')
+	{
+		# Parse the TSV string
+		require_once ('csv.php');
+		$data = csv::tsvToArray (trim ($tsv), $firstColumnIsId = false, $firstColumnIsIdIncludeInData = true);
+		
+		# Ensure headers are valid and that required headers are present
+		foreach ($data as $filename => $metadata) {
+			$missingRequiredFields = array_diff ($requiredFields, array_keys ($metadata));
+			break;	// Only check the first row, i.e. the heading row
+		}
+		if ($missingRequiredFields) {
+			$errorMessage = "The fields in the pasted data do not match the specification noted above. Please correct the spreadsheet and try again.";
+			return false;
+		}
+		
+		# Return the data
+		return $data;
+	}
+	
+	
+	# Helper function to get election names
+	private function getElectionNames ()
+	{
+		# Assemble the elections list
+		$electionNames = array ();
+		foreach ($this->elections as $key => $value) {
+			$electionNames[$key] = $value['name'];
+		}
+		
+		# Return the list
+		return $electionNames;
+	}
+	
+	
 	# Admin helper function to create SQL INSERTS
 	private function allocations ()
 	{
@@ -1900,12 +2018,6 @@ class elections
 			return false;
 		}
 		
-		# Assemble the elections list
-		$elections = array ();
-		foreach ($this->elections as $key => $value) {
-			$elections[$key] = $value['name'];
-		}
-		
 		# Create the form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
@@ -1914,11 +2026,11 @@ class elections
 		$form->select (array (
 			'name'			=> 'election',
 			'title'			=> 'Which election',
-			'values'		=> $elections,
+			'values'		=> $this->getElectionNames (),
 		));
 		$form->textarea (array (
 			'name'			=> 'allocations',
-			'title'			=> "Enter the allocations, as wardname[tab]q1[tab]q2, etc., per line",
+			'title'			=> 'Enter the allocations, as wardname[tab]q1[tab]q2, etc., per line',
 			'required'		=> true,
 			'cols'			=> 80,
 			'rows'			=> 10,
