@@ -286,6 +286,7 @@ class elections
 		'addelection' => 'Add an election',
 		'addcandidates' => 'Add candidates',
 		'addquestions' => 'Add questions',
+		'addsurveys' => 'Add surveys',
 	);
 	
 	
@@ -1814,6 +1815,7 @@ class elections
 			<li><a href=\"{$this->baseUrl}/admin/addelection.html\">Add an election</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addcandidates.html\">Add candidates</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addquestions.html\">Add questions</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/addsurveys.html\">Add surveys</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/allocations.html\">Convert an allocations spreadsheet into SQL</a></li>
 		</ul>";
 		
@@ -2096,6 +2098,106 @@ class elections
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Function to add surveys
+	public function addsurveys ()
+	{
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			echo $html = '<p>You must be signed in as an administrator to access this page.</p>';
+			return false;
+		}
+		
+		# Define number of recent questions to show
+		$mostRecent = 10;
+		
+		# Start the HTML
+		$html  = "\n<h2>Add questions</h2>";
+		$html .= "\n<p>In this section, you can add questions that can then be used in a survey. Note that questions have to be added one at a time.</p>";
+		$html .= "\n<p>The {$mostRecent} most recently-added questions are shown below.</p>";
+		
+		# Create a new form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'databaseConnection' => $this->databaseConnection,
+		));
+		$form->select (array (
+			'name'			=> 'election',
+			'title'			=> 'Which election',
+			'values'		=> $this->getElectionNames (),
+			'required'		=> true,
+		));
+		$form->select (array (
+			'name'			=> 'ward',
+			'title'			=> 'Which ward',
+			'values'		=> $this->getWardNames (),
+			'required'		=> true,
+		));
+		$form->select (array (
+			'name'			=> 'questions',
+			'title'			=> 'Questions, in order, for this survey',
+			'values'		=> $this->getQuestionTexts (),
+			'required'		=> true,
+			'multiple'		=> true,
+			'expandable'	=> true,
+			'output'		=> array ('processing' => 'compiled'),
+		));
+		if (!$result = $form->process ($html)) {
+			echo $html;
+			return;
+		}
+		
+		# Post-process the multiple select output format in ultimateForm
+		#!# This annoyance in ultimateForm really needs to be fixed - 'rawcomponents' is usually wrong, and compiled is in an unhelpful format for processing
+		$result['questions'] = explode (",\n", $result['questions']);
+		
+		#!# Ordering gets broken
+		
+		# Define standard data for each entry in the survey
+		$constraints = array (
+			'election'	=> $result['election'],
+			'ward'		=> $result['ward'],
+		);
+		
+		# Construct the list of entries for the survey
+		$data = array ();
+		foreach ($result['questions'] as $index => $question) {
+			$data[$index] = $constraints;
+			$data[$index]['question'] = $question;
+		}
+		
+		# Clear any existing data
+		$this->databaseConnection->delete ($this->settings['database'], 'elections_surveys', $constraints);
+		
+		# Insert the data
+		if (!$this->databaseConnection->insertMany ($this->settings['database'], 'elections_surveys', $data)) {
+			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
+			echo $html;
+			return false;
+		}
+		
+		# Confirm success
+		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['election']}/{$result['ward']}/\">survey</a> has been added.</p>";
+		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Function to get a list of ward names
+	private function getWardNames ()
+	{
+		return $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_wards', array (), array ('id', "CONCAT_WS(' ', prefix, ward) AS name"), true, $orderBy = 'name');
+	}
+	
+	
+	# Function to get a list of question texts
+	private function getQuestionTexts ()
+	{
+		return $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_questions', array (), array ('id', "CONCAT(id, ': ', SUBSTRING(question, 1, 70), ' ...') AS text"), true, $orderBy = 'id');
 	}
 	
 	
