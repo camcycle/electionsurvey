@@ -285,6 +285,7 @@ class elections
 		'admin' => 'Administrative functions',
 		'addelection' => 'Add an election',
 		'addcandidates' => 'Add candidates',
+		'addquestions' => 'Add questions',
 	);
 	
 	
@@ -1812,6 +1813,7 @@ class elections
 		<ul>
 			<li><a href=\"{$this->baseUrl}/admin/addelection.html\">Add an election</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addcandidates.html\">Add candidates</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/addquestions.html\">Add questions</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/allocations.html\">Convert an allocations spreadsheet into SQL</a></li>
 		</ul>";
 		
@@ -1857,7 +1859,7 @@ class elections
 		$html  = "\n<h2>Add an election</h2>";
 		
 		# Get current IDs
-		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_elections', array (), array ('id'), $associative = true, $orderBy = 'id');
+		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_elections', array (), array ('id'), true, $orderBy = 'id');
 		
 		# Create a new form
 		require_once ('ultimateForm.php');
@@ -2003,6 +2005,97 @@ class elections
 		
 		# Return the list
 		return $electionNames;
+	}
+	
+	
+	# Function to add questions
+	public function addquestions ()
+	{
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			echo $html = '<p>You must be signed in as an administrator to access this page.</p>';
+			return false;
+		}
+		
+		# Define number of recent questions to show
+		$mostRecent = 10;
+		
+		# Start the HTML
+		$html  = "\n<h2>Add questions</h2>";
+		$html .= "\n<p>In this section, you can add questions that can then be used in a survey. Note that questions have to be added one at a time.</p>";
+		$html .= "\n<p>The {$mostRecent} most recently-added questions are shown below.</p>";
+		
+		# Create a new form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'databaseConnection' => $this->databaseConnection,
+			'picker' => true,
+			'size' => 80,
+			'rows' => 7,
+			'cols' => 80,
+		));
+		$form->dataBinding (array (
+			'database'	=> $this->settings['database'],
+			'table'		=> 'elections_questions',
+			'intelligence' => true,
+			'size'	=> 80,	#!# This is here due to a bug in ultimateForm
+			'attributes' => array (
+				
+			),
+		));
+		#!# Need to check that highlight text appears in the question
+		if (!$result = $form->process ($html)) {
+			$html .= $this->recentlyAddedQuestions ();
+			echo $html;
+			return;
+		}
+		
+		# Insert the question
+		if (!$this->databaseConnection->insert ($this->settings['database'], 'elections_questions', $result)) {
+			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
+			echo $html;
+			return false;
+		}
+		$questionId = $this->databaseConnection->getLatestId ();
+		
+		# Confirm success
+		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The question has been added, as shown below.</p>";
+		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
+		$html .= $this->recentlyAddedQuestions ($questionId);
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Function to create a list of questions most recently-added to the database
+	private function recentlyAddedQuestions ($highlightQuestionId = false)
+	{
+		# Get the latest data, but ordered most recent last
+		$recentQuestions = $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_questions', array (), array ('id', 'question'), true, $orderBy = 'id DESC', $mostRecent = 10);
+		$recentQuestions = array_reverse ($recentQuestions, true);
+		
+		# Assemble as a list
+		$list = array ();
+		foreach ($recentQuestions as $id => $recentQuestion) {
+			$list[$id] = '#' . $id . ': ' . htmlspecialchars ($recentQuestion);
+		}
+		
+		# Highlight one question if present
+		if (isSet ($list[$highlightQuestionId])) {
+			$list[$highlightQuestionId] = "<strong>{$list[$highlightQuestionId]}</strong>";
+		}
+		
+		# Compile the HTML
+		$html  = "\n<h3>Most recently-added questions</h3>";
+		$html .= "\n<p>Here are the {$mostRecent} questions most recently-added to the database:</p>";
+		$html .= application::htmlUl ($list, 0, 'spaced');
+		
+		# Surround in a div
+		$html = "\n<div class=\"graybox\">{$html}</div>";
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	
