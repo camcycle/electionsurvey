@@ -3,7 +3,7 @@
 
 /*
 	Camcycle Elections: Elections survey system
-	Copyright (C) 2007-14  MLS and Cambridge Cycling Campaign
+	Copyright (C) 2007-15  MLS and Cambridge Cycling Campaign
 	Contributions welcome at: https://github.com/camcycle/electionsurvey
 	License: GPL3
 	
@@ -95,7 +95,7 @@
 	CREATE TABLE IF NOT EXISTS `elections_elections` (
 	  `id` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Unique key',
 	  `name` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Name of election',
-	  `description` text collate utf8_unicode_ci NOT NULL COMMENT 'Description of election',
+	  `description` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Description of election',
 	  `directionsUrl` varchar(255) collate utf8_unicode_ci NOT NULL default 'http://www.cyclestreets.net/' COMMENT 'Directions to cycle to polling stations',
 	  `startDate` date NOT NULL default '0000-00-00' COMMENT 'Start of election',
 	  `resultsDate` date NOT NULL default '0000-00-00' COMMENT 'Date of visibility of submissions',
@@ -280,11 +280,12 @@ class elections
 		'respondents' => 'List of respondents',
 		'cabinet' => 'Restanding Cabinet members',
 		'admin' => 'Administrative functions',
+		'addelection' => 'Add an election',
 	);
 	
 	
 	# Constructor
-	function __construct ($settings = array ())
+	public function __construct ($settings = array ())
 	{
 		# Load external libraries
 		require_once ('application.php');
@@ -1335,6 +1336,7 @@ class elections
 		$ward = ($secondStagePosted ? $_POST['questions']['verification']['ward'] : $result['ward']);
 		
 		# Confirm the details
+		#!# Use getUnfinalised to improve the UI here
 		if (!$candidate = $this->verifyCandidate ($number, $ward)) {
 			echo "\n<p>The verification/{$this->settings['division']} pair you submitted does not seem to be correct. Please check the letter/e-mail we sent you and <a href=\"{$this->baseUrl}/submit/\">try again</a>.</p>";
 			return false;
@@ -1804,6 +1806,7 @@ class elections
 		# Data import
 		$html .= "\n<h3>Data import</h3>
 		<ul>
+			<li><a href=\"{$this->baseUrl}/admin/addelection.html\">Add an election</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/allocations.html\">Convert an allocations spreadsheet into SQL</a></li>
 		</ul>";
 		
@@ -1830,6 +1833,52 @@ class elections
 		
 		# Get data
 		$html = $this->showQuestions ();
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Function to add an election
+	private function addelection ()
+	{
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			echo $html = '<p>You must be signed in as an administrator to access this page.</p>';
+			return false;
+		}
+		
+		# Start the HTML
+		$html  = "\n<h2>Add an election</h2>";
+		
+		# Get current IDs
+		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_elections', array (), array ('id'), $associative = true, $orderBy = 'id');
+		
+		# Create a new form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'databaseConnection' => $this->databaseConnection,
+			'picker' => true,
+		));
+		$form->dataBinding (array (
+			'database'	=> $this->settings['database'],
+			'table'		=> 'elections_elections',
+			'attributes' => array (
+				'id' => array ('current' => $currentIds, 'regexp' => '^[a-z0-9]+$'),
+			),
+		));
+		#!# Need to add constraints to ensure date ordering is correct
+		if (!$result = $form->process ($html)) {
+			echo $html;
+			return;
+		}
+		
+		# Insert the election
+		$this->databaseConnection->insert ($this->settings['database'], 'elections_elections', $result);
+		
+		# Confirm success
+		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['id']}/\">election</a> has been added.</p>";
+		$html .= "\n<p>You may wish to add data for it.</p>";
 		
 		# Show the HTML
 		echo $html;
