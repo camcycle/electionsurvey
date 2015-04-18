@@ -236,6 +236,9 @@ class elections
 		
 		'page404' => 'sitetech/404.html',
 		
+		# Date/times
+		'resultsVisibleTime' => '21:00:00',
+		
 		# Text
 		'welcomeTextHtml' => NULL,
 		'introductoryTextHtml' => NULL,
@@ -458,7 +461,7 @@ class elections
 		
 		# Remind administrators
 		if ($this->userIsAdministrator && !$this->election['resultsVisible']) {
-			$html .= "<p class=\"warning\"><strong>Note: any responses shown because are only visible to you because you are an administrator.</strong> The responses will not be made public until at least {$this->election['visibilityDate']}.</p>";
+			$html .= "<p class=\"warning\"><strong>Note: any responses shown because are only visible to you because you are an administrator.</strong> The responses will not be made public until at least {$this->election['visibilityDateTime']}.</p>";
 		}
 		
 		# Start with a table of data
@@ -641,9 +644,9 @@ class elections
 				IF(endDate=(CAST(NOW() AS DATE)),1,0) AS votingToday,
 				IF(((DATEDIFF(CAST(NOW() AS DATE),endDate) < 28) && endDate<(CAST(NOW() AS DATE))),1,0) AS isRecent,
 				IF((CAST(NOW() AS DATE))<resultsDate,0,1) AS resultsVisible,
-				IF((CAST(NOW() AS DATE))<respondentsDate,0,1) AS respondentsVisible,
+				IF(NOW()<CONCAT(resultsDate,' ','{$this->settings['resultsVisibleTime']}'),0,1) AS resultsVisible,
 				DATE_FORMAT(endDate,'%W %D %M %Y') AS 'polling date',
-				DATE_FORMAT(resultsDate,'%W %D %M %Y') AS 'visibilityDate',
+				DATE_FORMAT(CONCAT(resultsDate,' ','{$this->settings['resultsVisibleTime']}'),'%l%p, %W %D %M %Y') AS visibilityDateTime,
 				DATE_FORMAT(respondentsDate,'%W %D %M %Y') AS respondentsDate,
 				IF(name LIKE '%county%',1,0) AS isCounty
 			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}elections
@@ -1050,7 +1053,7 @@ class elections
 		
 		# If the results are not yet visible, end at this point
 		if (!$this->election['resultsVisible'] && !$this->userIsAdministrator) {
-			return $html .= "\n<p><em>Candidates' responses are not yet visible. Please check back here from {$this->election['visibilityDate']}.</em></p>";
+			return $html .= "\n<p><em>Candidates' responses are not yet visible. Please check back here from {$this->election['visibilityDateTime']}.</em></p>";
 		}
 		
 		# State the wards and the number of responses, if in cross-ward mode
@@ -1386,8 +1389,8 @@ class elections
 		$total = count ($questions);
 		$i = 0;
 		$template  = '<p>There ' . ($total == 1 ? 'is 1 question' : "are {$total} questions") . " for this {$this->settings['division']} on which we would invite your response.<br /><strong>Please kindly enter your responses in the boxes below and click the 'submit' button at the end.</strong></p>";
-		if ($responses) {$template .= "<p>You are able to update your previous answers below, before they become visible online on {$this->election['visibilityDate']}.</p>";}
-		$template .= "<p>Your answers will not be visible on this website until {$this->election['visibilityDate']}.</p>";
+		if ($responses) {$template .= "<p>You are able to update your previous answers below, before they become visible online at {$this->election['visibilityDateTime']}.</p>";}
+		$template .= "<p>Your answers will not be visible on this website until {$this->election['visibilityDateTime']}.</p>";
 		$template .= '<p>{[[PROBLEMS]]}</p>';
 		foreach ($questions as $key => $question) {
 			$i++;
@@ -1484,8 +1487,8 @@ class elections
 		if ($this->election['resultsVisible']) {
 			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> <strong>Thank you for {$action} your responses.</strong> They are now <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['wardId']}/\">shown online</a>, along with those of other candidates.</p>";
 		} else {
-			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> <strong>Thank you for {$action} your responses.</strong> They will be <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['wardId']}/\">shown online</a>, along with those of other candidates, on {$this->election['visibilityDate']}.</p>";
-			$html .= "\n<p>You can <a href=\"{$this->baseUrl}/submit/\">update your submission</a> using the same webpage at any time before {$this->election['visibilityDate']}.</p>";
+			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> <strong>Thank you for {$action} your responses.</strong> They will be <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['wardId']}/\">shown online</a>, along with those of other candidates, at {$this->election['visibilityDateTime']}.</p>";
+			$html .= "\n<p>You can <a href=\"{$this->baseUrl}/submit/\">update your submission</a> using the same webpage at any time before {$this->election['visibilityDateTime']}.</p>";
 		}
 		$html .= "\n</div>";
 		
