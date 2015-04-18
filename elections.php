@@ -271,7 +271,7 @@ class elections
 	
 	# Actions (pages) registry
 	var $actions = array (
-		'index' => 'Home',
+		'home' => 'Home',
 		'overview' => 'Overview for an election',
 		'allquestions' => 'Every question available in the database',
 		'letters' => 'Letters to candidates containing questions for an election',
@@ -384,8 +384,8 @@ class elections
 	}
 	
 	
-	# Main page
-	private function index ()
+	# Homes page
+	private function home ()
 	{
 		# Introductory text
 		$html  = $this->settings['welcomeTextHtml'];

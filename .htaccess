@@ -9,8 +9,8 @@ RewriteEngine On
 RewriteBase /elections/
 
 # Front page
-RewriteRule ^index.html$ index.html?action=index [L,QSA]
-RewriteRule ^$ index.html?action=index [L,QSA]
+RewriteRule ^index.html$ index.html?action=home [L,QSA]
+RewriteRule ^$ index.html?action=home [L,QSA]
 
 # Submission page (this uses / at the end rather than .html as some candidates seem not to type that correctly)
 RewriteRule ^submit/$ index.html?action=submit [L]
