@@ -2414,7 +2414,7 @@ class elections
 		# Ensure there is an election supplied
 		if (!$this->election) {
 			$html .= "\n<p>Please select which election:</p>";
-			$html .= $this->listElections ($this->elections, true, false, 'letters.html');
+			$html .= $this->listElections ($this->elections, true, false, "{$type}.html");
 			return false;
 		}
 		
