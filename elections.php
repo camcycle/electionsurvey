@@ -1945,7 +1945,14 @@ class elections
 					}
 				}
 				
-				#!# Need to verify the ward names
+				# Verify ward names
+				$wards = $this->getWardNames ();
+				foreach ($data as $candidate) {
+					if (!array_key_exists ($candidate['ward'], $wards)) {
+						$form->registerProblem ('unknownward', 'The ward ' . htmlspecialchars ($candidate['ward']) . ' was not recognised; please register the ward if it is correct.');
+						break;
+					}
+				}
 			}
 		}
 		if (!$result = $form->process ($html)) {
