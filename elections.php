@@ -1923,7 +1923,7 @@ class elections
 		$html .= "\n<p>Note that this will replace the data for the selected election.</p>";
 		
 		# Define the required fields
-		$requiredFields = array ('forename', 'surname', 'ward', 'affiliation', 'address');
+		$requiredFields = array ('forename', 'surname', 'ward', 'affiliation', 'address', 'email');
 		
 		# Create a new form
 		require_once ('ultimateForm.php');
