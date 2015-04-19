@@ -84,6 +84,7 @@
 	  `forename` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Forename',
 	  `surname` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Surname',
 	  `address` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Address',
+	  `email` varchar(255) collate utf8_unicode_ci NULL COMMENT 'E-mail address',
 	  `verification` varchar(6) collate utf8_unicode_ci NOT NULL COMMENT 'Verification number',
 	  `affiliation` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Affiliation (join to affiliations)',
 	  `cabinetRestanding` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'Whether the candidate is a restanding Cabinet member, and if so, their current Cabinet post',
@@ -183,6 +184,11 @@
 		'letterSignatureName' => 'John Smith',
 		'letterSignaturePosition' => 'Media Officer',
 		'letterSignatureOrganisationName' => 'BLAH',
+		
+		# Emails
+		'emailSubject' => 'Survey of election candidates',
+		'emailFrom' => 'YOUR_MAIN_EMAIL_HERE',
+		'emailCc' => 'YOUR_MAIN_EMAIL_HERE',
 	);
 	
 	
@@ -258,6 +264,11 @@ class elections
 		'postSubmissionHtml' => false,
 		'postSubmissionHtmlLetters' => false,
 		
+		# E-mails
+		'emailSubject' => false,
+		'emailFrom' => false,
+		'emailCc' => false,
+		
 		# Temporary override of admin privileges
 		'overrideAdmin' => false,
 		
@@ -274,7 +285,8 @@ class elections
 		'home' => 'Home',
 		'overview' => 'Overview for an election',
 		'allquestions' => 'Every question available in the database',
-		'letters' => 'Letters to candidates containing questions for an election',
+		'letters' => 'Mailout (letters) to candidates containing the survey',
+		'mailout' => 'Mailout (e-mail) to candidates containing the survey',
 		'ward' => 'Overview for an area',
 		'submit' => 'Candidate response submission',
 		'allocations' => 'Create the question allocation SQL',
@@ -867,7 +879,8 @@ class elections
 			$html .= "\n<h2>Administrative options</h2>";
 			$html .= "\n<p>As an administrator you can also:</p>";
 			$html .= "\n<ul>";
-			$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$election['id']}/letters.html\">See the printable letters to candidates for this election</a></li>";
+			$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$election['id']}/letters.html\">Create the mailout (letters) to candidates containing the survey</a></li>";
+			$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$election['id']}/mailout.html\">Create the mailout (e-mail) to candidates containing the survey</a></li>";
 			$html .= "\n</ul>";
 		}
 		
@@ -900,7 +913,8 @@ class elections
 				{$this->settings['tablePrefix']}affiliations.id AS affiliationId,
 				{$this->settings['tablePrefix']}affiliations.name as affiliation,
 				{$this->settings['tablePrefix']}affiliations.colour,
-				CONCAT(forename,' ',UPPER(surname)) as name
+				CONCAT(forename,' ',UPPER(surname)) as name,
+				{$this->settings['tablePrefix']}candidates.email
 			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}candidates
 			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}affiliations ON {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['database']}.{$this->settings['tablePrefix']}affiliations.id
 			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}wards ON {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.ward = {$this->settings['database']}.{$this->settings['tablePrefix']}wards.id
@@ -1805,7 +1819,8 @@ class elections
 		<ul>
 			<li><a href=\"{$this->baseUrl}/admin/allquestions.html\">See every question available in the database</a></li>
 			<li><a href=\"{$this->baseUrl}/submit/\">Use/view the candidate submission form</a></li>
-			<li><a href=\"{$this->baseUrl}/admin/letters.html\">See the printable letters to candidates</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/letters.html\">Create the mailout (letters) to candidates containing the survey</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/mailout.html\">Create the mailout (e-mail) to candidates containing the survey</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/elected.html\">Specify the elected candidates</a></li>
 		</ul>";
 		
@@ -2284,36 +2299,117 @@ class elections
 	}
 	
 	
-	# Function to produce printable letters to candidates containing questions for an election
-	private function letters ()
+	# Function to create the mailout (letters) to candidates containing the survey
+	public function letters ()
 	{
 		# Start the HTML
 		$html  = '<h2>Printable letters to candidates</h2>';
 		
+		# Create the HTML
+		$html .= $this->compileMailout (__FUNCTION__);
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Function to create the mailout (e-mail) to candidates containing the survey
+	public function mailout ()
+	{
+		# Start the HTML
+		$html  = '<h2>Send e-mails to candidates</h2>';
+		
+		# Assemble the e-mails
+		$emails = $this->compileMailout (__FUNCTION__);
+		
+		# Ask for conirmation
+		$total = count ($emails);
+		$message = "Are you sure you want to send the mailout, of {$total} e-mails?";
+		$confirmation = 'Yes, send the e-mails';
+		if (!$this->areYouSure ($message, $confirmation, $formHtml)) {
+			$html .= $formHtml;
+			echo $html;
+			return false;
+		}
+		
+		# Send each e-mail
+		$sendingOutcomes = array ();
+		foreach ($emails as $candidateId => $email) {
+			$result = application::utf8Mail ($email['to'], $email['subject'], wordwrap ($email['message']), "From: {$this->settings['emailFrom']}\r\nCc: {$this->settings['emailCc']}");
+			$sendingOutcomes[$candidateId] = ($result ? '<span class="success"><strong>Sent OK</strong></span>' : '<span class="warning"><strong>Failure</strong></span>') . ': ' . htmlspecialchars ($email['to']);
+		}
+		
+		# Show the result
+		$html .= "<p>The following e-mails were sent:</p>";
+		$html .= application::htmlUl ($sendingOutcomes);
+		
+		# Provide a reset page link
+		$html .= "<p><a href=\"{$this->baseUrl}/{$this->election['id']}/" . __FUNCTION__ . ".html\">Reset page.</a></p>";
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Function to add an 'Are you sure?' form
+	public function areYouSure ($message, $confirmation, &$html)
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Create the form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'formCompleteText' => false,
+			'nullText' => false,
+			'div' => 'graybox',
+			'displayRestrictions' => false,
+			'requiredFieldIndicator' => false,
+		));
+		$form->heading ('p', $message);
+		$form->checkboxes (array (
+			'name'				=> 'confirmation',
+			'title'				=> 'Confirm',
+			'values'			=> array ($confirmation),
+			'required'			=> true,	// Ensures that a submission must be ticked for the form to be successful
+		));
+		
+		# Process the form
+		$result = $form->process ($html);
+		
+		# Return status
+		return $result;
+	}
+	
+	
+	# Function to compile a mailout, for either letters or e-mail
+	private function compileMailout ($type)
+	{
+		# Start the HTML
+		$html  = '';
+		
 		# Ensure the user is an administrator
 		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html .= '<p>You must be signed in as an administrator to access this page.</p>';
-			return false;
+			return $html .= '<p>You must be signed in as an administrator to access this page.</p>';
 		}
 		
 		# Ensure there is an election supplied
 		if (!$this->election) {
 			$html .= "\n<p>Please select which election:</p>";
 			$html .= $this->listElections ($this->elections, true, false, 'letters.html');
-			echo $html;
-			return false;
+			return $html;
 		}
 		
 		# Get the candidates
 		if (!$candidates = $this->getCandidates (true)) {
-			echo $html .= '<p>There are no candidates at present.</p>';
-			return false;
+			$html .= '<p>There are no candidates at present.</p>';
+			return $html;
 		}
 		
 		# Get the surveys
 		if (!$surveys = $this->getQuestions (false, $this->election['id'])) {
-			echo $html .= '<p>There are no questions at present.</p>';
-			return false;
+			$html .= '<p>There are no questions at present.</p>';
+			return $html;
 		}
 		
 		# Increase allowed execution time
@@ -2322,6 +2418,12 @@ class elections
 		# Regroup
 		$surveys = application::regroup ($surveys, 'wardId', $removeGroupColumn = false);
 		$candidates = application::regroup ($candidates, 'wardId', $removeGroupColumn = false);
+		
+		# Define the submission URL
+		$submissionUrl = ((substr ($_SERVER['SERVER_NAME'], 0, 4) != 'www.') ? 'http://' : '') . "{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/";
+		
+		# Start a list of e-mails
+		$emails = array ();
 		
 		# Loop through by ward having surveys
 		foreach ($surveys as $ward => $questionnaire) {
@@ -2333,22 +2435,22 @@ class elections
 			foreach ($candidates[$ward] as $candidateId => $candidate) {
 				
 				# Add this survey to the HTML
-				$html .= $this->createLetterHtml ($questionnaire, $candidate);
+				$html .= $this->createLetterHtml ($questionnaire, $candidate, $submissionUrl);
 				
-				# Page break
-				$html .= "<p>&nbsp;</p><p>&nbsp;</p><p>(End of survey)</p>";
-				$html .= $this->settings['postSubmissionHtmlLetters'];
-				$html .= "<div class=\"pagebreak\"></div>";
+				# Create the e-mail if the candidate has an e-mail address
+				if ($candidate['email']) {
+					$emails[$candidateId] = $this->createEmail ($questionnaire, $candidate, $submissionUrl);
+				}
 			}
 		}
 		
-		# Show the (printable) HTML
-		echo $html;
+		# Return either the HTML or the e-mails
+		return ($type == 'letters' ? $html : $emails);
 	}
 	
 	
 	# Function to create an individual letter to a candidate
-	private function createLetterHtml ($questionnaire, $candidate)
+	private function createLetterHtml ($questionnaire, $candidate, $submissionUrl)
 	{
 		# Start the HTML for this survey
 		$html = '';
@@ -2386,10 +2488,10 @@ class elections
 						<p>&nbsp;</p>
 						<p>Dear " . $wardName . ' ' . $this->settings['division'] . " candidate,</p>
 						" . $this->settings['organisationIntroductionHtml'] . "
-						<p>You can write back to us via the contact details above. However, if you have internet access, it would save us time if you could directly submit your responses via the automated facility on our website, if possible. Just go to: <u>" . ((substr ($_SERVER['SERVER_NAME'], 0, 4) != 'www.') ? 'http://' : '') . "{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
+						<p>You can write back to us via the contact details above. However, if you have internet access, it would save us time if you could directly submit your responses via the automated facility on our website, if possible. Just go to: <u>{$submissionUrl}</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
 						" . $screenshotHtml . "
 						<p>Many thanks for your time.<br />Yours sincerely,</p>
-						<p>" . htmlspecialchars ($this->settings['letterSignatureName']) . ",<br />" . htmlspecialchars ($this->settings['letterSignaturePosition']) . ", " . htmlspecialchars ($this->settings['letterSignatureOrganisationName']) . "</p>
+						<p>" . htmlspecialchars ($this->settings['letterSignatureName']) . ",<br />" . htmlspecialchars ($this->settings['letterSignaturePosition']) . ', ' . htmlspecialchars ($this->settings['letterSignatureOrganisationName']) . "</p>
 						<p>&nbsp;</p>
 					</td>
 				</tr>
@@ -2408,13 +2510,52 @@ class elections
 			$html .= "<p>&nbsp;</p><p>&nbsp;</p>";
 		}
 		
-		# Page break
+		# Add page break and PS
 		$html .= "<p>&nbsp;</p><p>&nbsp;</p><p>(End of survey)</p>";
 		$html .= $this->settings['postSubmissionHtmlLetters'];
 		$html .= "<div class=\"pagebreak\"></div>";
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Function to create an individual e-mail to a candidate
+	private function createEmail ($questionnaire, $candidate, $submissionUrl)
+	{
+		# Assemble the ward name
+		$wardName = $this->wardName ($candidate);
+		
+		# Assemble the text
+		$text  = "\n";
+		$text .= "\n" . 'Dear ' . $wardName . ' ' . $this->settings['division'] . ' candidate,';
+		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' http://www', $this->settings['organisationIntroductionHtml'])));
+		$text .= "\n";
+		$text .= "\n" . 'Please access the survey and submit your responses online, here:';
+		$text .= "\n";
+		$text .= "\n" . "{$submissionUrl}";
+		$text .= "\n";
+		$text .= "\n" . "You will need to use this verification number: {$candidate['verification']} .";
+		$text .= "\n";
+		$text .= "\n";
+		$text .= "\n" . 'Many thanks for your time.';
+		$text .= "\n" . 'Yours sincerely,';
+		$text .= "\n";
+		$text .= "\n" . $this->settings['letterSignatureName'] . ',';
+		$text .= "\n" . $this->settings['letterSignaturePosition'] . ', ' . $this->settings['letterSignatureOrganisationName'];
+		$text .= "\n";
+		$text .= "\n";
+		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' http://www', $this->settings['postSubmissionHtmlLetters'])));
+		
+		# Compile the e-mail
+		$email = array (
+			'to'		=> '"' . $candidate['name'] . '" ' . '<' . $candidate['email'] . '>',
+			'subject'	=> $this->settings['emailSubject'],
+			'message'	=> $text,
+		);
+		
+		# Return the e-mail
+		return $email;
 	}
 	
 	

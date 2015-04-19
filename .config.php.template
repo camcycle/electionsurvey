@@ -34,6 +34,11 @@ $settings = array (
 	'letterSignatureOrganisationName' => 'YOUR_ORGANISATION_NAME_HERE',
 	'postSubmissionHtml' => '<p>Have you thought about joining our organisation? BLURB</p>',
 	'postSubmissionHtmlLetters' => '<p>P.S. Have you thought about joining our organisation? BLURB</p>',
+	
+	# Emails
+	'emailSubject' => 'Survey of election candidates',
+	'emailFrom' => 'YOUR_MAIN_EMAIL_HERE',
+	'emailCc' => 'YOUR_MAIN_EMAIL_HERE',
 );
 
 ?>
