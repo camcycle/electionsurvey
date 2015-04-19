@@ -2305,8 +2305,20 @@ class elections
 		# Start the HTML
 		$html  = '<h2>Printable letters to candidates</h2>';
 		
-		# Create the HTML
-		$html .= $this->compileMailout (__FUNCTION__);
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			$html .= '<p>You must be signed in as an administrator to access this page.</p>';
+			echo $html;
+			return false;
+		}
+		
+		# Obtain the HTML
+		if (!$mailoutHtml = $this->compileMailout (__FUNCTION__, $statusHtml)) {
+			$html .= $statusHtml;
+			echo $html;
+			return false;
+		}
+		$html .= $mailoutHtml;
 		
 		# Show the HTML
 		echo $html;
@@ -2319,10 +2331,21 @@ class elections
 		# Start the HTML
 		$html  = '<h2>Send e-mails to candidates</h2>';
 		
-		# Assemble the e-mails
-		$emails = $this->compileMailout (__FUNCTION__);
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			$html .= '<p>You must be signed in as an administrator to access this page.</p>';
+			echo $html;
+			return false;
+		}
 		
-		# Ask for conirmation
+		# Assemble the e-mails
+		if (!$emails = $this->compileMailout (__FUNCTION__, $statusHtml)) {
+			$html .= $statusHtml;
+			echo $html;
+			return false;
+		}
+		
+		# Ask for confirmation
 		$total = count ($emails);
 		$message = "Are you sure you want to send the mailout, of {$total} e-mails?";
 		$confirmation = 'Yes, send the e-mails';
@@ -2383,33 +2406,28 @@ class elections
 	
 	
 	# Function to compile a mailout, for either letters or e-mail
-	private function compileMailout ($type)
+	private function compileMailout ($type, &$html)
 	{
-		# Start the HTML
+		# Start the general status HTML
 		$html  = '';
-		
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			return $html .= '<p>You must be signed in as an administrator to access this page.</p>';
-		}
 		
 		# Ensure there is an election supplied
 		if (!$this->election) {
 			$html .= "\n<p>Please select which election:</p>";
 			$html .= $this->listElections ($this->elections, true, false, 'letters.html');
-			return $html;
+			return false;
 		}
 		
 		# Get the candidates
 		if (!$candidates = $this->getCandidates (true)) {
 			$html .= '<p>There are no candidates at present.</p>';
-			return $html;
+			return false;
 		}
 		
 		# Get the surveys
 		if (!$surveys = $this->getQuestions (false, $this->election['id'])) {
 			$html .= '<p>There are no questions at present.</p>';
-			return $html;
+			return false;
 		}
 		
 		# Increase allowed execution time
@@ -2426,6 +2444,7 @@ class elections
 		$emails = array ();
 		
 		# Loop through by ward having surveys
+		$outputHtml = '';
 		foreach ($surveys as $ward => $questionnaire) {
 			
 			# Miss out if no candidates in a ward
@@ -2435,7 +2454,7 @@ class elections
 			foreach ($candidates[$ward] as $candidateId => $candidate) {
 				
 				# Add this survey to the HTML
-				$html .= $this->createLetterHtml ($questionnaire, $candidate, $submissionUrl);
+				$outputHtml .= $this->createLetterHtml ($questionnaire, $candidate, $submissionUrl);
 				
 				# Create the e-mail if the candidate has an e-mail address
 				if ($candidate['email']) {
@@ -2445,7 +2464,7 @@ class elections
 		}
 		
 		# Return either the HTML or the e-mails
-		return ($type == 'letters' ? $html : $emails);
+		return ($type == 'letters' ? $outputHtml : $emails);
 	}
 	
 	
