@@ -1936,22 +1936,28 @@ class elections
 					$form->registerProblem ('tsvinvalid', $errorMessage);
 				}
 				
-				# Verify affiliations
-				$affiliations = $this->getAffiliationNames ();
-				foreach ($data as $candidate) {
-					if (!array_key_exists ($candidate['affiliation'], $affiliations)) {
-						$form->registerProblem ('unknownaffiliation', 'The affiliation ' . htmlspecialchars ($candidate['affiliation']) . ' was not recognised; please register the affiliation if it is correct.');
-						break;
-					}
-				}
-				
 				# Verify ward names
 				$wards = $this->getWardNames ();
+				$unknownWards = array ();
 				foreach ($data as $candidate) {
 					if (!array_key_exists ($candidate['ward'], $wards)) {
-						$form->registerProblem ('unknownward', 'The ward ' . htmlspecialchars ($candidate['ward']) . ' was not recognised; please register the ward if it is correct.');
-						break;
+						$unknownWards[] = $candidate['ward'];
 					}
+				}
+				if ($unknownWards) {
+					$form->registerProblem ('unknownwards', 'Not all wards were recognised: ' . htmlspecialchars (implode (', ' , array_unique ($unknownWards))) . '; please register missing wards if correct.');
+				}
+				
+				# Verify affiliations
+				$affiliations = $this->getAffiliationNames ();
+				$unknownAffiliations = array ();
+				foreach ($data as $candidate) {
+					if (!array_key_exists ($candidate['affiliation'], $affiliations)) {
+						$unknownAffiliations[] = $candidate['affiliation'];
+					}
+				}
+				if ($unknownAffiliations) {
+					$form->registerProblem ('unknownaffiliations', 'Not all affiliations were recognised: ' . htmlspecialchars (implode (', ' , array_unique ($unknownAffiliations))) . '; please register missing affiliations if correct.');
 				}
 			}
 		}
