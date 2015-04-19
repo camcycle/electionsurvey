@@ -1959,7 +1959,9 @@ class elections
 		
 		# Insert the data
 		if (!$this->databaseConnection->insertMany ($this->settings['database'], 'elections_candidates', $data)) {
-			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
+			$error = $this->databaseConnection->error ();
+			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured. The database server said:</p>";
+			$html .= "\n<p><tt>" . $error[2] . '</tt></p>';
 			echo $html;
 			return false;
 		}
