@@ -2339,8 +2339,16 @@ class elections
 		}
 		
 		# Assemble the e-mails
-		if (!$emails = $this->compileMailout (__FUNCTION__, $statusHtml)) {
+		$emails = $this->compileMailout (__FUNCTION__, $statusHtml);
+		if ($emails === false) {
 			$html .= $statusHtml;
+			echo $html;
+			return false;
+		}
+		
+		# End if no e-mails for this election
+		if (!$emails) {
+			$html .= "\n<p>There are no candidates with e-mails for this election.</p>";
 			echo $html;
 			return false;
 		}
