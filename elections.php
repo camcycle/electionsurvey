@@ -2329,63 +2329,11 @@ class elections
 			# Miss out if no candidates in a ward
 			if (!isSet ($this->wards[$ward])) {continue;}
 			
-			# Loop through by candidate
-			foreach ($candidates[$ward] as $key => $candidate) {
+			# Loop through each candidate for this ward
+			foreach ($candidates[$ward] as $candidateId => $candidate) {
 				
-				# Assemble the ward name
-				$wardName = $this->wardName ($candidate);
-				
-				# Avoid a house number appearing on its own
-				$candidate['address'] = preg_replace ('/^([0-9]+[a-zA-Z]?)\,/', '$1', $candidate['address']);
-				
-				# Determine if a screenshot is available, showing less internet-aware users how to enter a URL
-				$screenshotHtml = false;
-				$screenshotLocation = $this->baseUrl . '/screenshot.png';
-				if (file_exists ($_SERVER['DOCUMENT_ROOT'] . $screenshotLocation)) {
-					list ($width, $height, $type, $attributes) = getimagesize ($_SERVER['DOCUMENT_ROOT'] . $screenshotLocation);
-					$screenshotHtml = "<img src=\"{$screenshotLocation}\" {$attributes} />";
-				}
-				
-				# Show the letterhead
-				$html .= "
-					<table class=\"header\" cellpadding=\"0\" cellspacing=\"0\">
-						<tr>
-							<td class=\"address\">
-								{$candidate['_nameUncolouredNoAffiliation']},<br />
-								" . str_replace (',', ',<br />', htmlspecialchars ($candidate['address'])) . "
-							</td>
-							<td class=\"letterhead\">
-								{$this->settings['letterheadHtml']}
-								<p>" . date ('jS F Y') . "</p>
-							</td>
-						</tr>
-						<tr>
-							<td colspan=\"2\">
-								<p>&nbsp;</p>
-								<p>&nbsp;</p>
-								<p>Dear " . $wardName . ' ' . $this->settings['division'] . " candidate,</p>
-								" . $this->settings['organisationIntroductionHtml'] . "
-								<p>You can write back to us via the contact details above. However, if you have internet access, it would save us time if you could directly submit your responses via the automated facility on our website, if possible. Just go to: <u>" . ((substr ($_SERVER['SERVER_NAME'], 0, 4) != 'www.') ? 'http://' : '') . "{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
-								" . $screenshotHtml . "
-								<p>Many thanks for your time.<br />Yours sincerely,</p>
-								<p>" . htmlspecialchars ($this->settings['letterSignatureName']) . ",<br />" . htmlspecialchars ($this->settings['letterSignaturePosition']) . ", " . htmlspecialchars ($this->settings['letterSignatureOrganisationName']) . "</p>
-								<p>&nbsp;</p>
-							</td>
-						</tr>
-					</table>
-				";
-				
-				# Show the questions
-				$i = 0;
-				foreach ($questionnaire as $key => $question) {
-					$i++;
-					$html .= '<hr />';
-					$question['question'] = htmlspecialchars ($question['question']);
-					$html .= "\n<p><strong>Question {$i}</strong>: {$question['question']}</p>";
-					$html .= "\n" . $this->formatLinks ($question['links'], true);
-					$html .= "\n<p>Your response (ideally, please submit this online - see above) :</p>";
-					$html .= "<p>&nbsp;</p><p>&nbsp;</p>";
-				}
+				# Add this survey to the HTML
+				$html .= $this->createLetterHtml ($questionnaire, $candidate);
 				
 				# Page break
 				$html .= "<p>&nbsp;</p><p>&nbsp;</p><p>(End of survey)</p>";
@@ -2396,6 +2344,77 @@ class elections
 		
 		# Show the (printable) HTML
 		echo $html;
+	}
+	
+	
+	# Function to create an individual letter to a candidate
+	private function createLetterHtml ($questionnaire, $candidate)
+	{
+		# Start the HTML for this survey
+		$html = '';
+		
+		# Assemble the ward name
+		$wardName = $this->wardName ($candidate);
+		
+		# Avoid a house number appearing on its own
+		$candidate['address'] = preg_replace ('/^([0-9]+[a-zA-Z]?)\,/', '$1', $candidate['address']);
+		
+		# Determine if a screenshot is available, showing less internet-aware users how to enter a URL
+		$screenshotHtml = false;
+		$screenshotLocation = $this->baseUrl . '/screenshot.png';
+		if (file_exists ($_SERVER['DOCUMENT_ROOT'] . $screenshotLocation)) {
+			list ($width, $height, $type, $attributes) = getimagesize ($_SERVER['DOCUMENT_ROOT'] . $screenshotLocation);
+			$screenshotHtml = "<img src=\"{$screenshotLocation}\" {$attributes} />";
+		}
+		
+		# Show the letterhead
+		$html .= "
+			<table class=\"header\" cellpadding=\"0\" cellspacing=\"0\">
+				<tr>
+					<td class=\"address\">
+						{$candidate['_nameUncolouredNoAffiliation']},<br />
+						" . str_replace (',', ',<br />', htmlspecialchars ($candidate['address'])) . "
+					</td>
+					<td class=\"letterhead\">
+						{$this->settings['letterheadHtml']}
+						<p>" . date ('jS F Y') . "</p>
+					</td>
+				</tr>
+				<tr>
+					<td colspan=\"2\">
+						<p>&nbsp;</p>
+						<p>&nbsp;</p>
+						<p>Dear " . $wardName . ' ' . $this->settings['division'] . " candidate,</p>
+						" . $this->settings['organisationIntroductionHtml'] . "
+						<p>You can write back to us via the contact details above. However, if you have internet access, it would save us time if you could directly submit your responses via the automated facility on our website, if possible. Just go to: <u>" . ((substr ($_SERVER['SERVER_NAME'], 0, 4) != 'www.') ? 'http://' : '') . "{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
+						" . $screenshotHtml . "
+						<p>Many thanks for your time.<br />Yours sincerely,</p>
+						<p>" . htmlspecialchars ($this->settings['letterSignatureName']) . ",<br />" . htmlspecialchars ($this->settings['letterSignaturePosition']) . ", " . htmlspecialchars ($this->settings['letterSignatureOrganisationName']) . "</p>
+						<p>&nbsp;</p>
+					</td>
+				</tr>
+			</table>
+		";
+		
+		# Show the questions
+		$i = 0;
+		foreach ($questionnaire as $question) {
+			$i++;
+			$html .= '<hr />';
+			$question['question'] = htmlspecialchars ($question['question']);
+			$html .= "\n<p><strong>Question {$i}</strong>: {$question['question']}</p>";
+			$html .= "\n" . $this->formatLinks ($question['links'], true);
+			$html .= "\n<p>Your response (ideally, please submit this online - see above) :</p>";
+			$html .= "<p>&nbsp;</p><p>&nbsp;</p>";
+		}
+		
+		# Page break
+		$html .= "<p>&nbsp;</p><p>&nbsp;</p><p>(End of survey)</p>";
+		$html .= $this->settings['postSubmissionHtmlLetters'];
+		$html .= "<div class=\"pagebreak\"></div>";
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	
