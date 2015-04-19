@@ -1936,7 +1936,16 @@ class elections
 					$form->registerProblem ('tsvinvalid', $errorMessage);
 				}
 				
-				#!# Need to verify the ward names and affiliations
+				# Verify affiliations
+				$affiliations = $this->getAffiliationNames ();
+				foreach ($data as $candidate) {
+					if (!array_key_exists ($candidate['affiliation'], $affiliations)) {
+						$form->registerProblem ('unknownaffiliation', 'The affiliation ' . htmlspecialchars ($candidate['affiliation']) . ' was not recognised; please register the affiliation if it is correct.');
+						break;
+					}
+				}
+				
+				#!# Need to verify the ward names
 			}
 		}
 		if (!$result = $form->process ($html)) {
@@ -2189,14 +2198,21 @@ class elections
 	}
 	
 	
-	# Function to get a list of ward names
+	# Function to get a list of ward IDs and names
 	private function getWardNames ()
 	{
 		return $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_wards', array (), array ('id', "CONCAT_WS(' ', prefix, ward) AS name"), true, $orderBy = 'name');
 	}
 	
 	
-	# Function to get a list of question texts
+	# Function to get a list of affiliation IDs and names
+	private function getAffiliationNames ()
+	{
+		return $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_affiliations', array (), array ('id', 'name'), true, $orderBy = 'name');
+	}
+	
+	
+	# Function to get a list of question IDs and texts
 	private function getQuestionTexts ()
 	{
 		return $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_questions', array (), array ('id', "CONCAT(id, ': ', SUBSTRING(question, 1, 70), ' ...') AS text"), true, $orderBy = 'id');
