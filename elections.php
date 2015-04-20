@@ -2445,9 +2445,6 @@ class elections
 		$surveys = application::regroup ($surveys, 'wardId', $removeGroupColumn = false);
 		$candidates = application::regroup ($candidates, 'wardId', $removeGroupColumn = false);
 		
-		# Define the submission URL
-		$submissionUrl = ((substr ($_SERVER['SERVER_NAME'], 0, 4) != 'www.') ? 'http://' : '') . "{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/";
-		
 		# Start a list of e-mails
 		$emails = array ();
 		
@@ -2462,11 +2459,11 @@ class elections
 			foreach ($candidates[$ward] as $candidateId => $candidate) {
 				
 				# Add this survey to the HTML
-				$outputHtml .= $this->createLetterHtml ($questionnaire, $candidate, $submissionUrl);
+				$outputHtml .= $this->createLetterHtml ($questionnaire, $candidate);
 				
 				# Create the e-mail if the candidate has an e-mail address
 				if ($candidate['email']) {
-					$emails[$candidateId] = $this->createEmail ($questionnaire, $candidate, $submissionUrl);
+					$emails[$candidateId] = $this->createEmail ($questionnaire, $candidate);
 				}
 			}
 		}
@@ -2477,7 +2474,7 @@ class elections
 	
 	
 	# Function to create an individual letter to a candidate
-	private function createLetterHtml ($questionnaire, $candidate, $submissionUrl)
+	private function createLetterHtml ($questionnaire, $candidate)
 	{
 		# Start the HTML for this survey
 		$html = '';
@@ -2495,6 +2492,9 @@ class elections
 			list ($width, $height, $type, $attributes) = getimagesize ($_SERVER['DOCUMENT_ROOT'] . $screenshotLocation);
 			$screenshotHtml = "<img src=\"{$screenshotLocation}\" {$attributes} />";
 		}
+		
+		# Define the submission URL
+		$submissionUrl = ((substr ($_SERVER['SERVER_NAME'], 0, 4) != 'www.') ? 'http://' : '') . "{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/";
 		
 		# Show the letterhead
 		$html .= "
@@ -2548,10 +2548,13 @@ class elections
 	
 	
 	# Function to create an individual e-mail to a candidate
-	private function createEmail ($questionnaire, $candidate, $submissionUrl)
+	private function createEmail ($questionnaire, $candidate)
 	{
 		# Assemble the ward name
 		$wardName = $this->wardName ($candidate);
+		
+		# Define the submission URL
+		$submissionUrl = "http://{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/";
 		
 		# Assemble the text
 		$text  = "\n";
