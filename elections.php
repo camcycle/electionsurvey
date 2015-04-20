@@ -2363,6 +2363,9 @@ class elections
 			return false;
 		}
 		
+		# Prevent timeouts as the script may run for a long time if there are a lot of candidates
+		set_time_limit(0);
+		
 		# Send each e-mail
 		$sendingOutcomes = array ();
 		foreach ($emails as $candidateId => $email) {
