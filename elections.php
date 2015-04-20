@@ -2368,6 +2368,7 @@ class elections
 		foreach ($emails as $candidateId => $email) {
 			$result = application::utf8Mail ($email['to'], $email['subject'], wordwrap ($email['message']), "From: {$this->settings['emailFrom']}\r\nCc: {$this->settings['emailCc']}");
 			$sendingOutcomes[$candidateId] = ($result ? '<span class="success"><strong>Sent OK</strong></span>' : '<span class="warning"><strong>Failure</strong></span>') . ': ' . htmlspecialchars ($email['to']);
+			usleep(500000);		// Wait half a second between mails
 		}
 		
 		# Show the result
