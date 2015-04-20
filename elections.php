@@ -2579,7 +2579,8 @@ class elections
 		
 		# Compile the e-mail
 		$email = array (
-			'to'		=> '"' . $candidate['name'] . '" ' . '<' . $candidate['email'] . '>',
+			// 'to'		=> '"' . $candidate['name'] . '" ' . '<' . $candidate['email'] . '>',
+			'to'		=> $candidate['email'],
 			'subject'	=> $this->settings['emailSubject'],
 			'message'	=> $text,
 		);
