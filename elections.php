@@ -94,14 +94,14 @@
 	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Candidates' AUTO_INCREMENT=224 ;
 	
 	CREATE TABLE IF NOT EXISTS `elections_elections` (
-	  `id` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Unique key',
+	  `id` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Unique ID (used for the URL)',
 	  `name` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Name of election',
 	  `description` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Description of election',
-	  `directionsUrl` varchar(255) collate utf8_unicode_ci NOT NULL default 'http://www.cyclestreets.net/' COMMENT 'Directions to cycle to polling stations',
-	  `startDate` date NOT NULL default '0000-00-00' COMMENT 'Start of election',
-	  `resultsDate` date NOT NULL default '0000-00-00' COMMENT 'Date of visibility of submissions',
-	  `endDate` date NOT NULL default '0000-00-00' COMMENT 'Close of election',
-	  `respondentsDate` date NOT NULL default '0000-00-00' COMMENT 'Date when respondents become visible',
+	  `startDate` date NOT NULL default '0000-00-00' COMMENT 'Survey opening date (e.g. as soon as all info loaded)',
+	  `respondentsDate` date NOT NULL default '0000-00-00' COMMENT 'Date when respondents (so far) become visible (e.g. 3 weeks before election day)',
+	  `resultsDate` date NOT NULL default '0000-00-00' COMMENT 'Date when responses become visible (e.g. 2 weeks before election day)',
+	  `endDate` date NOT NULL default '0000-00-00' COMMENT 'Date of election (and close of survey submissions)',
+	  `directionsUrl` varchar(255) collate utf8_unicode_ci NOT NULL default 'https://www.cyclestreets.net/' COMMENT 'Directions to cycle to polling stations',
 	  PRIMARY KEY  (`id`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Election overview';
 	
@@ -1891,13 +1891,16 @@ class elections
 		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'databaseConnection' => $this->databaseConnection,
+			'displayRestrictions' => false,
 			'picker' => true,
 		));
 		$form->dataBinding (array (
 			'database'	=> $this->settings['database'],
 			'table'		=> 'elections_elections',
 			'attributes' => array (
-				'id' => array ('current' => $currentIds, 'regexp' => '^[a-z0-9]+$'),
+				'id' => array ('current' => $currentIds, 'regexp' => '^[a-z0-9]+$', 'placeholder' => 'E.g. ' . date ('Y') . 'election', ),
+				'name' => array ('placeholder' => 'E.g. Elections to Placeford Council, ' . date ('Y')),
+				'description' => array ('placeholder' => 'E.g. Elections to Placeford Council in May ' . date ('Y')),
 			),
 		));
 		#!# Need to add constraints to ensure date ordering is correct
