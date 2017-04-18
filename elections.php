@@ -3,7 +3,7 @@
 
 /*
 	Camcycle Elections: Elections survey system
-	Copyright (C) 2007-15  MLS and Cambridge Cycling Campaign
+	Copyright (C) 2007-17  MLS and Camcycle (Cambridge Cycling Campaign)
 	Contributions welcome at: https://github.com/camcycle/electionsurvey
 	License: GPL3
 	
@@ -18,7 +18,7 @@
 	GNU General Public License for more details.
 	
 	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 
