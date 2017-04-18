@@ -281,26 +281,65 @@ class elections
 	
 	
 	# Actions (pages) registry
-	var $actions = array (
-		'home' => 'Home',
-		'overview' => 'Overview for an election',
-		'allquestions' => 'Every question available in the database',
-		'letters' => 'Mailout (letters) to candidates containing the survey',
-		'mailout' => 'Mailout (e-mail) to candidates containing the survey',
-		'ward' => 'Overview for an area',
-		'submit' => 'Candidate response submission',
-		'allocations' => 'Create the question allocation SQL',
-		'questions' => 'List of questions for an election',
-		'elected' => 'Specify the elected candidates',
-		'respondents' => 'List of respondents',
-		'cabinet' => 'Restanding Cabinet members',
-		'admin' => 'Administrative functions',
-		'addelection' => 'Add an election',
-		'addward' => 'Add a ward',
-		'addcandidates' => 'Add candidates',
-		'addquestions' => 'Add questions',
-		'addsurveys' => 'Add surveys',
-	);
+	public function actions ()
+	{
+		return $actions = array (
+			'home'			=> array (
+				'description' => 'Home',
+			),
+			'overview'		=> array (
+				'description' => 'Overview for an election',
+			),
+			'allquestions'	=> array (
+				'description' => 'Every question available in the database',
+			),
+			'letters'		=> array (
+				'description' => 'Mailout (letters) to candidates containing the survey',
+			),
+			'mailout'		=> array (
+				'description' => 'Mailout (e-mail) to candidates containing the survey',
+			),
+			'ward'			=> array (
+				'description' => 'Overview for an area',
+			),
+			'submit'		=> array (
+				'description' => 'Candidate response submission',
+			),
+			'allocations'	=> array (
+				'description' => 'Create the question allocation SQL',
+			),
+			'questions'		=> array (
+				'description' => 'List of questions for an election',
+			),
+			'elected'		=> array (
+				'description' => 'Specify the elected candidates',
+			),
+			'respondents'	=> array (
+				'description' => 'List of respondents',
+			),
+			'cabinet'		=> array (
+				'description' => 'Restanding Cabinet members',
+			),
+			'admin'			=> array (
+				'description' => 'Administrative functions',
+			),
+			'addelection'	=> array (
+				'description' => 'Add an election',
+			),
+			'addward'		=> array (
+				'description' => 'Add a ward',
+			),
+			'addcandidates'	=> array (
+				'description' => 'Add candidates',
+			),
+			'addquestions'	=> array (
+				'description' => 'Add questions',
+			),
+			'addsurveys'	=> array (
+				'description' => 'Add surveys',
+			),
+		);
+	}
 	
 	
 	# Constructor
@@ -313,6 +352,9 @@ class elections
 		
 		# Get the base URL
 		$this->baseUrl = application::getBaseUrl ();
+		
+		# Obtain the actions
+		$this->actions = $this->actions ();
 		
 		# Load the local stylesheet
 		echo "\n<style type=\"text/css\" media=\"all\">@import \"{$this->baseUrl}/elections.css\";</style>";
