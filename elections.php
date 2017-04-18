@@ -1822,16 +1822,6 @@ class elections
 		$html  = "\n<h2>Administrative functions</h2>";
 		$html .= "\n<p><em>This section is accessible only to Administrators.</em></p>";
 		
-		# Candidate control
-		$html .= "\n<h3>Candidate control</h3>
-		<ul>
-			<li><a href=\"{$this->baseUrl}/admin/allquestions.html\">See every question available in the database</a></li>
-			<li><a href=\"{$this->baseUrl}/submit/\">Use/view the candidate submission form</a></li>
-			<li><a href=\"{$this->baseUrl}/admin/letters.html\">Create the mailout (letters) to candidates containing the survey</a></li>
-			<li><a href=\"{$this->baseUrl}/admin/mailout.html\">Create the mailout (e-mail) to candidates containing the survey</a></li>
-			<li><a href=\"{$this->baseUrl}/admin/elected.html\">Specify the elected candidates</a></li>
-		</ul>";
-		
 		# Data import
 		$html .= "\n<h3>Data import</h3>
 		<ul>
@@ -1841,6 +1831,16 @@ class elections
 			<li><a href=\"{$this->baseUrl}/admin/addquestions.html\">Add questions</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addsurveys.html\">Add surveys</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/allocations.html\">Convert an allocations spreadsheet into SQL</a></li>
+		</ul>";
+		
+		# Candidate control
+		$html .= "\n<h3>Candidate control</h3>
+		<ul>
+			<li><a href=\"{$this->baseUrl}/admin/allquestions.html\">See every question available in the database</a></li>
+			<li><a href=\"{$this->baseUrl}/submit/\">Use/view the candidate submission form</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/letters.html\">Create the mailout (letters) to candidates containing the survey</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/mailout.html\">Create the mailout (e-mail) to candidates containing the survey</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/elected.html\">Specify the elected candidates</a></li>
 		</ul>";
 		
 		# Show the HTML
