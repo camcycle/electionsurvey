@@ -296,6 +296,7 @@ class elections
 		'cabinet' => 'Restanding Cabinet members',
 		'admin' => 'Administrative functions',
 		'addelection' => 'Add an election',
+		'addward' => 'Add a ward',
 		'addcandidates' => 'Add candidates',
 		'addquestions' => 'Add questions',
 		'addsurveys' => 'Add surveys',
@@ -1828,6 +1829,7 @@ class elections
 		$html .= "\n<h3>Data import</h3>
 		<ul>
 			<li><a href=\"{$this->baseUrl}/admin/addelection.html\">Add an election</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/addward.html\">Add a ward/division</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addcandidates.html\">Add candidates</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addquestions.html\">Add questions</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addsurveys.html\">Add surveys</a></li>
@@ -1903,6 +1905,57 @@ class elections
 		# Confirm success
 		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['id']}/\">election</a> has been added.</p>";
 		$html .= "\n<p>You may wish to add data for it.</p>";
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Function to add a ward
+	public function addward ()
+	{
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			echo $html = '<p>You must be signed in as an administrator to access this page.</p>';
+			return false;
+		}
+		
+		# Get current IDs
+		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_wards', array (), array ('id'), true, $orderBy = 'id');
+		
+		# Start the HTML
+		$html  = "\n<h2>Add a ward</h2>";
+		
+		# Create a new form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'databaseConnection' => $this->databaseConnection,
+			'displayRestrictions' => false,
+			'picker' => true,
+		));
+		$form->dataBinding (array (
+			'database'	=> $this->settings['database'],
+			'table'		=> 'elections_wards',
+			'attributes' => array (
+				#!# Current not working
+				'id' => array ('current' => currentIds, ),
+			),
+		));
+		if (!$result = $form->process ($html)) {
+			echo $html;
+			return;
+		}
+		
+		# Insert the ward
+		if (!$this->databaseConnection->insert ($this->settings['database'], 'elections_wards', $result)) {
+			$html = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> An error occurred adding the ward.</p>";
+			echo $html;
+			return;
+		}
+		
+		# Confirm success
+		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The ward has been added.</p>";
+		$html .= "\n<p>Add another?</p>";
 		
 		# Show the HTML
 		echo $html;
