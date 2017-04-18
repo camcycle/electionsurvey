@@ -378,6 +378,13 @@ class elections
 			echo $this->droplistNavigation ();
 		}
 		
+		# Add link to admin menu
+		#!# Need to convert to registry
+		$adminActions = array (/* 'admin', */ 'allquestions', 'addelection', 'addward', 'addcandidates', 'addquestions', 'addsurveys', 'allocations', 'letters', 'mailout', 'elected', );
+		if (in_array ($this->action, $adminActions)) {
+			echo "\n<p class=\"alignright\"><a href=\"{$this->baseUrl}/admin/\">&laquo; Return to admin menu</a></p>";
+		}
+		
 		# Run the page action
 		$this->{$this->action} ();
 		
