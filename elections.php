@@ -292,12 +292,15 @@ class elections
 			),
 			'allquestions'	=> array (
 				'description' => 'Every question available in the database',
+				'administrator' => true,
 			),
 			'letters'		=> array (
 				'description' => 'Mailout (letters) to candidates containing the survey',
+				'administrator' => true,
 			),
 			'mailout'		=> array (
 				'description' => 'Mailout (e-mail) to candidates containing the survey',
+				'administrator' => true,
 			),
 			'ward'			=> array (
 				'description' => 'Overview for an area',
@@ -307,12 +310,14 @@ class elections
 			),
 			'allocations'	=> array (
 				'description' => 'Create the question allocation SQL',
+				'administrator' => true,
 			),
 			'questions'		=> array (
 				'description' => 'List of questions for an election',
 			),
 			'elected'		=> array (
 				'description' => 'Specify the elected candidates',
+				'administrator' => true,
 			),
 			'respondents'	=> array (
 				'description' => 'List of respondents',
@@ -322,21 +327,27 @@ class elections
 			),
 			'admin'			=> array (
 				'description' => 'Administrative functions',
+				'administrator' => true,
 			),
 			'addelection'	=> array (
 				'description' => 'Add an election',
+				'administrator' => true,
 			),
 			'addward'		=> array (
 				'description' => 'Add a ward',
+				'administrator' => true,
 			),
 			'addcandidates'	=> array (
 				'description' => 'Add candidates',
+				'administrator' => true,
 			),
 			'addquestions'	=> array (
 				'description' => 'Add questions',
+				'administrator' => true,
 			),
 			'addsurveys'	=> array (
 				'description' => 'Add surveys',
+				'administrator' => true,
 			),
 		);
 	}
@@ -421,10 +432,10 @@ class elections
 		}
 		
 		# Add link to admin menu
-		#!# Need to convert to registry
-		$adminActions = array (/* 'admin', */ 'allquestions', 'addelection', 'addward', 'addcandidates', 'addquestions', 'addsurveys', 'allocations', 'letters', 'mailout', 'elected', );
-		if (in_array ($this->action, $adminActions)) {
-			echo "\n<p class=\"alignright\"><a href=\"{$this->baseUrl}/admin/\">&laquo; Return to admin menu</a></p>";
+		if (isSet ($this->actions[$this->action]['administrator']) && $this->actions[$this->action]['administrator']) {
+			if ($this->action != 'admin') {		// Don't add link to self
+				echo "\n<p class=\"alignright\"><a href=\"{$this->baseUrl}/admin/\">&laquo; Return to admin menu</a></p>";
+			}
 		}
 		
 		# Run the page action
