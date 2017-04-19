@@ -2635,8 +2635,9 @@ class elections
 						<p>&nbsp;</p>
 						<p>Dear " . $wardName . ' ' . $this->settings['division'] . " candidate,</p>
 						" . $this->settings['organisationIntroductionHtml'] . "
-						<p>You can write back to us via the contact details above. However, if you have internet access, it would save us time if you could directly submit your responses via the automated facility on our website, if possible. Just go to: <u>{$submissionUrl}</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
+						<p>We ask candidates to submit their responses via the automated facility on our website. Just go to: <u>{$submissionUrl}</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
 						" . $screenshotHtml . "
+						<p>If you are unable to complete this survey online or you require any other assistance please e-mail, phone or write to us and we will be happy to make alternative arrangements.</p>
 						<p>Many thanks for your time.<br />Yours sincerely,</p>
 						<p>" . htmlspecialchars ($this->settings['letterSignatureName']) . ",<br />" . htmlspecialchars ($this->settings['letterSignaturePosition']) . ', ' . htmlspecialchars ($this->settings['letterSignatureOrganisationName']) . "</p>
 						<p>&nbsp;</p>
