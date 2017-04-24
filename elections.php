@@ -2572,8 +2572,11 @@ class elections
 		$outputHtml = '';
 		foreach ($surveys as $ward => $questionnaire) {
 			
-			# Miss out if no candidates in a ward
-			if (!isSet ($this->wards[$ward])) {continue;}
+			# Miss out if no candidates in a ward; a warning is shown if none, in case of trailing spaces, etc.
+			if (!isSet ($this->wards[$ward])) {
+				echo "\n<p class=\"warning\">Warning: No candidates for <em>{$ward}</em> ward.</p>";
+				continue;
+			}
 			
 			# Loop through each candidate for this ward
 			foreach ($candidates[$ward] as $candidateId => $candidate) {
