@@ -2627,11 +2627,12 @@ class elections
 				}
 				
 				# Add this survey to the HTML
+				#!# This step is unnecessary if $type is not letters - need to refactor to avoid unnecessary computation
 				$outputHtml .= $this->createLetterHtml ($questionnaire, $candidate);
 				
 				# Create the e-mail if the candidate has an e-mail address
 				if ($candidate['email']) {
-					$emails[$candidateId] = $this->createEmail ($questionnaire, $candidate, $type);
+					$emails[$candidateId] = $this->createEmail ($candidate, $type);
 				}
 			}
 		}
@@ -2735,7 +2736,7 @@ class elections
 	
 	
 	# Function to create an individual e-mail to a candidate
-	private function createEmail ($questionnaire, $candidate, $type)
+	private function createEmail ($candidate, $type)
 	{
 		# Assemble the ward name
 		$wardName = $this->wardName ($candidate);
