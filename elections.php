@@ -2501,8 +2501,22 @@ class elections
 			return false;
 		}
 		
+		# Send the e-mails
+		$html .= $this->sendEmails ($emails);
+		
+		# Provide a reset page link
+		$html .= "<p><a href=\"{$this->baseUrl}/{$this->election['id']}/" . $function . ".html\">Reset page.</a></p>";
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Function to send the e-mails and report the outcome
+	private function sendEmails ($emails)
+	{
 		# Prevent timeouts as the script may run for a long time if there are a lot of candidates
-		set_time_limit(0);
+		set_time_limit (0);
 		
 		# Send each e-mail
 		$sendingOutcomes = array ();
@@ -2513,14 +2527,11 @@ class elections
 		}
 		
 		# Show the result
-		$html .= "<p>The following e-mails were sent:</p>";
+		$html  = "\n<p>The following e-mails were sent:</p>";
 		$html .= application::htmlUl ($sendingOutcomes);
 		
-		# Provide a reset page link
-		$html .= "<p><a href=\"{$this->baseUrl}/{$this->election['id']}/" . $function . ".html\">Reset page.</a></p>";
-		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
