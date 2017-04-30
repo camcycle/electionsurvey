@@ -302,6 +302,10 @@ class elections
 				'description' => 'Mailout (e-mail) to candidates containing the survey',
 				'administrator' => true,
 			),
+			'reminders'		=> array (
+				'description' => 'Reminders (e-mail) to candidates containing the survey',
+				'administrator' => true,
+			),
 			'ward'			=> array (
 				'description' => 'Overview for an area',
 			),
@@ -942,6 +946,7 @@ class elections
 			$html .= "\n<ul>";
 			$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$election['id']}/letters.html\">Create the mailout (letters) to candidates containing the survey</a></li>";
 			$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$election['id']}/mailout.html\">Create the mailout (e-mail) to candidates containing the survey</a></li>";
+			$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$election['id']}/reminders.html\">Send reminder e-mails to candidates who have not yet responded to the survey</a></li>";
 			$html .= "\n</ul>";
 		}
 		
@@ -1893,6 +1898,7 @@ class elections
 			<li><a href=\"{$this->baseUrl}/submit/\">Use/view the candidate submission form</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/letters.html\">Create the mailout (letters) to candidates containing the survey</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/mailout.html\">Create the mailout (e-mail) to candidates containing the survey</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/reminders.html\">Send reminder e-mails to candidates who have not yet responded to the survey</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/elected.html\">Specify the elected candidates</a></li>
 		</ul>";
 		
@@ -2444,8 +2450,24 @@ class elections
 	# Function to create the mailout (e-mail) to candidates containing the survey
 	public function mailout ()
 	{
+		# Run the mailout routine
+		$this->doMailing (__FUNCTION__, 'e-mails');
+	}
+	
+	
+	# Function to send reminder e-mails to candidates who have not yet responded to the sur
+	public function reminders ()
+	{
+		# Run the mailout routine
+		$this->doMailing (__FUNCTION__, 'reminder e-mails');
+	}
+	
+	
+	# Internal mailout routine
+	private function doMailing ($function, $type)
+	{
 		# Start the HTML
-		$html  = '<h2>Send e-mails to candidates</h2>';
+		$html  = "\n<h2>Send {$type} to candidates</h2>";
 		
 		# Ensure the user is an administrator
 		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
@@ -2455,7 +2477,7 @@ class elections
 		}
 		
 		# Assemble the e-mails
-		$emails = $this->compileMailout (__FUNCTION__, $statusHtml);
+		$emails = $this->compileMailout ($function, $statusHtml);
 		if ($emails === false) {
 			$html .= $statusHtml;
 			echo $html;
@@ -2471,8 +2493,8 @@ class elections
 		
 		# Ask for confirmation
 		$total = count ($emails);
-		$message = "Are you sure you want to send the mailout, of {$total} e-mails?";
-		$confirmation = 'Yes, send the e-mails';
+		$message = "Are you sure you want to send the {$type}, of {$total} e-mails?";
+		$confirmation = "Yes, send the {$type}";
 		if (!$this->areYouSure ($message, $confirmation, $formHtml)) {
 			$html .= $formHtml;
 			echo $html;
@@ -2495,7 +2517,7 @@ class elections
 		$html .= application::htmlUl ($sendingOutcomes);
 		
 		# Provide a reset page link
-		$html .= "<p><a href=\"{$this->baseUrl}/{$this->election['id']}/" . __FUNCTION__ . ".html\">Reset page.</a></p>";
+		$html .= "<p><a href=\"{$this->baseUrl}/{$this->election['id']}/" . $function . ".html\">Reset page.</a></p>";
 		
 		# Show the HTML
 		echo $html;
@@ -2558,6 +2580,11 @@ class elections
 			return false;
 		}
 		
+		# Determine whether candidates have responded
+		if ($type == 'reminders') {
+			$candidateIdsResponded = $this->getCandidateIdsResponded ($this->election['id']);
+		}
+				
 		# Increase allowed execution time
 		ini_set ('max_execution_time', 3600);
 		
@@ -2581,18 +2608,43 @@ class elections
 			# Loop through each candidate for this ward
 			foreach ($candidates[$ward] as $candidateId => $candidate) {
 				
+				# For reminders, skip if the candidate has responded
+				if ($type == 'reminders') {
+					if (in_array ($candidateId, $candidateIdsResponded)) {
+						continue;
+					}
+				}
+				
 				# Add this survey to the HTML
 				$outputHtml .= $this->createLetterHtml ($questionnaire, $candidate);
 				
 				# Create the e-mail if the candidate has an e-mail address
 				if ($candidate['email']) {
-					$emails[$candidateId] = $this->createEmail ($questionnaire, $candidate);
+					$emails[$candidateId] = $this->createEmail ($questionnaire, $candidate, $type);
 				}
 			}
 		}
 		
 		# Return either the HTML or the e-mails
 		return ($type == 'letters' ? $outputHtml : $emails);
+	}
+	
+	
+	# Function to get a list of candidate IDs that have responded to an election
+	private function getCandidateIdsResponded ($electionId)
+	{
+		# Get the candidates who have responded to any questions for their survey
+		$query = "SELECT
+				DISTINCT candidate
+			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}responses
+			LEFT JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}surveys ON elections_surveys.id = elections_responses.survey
+			WHERE election = :election
+			ORDER BY candidate
+		;";
+		$candidateIds = $this->databaseConnection->getPairs ($query, false, array ('election' => $electionId));
+		
+		# Return the IDs
+		return $candidateIds;
 	}
 	
 	
@@ -2672,7 +2724,7 @@ class elections
 	
 	
 	# Function to create an individual e-mail to a candidate
-	private function createEmail ($questionnaire, $candidate)
+	private function createEmail ($questionnaire, $candidate, $type)
 	{
 		# Assemble the ward name
 		$wardName = $this->wardName ($candidate);
@@ -2681,7 +2733,11 @@ class elections
 		$submissionUrl = "http://{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/";
 		
 		# Assemble the text
+		#!# Entities being shown in ward name, e.g. "Dear Sawston &amp; Shelford Division candidate,"
 		$text  = "\n";
+		if ($type == 'reminders') {
+			$text .= "\n" . 'Dear candidate - Just a reminder of this below - thanks in advance for your time.' . "\n\n--\n\n";
+		}
 		$text .= "\n" . 'Dear ' . $wardName . ' ' . $this->settings['division'] . ' candidate,';
 		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' http://www', $this->settings['organisationIntroductionHtml'])));
 		$text .= "\n";
@@ -2705,7 +2761,7 @@ class elections
 		$email = array (
 			// 'to'		=> '"' . $candidate['name'] . '" ' . '<' . $candidate['email'] . '>',
 			'to'		=> $candidate['email'],
-			'subject'	=> $this->settings['emailSubject'],
+			'subject'	=> ($type == 'reminders' ? 'REMINDER: ' : '') . $this->settings['emailSubject'],
 			'message'	=> $text,
 		);
 		
