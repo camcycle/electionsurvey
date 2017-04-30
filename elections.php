@@ -1,6 +1,5 @@
 <?php
 
-
 /*
 	Camcycle Elections: Elections survey system
 	Copyright (C) 2007-17  MLS and Camcycle (Cambridge Cycling Campaign)
@@ -304,6 +303,10 @@ class elections
 			),
 			'reminders'		=> array (
 				'description' => 'Reminders (e-mail) to candidates containing the survey',
+				'administrator' => true,
+			),
+			'reissue'		=> array (
+				'description' => 'Reissue an e-mail to a candidate',
 				'administrator' => true,
 			),
 			'ward'			=> array (
@@ -947,6 +950,7 @@ class elections
 			$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$election['id']}/letters.html\">Create the mailout (letters) to candidates containing the survey</a></li>";
 			$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$election['id']}/mailout.html\">Create the mailout (e-mail) to candidates containing the survey</a></li>";
 			$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$election['id']}/reminders.html\">Send reminder e-mails to candidates who have not yet responded to the survey</a></li>";
+			$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$election['id']}/reissue.html\">Reissue an e-mail to a candidate</a></li>";
 			$html .= "\n</ul>";
 		}
 		
@@ -1899,6 +1903,7 @@ class elections
 			<li><a href=\"{$this->baseUrl}/admin/letters.html\">Create the mailout (letters) to candidates containing the survey</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/mailout.html\">Create the mailout (e-mail) to candidates containing the survey</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/reminders.html\">Send reminder e-mails to candidates who have not yet responded to the survey</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/reissue.html\">Reissue an e-mail to a candidate</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/elected.html\">Specify the elected candidates</a></li>
 		</ul>";
 		
@@ -2460,6 +2465,99 @@ class elections
 	{
 		# Run the mailout routine
 		$this->doMailing (__FUNCTION__, 'reminder e-mails');
+	}
+	
+	
+	# Function to reissue an e-mail to a candidate
+	public function reissue ()
+	{
+		# Start the HTML
+		$html  = "\n<h2>Reissue an e-mail to a candidate</h2>";
+		
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			$html .= '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
+			echo $html;
+			return false;
+		}
+		
+		# Ensure there is an election supplied
+		if (!$this->election) {
+			$html .= "\n<p>Please select which election:</p>";
+			$html .= $this->listElections ($this->elections, true, false, 'reissue.html');
+			echo $html;
+			return false;
+		}
+		
+		# Get the candidates
+		if (!$candidates = $this->getCandidates (true)) {
+			$html .= '<p>There are no candidates at present.</p>';
+			echo $html;
+			return false;
+		}
+		
+		# Regroup
+		$candidatesByWard = application::regroup ($candidates, 'wardId', $removeGroupColumn = false);
+		
+		# Determine which candidates have responded
+		$candidateIdsResponded = $this->getCandidateIdsResponded ($this->election['id']);
+		
+		# Compile a droplist of candidates, grouped by ward, skipping those that have already responded
+		$wardCandidates = array ();
+		foreach ($candidatesByWard as $wardId => $candidatesThisWard) {
+			foreach ($candidatesThisWard as $candidateId => $candidate) {
+				if (in_array ($candidateId, $candidateIdsResponded)) {continue;}
+				$wardName = $candidate['ward'] . ':';
+				$wardCandidates[$wardName][$candidateId] = str_replace ('&nbsp;', ' ', $candidate['_nameUncoloured']);
+			}
+		}
+		
+		# Create a form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'displayRestrictions'	=> false,
+			'nullText' => false,
+			'formCompleteText' => false,
+		));
+		$form->heading ('p', 'Use this form to reissue an e-mail to a candidate. Only those candidates that have not yet responded are shown.');
+		$form->select (array (
+			'name'			=> 'candidate',
+			'title'			=> 'Candidate',
+			'values'		=> $wardCandidates,
+			'required'		=> true,
+		));
+		$form->email (array (
+			'name'			=> 'email',
+			'title'			=> 'E-mail address',
+			'required'		=> true,
+		));
+		
+		# Process the form
+		if ($result = $form->process ($html)) {
+			
+			# Select the candidate data
+			$candidateId = $result['candidate'];
+			$candidate = $candidates[$candidateId];
+			
+			# Update the candidate's e-mail address if changed
+			if ($result['email'] != $candidate['email']) {
+				$this->databaseConnection->update ($this->settings['database'], "{$this->settings['tablePrefix']}candidates", array ('email' => $result['email']), array ('id' => $candidateId));
+				$candidate['email'] = $result['email'];		// Update the candidate
+			}
+			
+			# Create the e-mail
+			$email = $this->createEmail ($candidate, 'mailout');
+			
+			# Send the e-mail
+			$emails = array ($candidateId => $email);
+			$html .= $this->sendEmails ($emails);
+			
+			# Provide a reset page link
+			$html .= "<p><a href=\"{$this->baseUrl}/{$this->election['id']}/" . $function . ".html\">Reset page.</a></p>";
+		}
+		
+		# Show the HTML
+		echo $html;
 	}
 	
 	

@@ -19,14 +19,14 @@ RedirectMatch permanent ^/elections/submit$ /elections/submit/
 # Admin area
 RewriteRule ^admin/$ index.html?action=admin [L]
 RedirectMatch permanent ^/elections/admin$ /elections/admin/
-RewriteRule ^admin/(allquestions|allocations|letters|mailout|reminders|elected|addelection|addward|addcandidates|addquestions|addsurveys).html$ index.html?action=$1 [L]
+RewriteRule ^admin/(allquestions|allocations|letters|mailout|reminders|reissue|elected|addelection|addward|addcandidates|addquestions|addsurveys).html$ index.html?action=$1 [L]
 
 # Overview page for an election
 RewriteRule ^([a-z0-9]+)/$ index.html?election=$1&action=overview [L]
 RedirectMatch permanent ^/elections/([a-z0-9]+)$ /elections/$1/
 
 # List of all/per-ward questions available
-RewriteRule ^([a-z0-9]+)/(letters|mailout|reminders|respondents|cabinet|elected).html$ index.html?election=$1&action=$2 [L]
+RewriteRule ^([a-z0-9]+)/(letters|mailout|reminders|reissue|respondents|cabinet|elected).html$ index.html?election=$1&action=$2 [L]
 RewriteRule ^([a-z0-9]+)/(questions)/$ index.html?election=$1&action=$2 [L]
 RedirectMatch permanent ^/elections/([a-z0-9]+)/(questions)$ /elections/$1/$2/
 RewriteRule ^([a-z0-9]+)/(questions)/([0-9]{1,2})/$ index.html?election=$1&action=$2&question=$3 [L]
