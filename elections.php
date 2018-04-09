@@ -2239,7 +2239,7 @@ class elections
 		# Confirm success
 		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The question has been added, as shown below.</p>";
 		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
-		$html .= $this->recentlyAddedQuestions ($mostRecent, $questionId);
+		$html .= $this->recentlyAddedQuestions ($mostRecent);
 		
 		# Show the HTML
 		echo $html;
@@ -2247,7 +2247,7 @@ class elections
 	
 	
 	# Function to create a list of questions most recently-added to the database
-	private function recentlyAddedQuestions ($mostRecent, $highlightQuestionId = false)
+	private function recentlyAddedQuestions ($mostRecent)
 	{
 		# Get the latest data, but ordered most recent last
 		$recentQuestions = $this->databaseConnection->select ($this->settings['database'], 'elections_questions', array (), array ('id', 'question', 'highlight'), true, $orderBy = 'id DESC', $mostRecent);
@@ -2256,11 +2256,6 @@ class elections
 		$list = array ();
 		foreach ($recentQuestions as $id => $question) {
 			$list[$id] = '<span class="comment">#' . $id . ': </span>' . $this->applyHighlighting (htmlspecialchars ($question['question']), $question['highlight']);
-		}
-		
-		# Highlight one question if present
-		if (isSet ($list[$highlightQuestionId])) {
-			$list[$highlightQuestionId] = "<strong>{$list[$highlightQuestionId]}</strong>";
 		}
 		
 		# Compile the HTML
