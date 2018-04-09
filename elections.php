@@ -2250,12 +2250,12 @@ class elections
 	private function recentlyAddedQuestions ($highlightQuestionId = false)
 	{
 		# Get the latest data, but ordered most recent last
-		$recentQuestions = $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_questions', array (), array ('id', 'question'), true, $orderBy = 'id DESC', $mostRecent = 10);
+		$recentQuestions = $this->databaseConnection->select ($this->settings['database'], 'elections_questions', array (), array ('id', 'question', 'highlight'), true, $orderBy = 'id DESC', $mostRecent = 10);
 		
 		# Assemble as a list
 		$list = array ();
-		foreach ($recentQuestions as $id => $recentQuestion) {
-			$list[$id] = '#' . $id . ': ' . htmlspecialchars ($recentQuestion);
+		foreach ($recentQuestions as $id => $question) {
+			$list[$id] = '<span class="comment">#' . $id . ': </span>' . $this->applyHighlighting (htmlspecialchars ($question['question']), $question['highlight']);
 		}
 		
 		# Highlight one question if present
