@@ -1338,7 +1338,7 @@ class elections
 			
 			# Construct the link
 			if ($letterMode) {
-				$list[] = ($title ? "{$title}:<br />" : '') . str_replace ('http://www.', 'www.', $link);
+				$list[] = ($title ? "{$title}:<br />" : '') . str_replace (array ('http://www.', 'https://www.'), 'www.', $link);
 			} else {
 				$list[] = "<a target=\"_blank\" title=\"[Link opens in a new window]\" href=\"" . $link . "\">" . $title . '</a>';
 			}
