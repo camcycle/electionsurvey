@@ -637,11 +637,9 @@ class elections
 		# Loop through each question
 		$list = array ();
 		foreach ($questions as $questionNumber => $question) {
-			$questionText = htmlspecialchars ($question['question']);
-			if ($question['highlight']) {
-				$questionText = str_replace (htmlspecialchars ($question['highlight']), '<strong>' . htmlspecialchars ($question['highlight']) . '</strong>', $question['question']);
-			}
-			$list[] = $questionText . "<br /><a href=\"{$this->baseUrl}/{$this->election['id']}/questions/{$questionNumber}/\">Read all answers&hellip;</a>";
+			$questionHtml = htmlspecialchars ($question['question']);
+			$questionHtml = $this->applyHighlighting ($questionHtml, $question['highlight']);
+			$list[] = $questionHtml . "<br /><a href=\"{$this->baseUrl}/{$this->election['id']}/questions/{$questionNumber}/\">Read all answers&hellip;</a>";
 		}
 		
 		# Compile the HTML
@@ -651,6 +649,18 @@ class elections
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Function to apply highlighting to a question
+	private function applyHighlighting ($questionHtml, $highlight)
+	{
+		# Return unmodified if not required
+		if (!$highlight) {return $question;}
+		
+		# Perform replacement and return the result
+		$questionHtml = str_replace (htmlspecialchars ($highlight), '<strong>' . htmlspecialchars ($highlight) . '</strong>', $questionHtml);
+		return $questionHtml;
 	}
 	
 	
