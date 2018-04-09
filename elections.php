@@ -356,6 +356,10 @@ class elections
 				'description' => 'Add surveys',
 				'administrator' => true,
 			),
+			'addaffiliations'	=> array (
+				'description' => 'Add affiliations',
+				'administrator' => true,
+			),
 		);
 	}
 	
@@ -1899,6 +1903,7 @@ class elections
 		<ul>
 			<li><a href=\"{$this->baseUrl}/admin/addelection.html\">Add an election</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addward.html\">Add a ward/division</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/addaffiliations.html\">Add affiliations</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addcandidates.html\">Add candidates</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addquestions.html\">Add questions</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addsurveys.html\">Add surveys</a></li>
@@ -2040,6 +2045,63 @@ class elections
 		# Confirm success
 		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The ward has been added.</p>";
 		$html .= "\n<p>Add another?</p>";
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Function to add an affiliation
+	public function addaffiliations ()
+	{
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			echo $html = '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
+			return false;
+		}
+		
+		# Get current IDs
+		$table = 'elections_affiliations';
+		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], $table, array (), array ('id'), true, $orderBy = 'id');
+		
+		# Start the HTML
+		$html  = "\n<h2>Add an affiliation</h2>";
+		
+		# Create a new form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'databaseConnection' => $this->databaseConnection,
+			'displayRestrictions' => false,
+			'picker' => true,
+		));
+		$form->dataBinding (array (
+			'database'	=> $this->settings['database'],
+			'table'		=> $table,
+			'attributes' => array (
+				#!# Current not working
+				'id' => array ('current' => currentIds, ),
+				'colour' => array ('type' => 'color', ),	#!# This should be done natively in ultimateForm
+			),
+		));
+		if (!$result = $form->process ($html)) {
+			echo $html;
+			return;
+		}
+		
+		# Replace hash in colour code
+		#!# This should be done natively in ultimateForm
+		$result['colour'] = str_replace ('#', '', $result['colour']);
+		
+		# Insert the new entry
+		if (!$this->databaseConnection->insert ($this->settings['database'], $table, $result)) {
+			$html = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> An error occurred adding the affiliation.</p>";
+			echo $html;
+			return;
+		}
+		
+		# Confirm success
+		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The affiliation has been added.</p>";
+		$html .= "\n<p><a href=\"{$this->baseUrl}/admin/addaffiliations.html\">Add another?</a></p>";
 		
 		# Show the HTML
 		echo $html;
