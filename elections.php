@@ -38,12 +38,12 @@
 		They need to be in your PHP installation's include_path.
 		For instance, if your site is at /srv/www/htdocs/ and your libraries are in a folder /libraries/, then the include_path must have /srv/www/htdocs/libraries/ within it
 		Download these freely from these URLs.
-		application.php		http://download.geog.cam.ac.uk/projects/application/
-		database.php		http://download.geog.cam.ac.uk/projects/database/
-		ultimateForm.php	http://download.geog.cam.ac.uk/projects/ultimateform/
+		application.php		https://download.geog.cam.ac.uk/projects/application/
+		database.php		https://download.geog.cam.ac.uk/projects/database/
+		ultimateForm.php	https://download.geog.cam.ac.uk/projects/ultimateform/
 			which has dependencies:
-		pureContent.php		http://download.geog.cam.ac.uk/projects/purecontent/
-		timedate.php		http://download.geog.cam.ac.uk/projects/timedate/
+		pureContent.php		https://download.geog.cam.ac.uk/projects/purecontent/
+		timedate.php		https://download.geog.cam.ac.uk/projects/timedate/
 		
 	Signin:
 		You also need to create a library called signin.php which is just an authentication stub for the website administrator (not the candidates though)
@@ -2855,7 +2855,7 @@ class elections
 		}
 		
 		# Define the submission URL
-		$submissionUrl = ((substr ($_SERVER['SERVER_NAME'], 0, 4) != 'www.') ? 'http://' : '') . "{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/";
+		$submissionUrl = ((substr ($_SERVER['SERVER_NAME'], 0, 4) != 'www.') ? 'https://' : '') . "{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/";
 		
 		# Show the letterhead
 		$html .= "
@@ -2916,7 +2916,7 @@ class elections
 		$wardName = $this->wardName ($candidate);
 		
 		# Define the submission URL
-		$submissionUrl = "http://{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/";
+		$submissionUrl = "https://{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/";
 		
 		# Assemble the text
 		#!# Entities being shown in ward name, e.g. "Dear Sawston &amp; Shelford Division candidate,"
@@ -2925,7 +2925,7 @@ class elections
 			$text .= "\n" . 'Dear candidate - Just a reminder of this below - thanks in advance for your time.' . "\n\n--\n\n";
 		}
 		$text .= "\n" . 'Dear ' . $wardName . ' ' . $this->settings['division'] . ' candidate,';
-		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' http://www', $this->settings['organisationIntroductionHtml'])));
+		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' https://www', $this->settings['organisationIntroductionHtml'])));
 		$text .= "\n";
 		$text .= "\n" . 'Please access the survey and submit your responses online, here:';
 		$text .= "\n";
@@ -2941,7 +2941,7 @@ class elections
 		$text .= "\n" . $this->settings['letterSignaturePosition'] . ', ' . $this->settings['letterSignatureOrganisationName'];
 		$text .= "\n";
 		$text .= "\n";
-		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' http://www', $this->settings['postSubmissionHtmlLetters'])));
+		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' https://www', $this->settings['postSubmissionHtmlLetters'])));
 		
 		# Compile the e-mail
 		$email = array (
