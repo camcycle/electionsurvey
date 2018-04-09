@@ -2286,7 +2286,7 @@ class elections
 		}
 		
 		# Define number of recent questions to show
-		$mostRecent = 10;
+		$mostRecent = 20;
 		
 		# Start the HTML
 		$html  = "\n<h2>Add questions</h2>";
@@ -2321,6 +2321,7 @@ class elections
 		));
 		if (!$result = $form->process ($html)) {
 			echo $html;
+			echo $this->recentlyAddedQuestions ($mostRecent);
 			return;
 		}
 		
