@@ -2285,7 +2285,7 @@ class elections
 		
 		# Start the HTML
 		$html  = "\n<h2>Add questions</h2>";
-		$html .= "\n<p>In this section, you can add questions that can then be used in a survey. Note that questions have to be added one at a time.</p>";
+		$html .= "\n<p>In this section, you can construct a survey for each area. Note that surveys have to be created one at a time.</p>";
 		$html .= "\n<p>The {$mostRecent} most recently-added questions are shown below.</p>";
 		
 		# Create a new form
