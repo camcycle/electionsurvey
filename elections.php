@@ -2223,7 +2223,7 @@ class elections
 		));
 		#!# Need to check that highlight text appears in the question
 		if (!$result = $form->process ($html)) {
-			$html .= $this->recentlyAddedQuestions ();
+			$html .= $this->recentlyAddedQuestions ($mostRecent);
 			echo $html;
 			return;
 		}
@@ -2239,7 +2239,7 @@ class elections
 		# Confirm success
 		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The question has been added, as shown below.</p>";
 		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
-		$html .= $this->recentlyAddedQuestions ($questionId);
+		$html .= $this->recentlyAddedQuestions ($mostRecent, $questionId);
 		
 		# Show the HTML
 		echo $html;
@@ -2247,10 +2247,10 @@ class elections
 	
 	
 	# Function to create a list of questions most recently-added to the database
-	private function recentlyAddedQuestions ($highlightQuestionId = false)
+	private function recentlyAddedQuestions ($mostRecent, $highlightQuestionId = false)
 	{
 		# Get the latest data, but ordered most recent last
-		$recentQuestions = $this->databaseConnection->select ($this->settings['database'], 'elections_questions', array (), array ('id', 'question', 'highlight'), true, $orderBy = 'id DESC', $mostRecent = 10);
+		$recentQuestions = $this->databaseConnection->select ($this->settings['database'], 'elections_questions', array (), array ('id', 'question', 'highlight'), true, $orderBy = 'id DESC', $mostRecent);
 		
 		# Assemble as a list
 		$list = array ();
