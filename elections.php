@@ -732,7 +732,7 @@ class elections
 	
 	
 	# Function to get list of elections, including whether they are active
-	private function getElections ()
+	private function getElections ($includeForthcoming = false)
 	{
 		# Get data
 		$query = "SELECT
@@ -747,7 +747,7 @@ class elections
 				DATE_FORMAT(respondentsDate,'%W %D %M %Y') AS respondentsDate,
 				IF(name LIKE '%county%',1,0) AS isCounty
 			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}elections
-			WHERE startDate <= (CAST(NOW() AS DATE))
+			" . ($includeForthcoming ? '' : "WHERE startDate <= (CAST(NOW() AS DATE))") . "
 			ORDER BY endDate DESC, isCounty DESC /* County before others if on same day */
 		;";
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}elections");
@@ -2121,6 +2121,9 @@ class elections
 		$html  = "\n<h2>Add candidates</h2>";
 		$html .= "\n<p>Note that this will replace the data for the selected election.</p>";
 		
+		# Get all elections, including forthcoming
+		$elections = $this->getElections (true);
+		
 		# Define the required fields
 		$requiredFields = array ('forename', 'surname', 'ward', 'affiliation', 'address', 'email');
 		
@@ -2133,7 +2136,7 @@ class elections
 		$form->select (array (
 			'name'			=> 'election',
 			'title'			=> 'Which election',
-			'values'		=> $this->getElectionNames (),
+			'values'		=> $this->getElectionNames ($elections),
 			'required'		=> true,
 		));
 		$form->textarea (array (
@@ -2235,11 +2238,11 @@ class elections
 	
 	
 	# Helper function to get election names
-	private function getElectionNames ()
+	private function getElectionNames ($elections)
 	{
 		# Assemble the elections list
 		$electionNames = array ();
-		foreach ($this->elections as $key => $value) {
+		foreach ($elections as $key => $value) {
 			$electionNames[$key] = $value['name'];
 		}
 		
@@ -2346,9 +2349,12 @@ class elections
 		$mostRecent = 20;
 		
 		# Start the HTML
-		$html  = "\n<h2>Add questions</h2>";
+		$html  = "\n<h2>Add survey</h2>";
 		$html .= "\n<p>In this section, you can construct a survey for each area. Note that surveys have to be created one at a time.</p>";
 		$html .= "\n<p>The {$mostRecent} most recently-added questions are shown below.</p>";
+		
+		# Get all elections, including forthcoming
+		$elections = $this->getElections (true);
 		
 		# Create a new form
 		require_once ('ultimateForm.php');
@@ -2358,7 +2364,7 @@ class elections
 		$form->select (array (
 			'name'			=> 'election',
 			'title'			=> 'Which election',
-			'values'		=> $this->getElectionNames (),
+			'values'		=> $this->getElectionNames ($elections),
 			'required'		=> true,
 		));
 		$form->select (array (
@@ -2453,6 +2459,9 @@ class elections
 			return false;
 		}
 		
+		# Get all elections, including forthcoming
+		$elections = $this->getElections (true);
+		
 		# Create the form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
@@ -2461,7 +2470,7 @@ class elections
 		$form->select (array (
 			'name'			=> 'election',
 			'title'			=> 'Which election',
-			'values'		=> $this->getElectionNames (),
+			'values'		=> $this->getElectionNames ($elections),
 		));
 		$form->textarea (array (
 			'name'			=> 'allocations',
