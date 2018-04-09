@@ -2241,7 +2241,6 @@ class elections
 	{
 		# Get the latest data, but ordered most recent last
 		$recentQuestions = $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_questions', array (), array ('id', 'question'), true, $orderBy = 'id DESC', $mostRecent = 10);
-		$recentQuestions = array_reverse ($recentQuestions, true);
 		
 		# Assemble as a list
 		$list = array ();
@@ -2256,7 +2255,7 @@ class elections
 		
 		# Compile the HTML
 		$html  = "\n<h3>Most recently-added questions</h3>";
-		$html .= "\n<p>Here are the {$mostRecent} questions most recently-added to the database:</p>";
+		$html .= "\n<p>Here are the {$mostRecent} questions most recently added to the database:</p>";
 		$html .= application::htmlUl ($list, 0, 'spaced');
 		
 		# Surround in a div
