@@ -2629,7 +2629,7 @@ class elections
 			$html .= $this->sendEmails ($emails);
 			
 			# Provide a reset page link
-			$html .= "<p><a href=\"{$this->baseUrl}/{$this->election['id']}/" . $function . ".html\">Reset page.</a></p>";
+			$html .= "<p><a href=\"{$this->baseUrl}/{$this->election['id']}/" . __FUNCTION__ . ".html\">Send another.</a></p>";
 		}
 		
 		# Show the HTML
