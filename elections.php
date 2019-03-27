@@ -2677,7 +2677,7 @@ class elections
 		
 		# Ask for confirmation
 		$total = count ($emails);
-		$message = "Are you sure you want to send the {$type}, of {$total} e-mails? (A preview of each e-mail is shown below.)";
+		$message = "Are you sure you want to send the {$type}, of {$total} " . ($total == 1 ? 'e-mail' : 'e-mails') . "? (A preview of each e-mail is shown below.)";
 		$confirmation = "Yes, send the {$type}";
 		if (!$this->areYouSure ($message, $confirmation, $formHtml)) {
 			$html .= $formHtml;
