@@ -2026,8 +2026,7 @@ class elections
 			'database'	=> $this->settings['database'],
 			'table'		=> 'elections_wards',
 			'attributes' => array (
-				#!# Current not working
-				'id' => array ('current' => currentIds, ),
+				'id' => array ('current' => $currentIds, ),
 			),
 		));
 		if (!$result = $form->process ($html)) {
@@ -2078,8 +2077,7 @@ class elections
 			'database'	=> $this->settings['database'],
 			'table'		=> $table,
 			'attributes' => array (
-				#!# Current not working
-				'id' => array ('current' => currentIds, ),
+				'id' => array ('current' => $currentIds, ),
 				'colour' => array ('type' => 'color', ),	#!# This should be done natively in ultimateForm
 			),
 		));
