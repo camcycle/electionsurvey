@@ -100,6 +100,9 @@
 	  `respondentsDate` date NOT NULL default '0000-00-00' COMMENT 'Date when respondents (so far) become visible (e.g. 3 weeks before election day)',
 	  `resultsDate` date NOT NULL default '0000-00-00' COMMENT 'Date when responses become visible (e.g. 2 weeks before election day)',
 	  `endDate` date NOT NULL default '0000-00-00' COMMENT 'Date of election (and close of survey submissions)',
+	  `letterheadHtml` TEXT NOT NULL COMMENT  'Letterhead HTML',
+	  `organisationIntroductionHtml` TEXT NOT NULL COMMENT 'Organisation introduction HTML',
+	  `letterSignatureName` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Signature name',
 	  `directionsUrl` varchar(255) collate utf8_unicode_ci NOT NULL default 'https://www.cyclestreets.net/' COMMENT 'Directions to cycle to polling stations',
 	  PRIMARY KEY  (`id`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Election overview';
@@ -169,18 +172,6 @@
 		'imprint' => 'BLAH is a non-partisan body. All candidates are given an equal opportunity to submit their views. Information published by BLAH.',
 		
 		# Pre-formatted letters
-		'letterheadHtml' => '
-			<p><img src="/path/to/logo.gif" width="140" height="91" alt="BLAH logo" /><br />
-			<strong>NAME</strong><br />
-			ADDRESS1<br />
-			ADDRESS2<br />
-			EMAIL<br />
-			WEBSITE</p>
-			',
-		'organisationIntroductionHtml' =>
-			"<p>By way of introduction, ORGANISATION NAME is BLURB. Full information about our activities and views can be found on our extensive website, at URL .</p>" .
-			"<p>We write to you, as a candidate, to ask your views on a range of issues of concern to our members. We would be most grateful if you could spend a few moments on the short survey below to let us know your views, as soon as you are able. All views submitted (as well as non-responses) will be shown on our website, for the information of voters. We would additionally be interested to hear from you if you have any other views or questions that we might be able to help with.</p>",
-		'letterSignatureName' => 'John Smith',
 		'letterSignaturePosition' => 'Media Officer',
 		'letterSignatureOrganisationName' => 'BLAH',
 		
@@ -252,10 +243,7 @@ class elections
 		'divisionPlural' => 'wards',
 		
 		# Pre-formatted letters
-		'letterheadHtml' => NULL,
-		'organisationIntroductionHtml' => NULL,
 		'organisationConstituentsType' => 'members',	// E.g. could be 'supporters' or similar instead
-		'letterSignatureName' => NULL,
 		'letterSignaturePosition' => NULL,
 		'letterSignatureOrganisationName' => NULL,
 		
@@ -2892,7 +2880,7 @@ class elections
 						" . str_replace (',', ',<br />', htmlspecialchars ($candidate['address'])) . "
 					</td>
 					<td class=\"letterhead\">
-						{$this->settings['letterheadHtml']}
+						{$this->election['letterheadHtml']}
 						<p>" . date ('jS F Y') . "</p>
 					</td>
 				</tr>
@@ -2901,12 +2889,12 @@ class elections
 						<p>&nbsp;</p>
 						<p>&nbsp;</p>
 						<p>Dear " . $wardName . ' ' . $this->settings['division'] . " candidate,</p>
-						" . $this->settings['organisationIntroductionHtml'] . "
+						" . $this->election['organisationIntroductionHtml'] . "
 						<p>We ask candidates to submit their responses via the automated facility on our website. Just go to: <u>{$submissionUrl}</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
 						" . $screenshotHtml . "
 						<p>If you are unable to complete this survey online or you require any other assistance please e-mail, phone or write to us and we will be happy to make alternative arrangements.</p>
 						<p>Many thanks for your time.<br />Yours sincerely,</p>
-						<p>" . htmlspecialchars ($this->settings['letterSignatureName']) . ",<br />" . htmlspecialchars ($this->settings['letterSignaturePosition']) . ', ' . htmlspecialchars ($this->settings['letterSignatureOrganisationName']) . "</p>
+						<p>" . htmlspecialchars ($this->election['letterSignatureName']) . ",<br />" . htmlspecialchars ($this->settings['letterSignaturePosition']) . ', ' . htmlspecialchars ($this->settings['letterSignatureOrganisationName']) . "</p>
 						<p>&nbsp;</p>
 					</td>
 				</tr>
@@ -2951,7 +2939,7 @@ class elections
 			$text .= "\n" . 'Dear candidate - Just a reminder of this below - thanks in advance for your time.' . "\n\n--\n\n";
 		}
 		$text .= "\n" . 'Dear ' . $wardName . ' ' . $this->settings['division'] . ' candidate,';
-		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' https://www', $this->settings['organisationIntroductionHtml'])));
+		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' https://www', $this->election['organisationIntroductionHtml'])));
 		$text .= "\n";
 		$text .= "\n" . 'Please access the survey and submit your responses online, here:';
 		$text .= "\n";
@@ -2963,7 +2951,7 @@ class elections
 		$text .= "\n" . 'Many thanks for your time.';
 		$text .= "\n" . 'Yours sincerely,';
 		$text .= "\n";
-		$text .= "\n" . $this->settings['letterSignatureName'] . ',';
+		$text .= "\n" . $this->election['letterSignatureName'] . ',';
 		$text .= "\n" . $this->settings['letterSignaturePosition'] . ', ' . $this->settings['letterSignatureOrganisationName'];
 		$text .= "\n";
 		$text .= "\n";
