@@ -2530,7 +2530,7 @@ class elections
 	public function mailout ()
 	{
 		# Run the mailout routine
-		$this->doMailing (__FUNCTION__, 'e-mails');
+		$this->emailMailoutRoutine (__FUNCTION__, 'e-mails');
 	}
 	
 	
@@ -2538,7 +2538,7 @@ class elections
 	public function reminders ()
 	{
 		# Run the mailout routine
-		$this->doMailing (__FUNCTION__, 'reminder e-mails');
+		$this->emailMailoutRoutine (__FUNCTION__, 'reminder e-mails');
 	}
 	
 	
@@ -2642,7 +2642,7 @@ class elections
 	
 	
 	# Internal mailout routine
-	private function doMailing ($function, $type)
+	private function emailMailoutRoutine ($function, $type)
 	{
 		# Start the HTML
 		$html  = "\n<h2>Send {$type} to candidates</h2>";
