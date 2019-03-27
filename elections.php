@@ -2751,7 +2751,7 @@ class elections
 	
 	
 	# Function to compile a mailout, for either letters or e-mail
-	private function compileMailout ($type, &$html)
+	private function compileMailout ($type /* =letters/mailout/reminders */, &$html)
 	{
 		# Start the general status HTML
 		$html  = '';
@@ -2787,11 +2787,11 @@ class elections
 		$surveys = application::regroup ($surveys, 'wardId', $removeGroupColumn = false);
 		$candidates = application::regroup ($candidates, 'wardId', $removeGroupColumn = false);
 		
-		# Start a list of e-mails
+		# Start an HTML output and list of e-mails
+		$outputHtml = '';
 		$emails = array ();
 		
 		# Loop through by ward having surveys
-		$outputHtml = '';
 		foreach ($surveys as $ward => $questionnaire) {
 			
 			# Miss out if no candidates in a ward; a warning is shown if none, in case of trailing spaces, etc.
@@ -2810,13 +2810,16 @@ class elections
 					}
 				}
 				
-				# Add this survey to the HTML
-				#!# This step is unnecessary if $type is not letters - need to refactor to avoid unnecessary computation
-				$outputHtml .= $this->createLetterHtml ($questionnaire, $candidate);
+				# For letters, create the HTML for this candidate
+				if ($type == 'letters') {
+					$outputHtml .= $this->createLetterHtml ($questionnaire, $candidate);
+				}
 				
-				# Create the e-mail if the candidate has an e-mail address
-				if ($candidate['email']) {
-					$emails[$candidateId] = $this->createEmail ($candidate, $type);
+				# Create the e-mail, and a preview for display on the form page, if the candidate has an e-mail address
+				if ($type != 'letters') {
+					if ($candidate['email']) {
+						$emails[$candidateId] = $this->createEmail ($candidate, $type);
+					}
 				}
 			}
 		}
