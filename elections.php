@@ -1048,14 +1048,15 @@ class elections
 	
 	
 	# Function to show questions
-	private function showQuestions ($limitToWard = false)
+	private function showQuestions ($limitToWard = false /* will be false if listing all questions across all elections */)
 	{
 		# Start the HTML
 		$html  = '';
 		if (!$limitToWard) {$html .= "\n\n<h2>" . ($this->election ? 'Questions allocated to each ' . $this->settings['division'] : 'All available questions') . '</h2>';}
 		
 		# Get the data
-		if (!$data = $this->getQuestions ($limitToWard, $this->election['id'])) {
+		$electionId = ($limitToWard ? $this->election['id'] : false);
+		if (!$data = $this->getQuestions ($limitToWard, $electionId)) {
 			$wardName = $this->wards[$limitToWard]['_name'];
 			$html .= "\n\n<h3 class=\"ward\" id=\"{$wardName}\">Questions for {$wardName} {$this->settings['division']} candidates</h3>";
 			return $html .= "\n<p>There are no questions assigned for this {$this->settings['division']} at present.</p>";
@@ -1072,7 +1073,7 @@ class elections
 		}
 		
 		# Get all the question index numbers in use in this election - i.e. the public numbers 1,2,3.. (as shown on the question index page) rather than the internal IDs
-		$questionNumbersPublic = $this->getQuestionsForElection ($this->election['id'], true);
+		$questionNumbersPublic = $this->getQuestionsForElection ($electionId, true);
 		
 		# Loop through each grouping
 		$questionsHtml = '';
@@ -1254,7 +1255,7 @@ class elections
 	# Function to get all questions being asked
 	private function getQuestions ($ward = false, $election = false, $groupByQuestionId = false)
 	{
-		# If there is an election, get all available questions (top level)
+		# If there is not an election specified, i.e. top-level listing of all questions, retrieve all available questions
 		if (!$election) {
 			$query = "SELECT * FROM {$this->settings['database']}.{$this->settings['tablePrefix']}questions;";
 			
