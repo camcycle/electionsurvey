@@ -2563,6 +2563,12 @@ class elections
 			return false;
 		}
 		
+		# Not available once the election is over
+		if (!$this->election['active']) {
+			echo $html .= '<p>This is no longer available now the election is over.</p>';
+			return false;
+		}
+		
 		# Get the candidates
 		if (!$candidates = $this->getCandidates (true)) {
 			$html .= '<p>There are no candidates at present.</p>';
@@ -2645,6 +2651,12 @@ class elections
 		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
 			$html .= '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
 			echo $html;
+			return false;
+		}
+		
+		# Not available once the election is over
+		if (!$this->election['active']) {
+			echo $html .= '<p>This is no longer available now the election is over.</p>';
 			return false;
 		}
 		
