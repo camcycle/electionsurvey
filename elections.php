@@ -1891,8 +1891,8 @@ class elections
 		$html .= "\n<h3>Data import</h3>
 		<ul>
 			<li><a href=\"{$this->baseUrl}/admin/addelection.html\">Add an election</a></li>
-			<li><a href=\"{$this->baseUrl}/admin/addward.html\">Add a ward/division</a></li>
-			<li><a href=\"{$this->baseUrl}/admin/addaffiliations.html\">Add affiliations</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/addward.html\">Add a ward/division</a> (if not already present from previous elections)</li>
+			<li><a href=\"{$this->baseUrl}/admin/addaffiliations.html\">Add an affiliation</a> (if not already present from previous elections)</li>
 			<li><a href=\"{$this->baseUrl}/admin/addcandidates.html\">Add candidates</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addquestions.html\">Add questions</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addsurveys.html\">Add surveys</a></li>
