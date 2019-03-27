@@ -149,8 +149,8 @@
 	Just create a PHP file containing settings and then running the class; something like:
 	
 	
-	# Define the database credentials
-	$credentials = array (
+	# Define the settings
+	$settings = array (
 		
 		# Database
 		'hostname'	=> 'localhost',
@@ -193,7 +193,7 @@
 	
 	# Load and run the elections system with that settings list
 	require_once ('elections.php');
-	new elections ($credentials);
+	new elections ($settings);
 	
  */
 
