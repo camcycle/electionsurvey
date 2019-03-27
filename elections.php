@@ -172,7 +172,7 @@
 		'imprint' => 'BLAH is a non-partisan body. All candidates are given an equal opportunity to submit their views. Information published by BLAH.',
 		
 		# Pre-formatted letters
-		'letterSignaturePosition' => 'Media Officer',
+		'letterSignaturePosition' => 'Committee member',
 		'letterSignatureOrganisationName' => 'BLAH',
 		
 		# Emails
@@ -244,7 +244,7 @@ class elections
 		
 		# Pre-formatted letters
 		'organisationConstituentsType' => 'members',	// E.g. could be 'supporters' or similar instead
-		'letterSignaturePosition' => NULL,
+		'letterSignaturePosition' => 'Committee member',
 		'letterSignatureOrganisationName' => NULL,
 		
 		# Post-submission HTML
