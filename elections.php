@@ -2661,7 +2661,7 @@ class elections
 		}
 		
 		# Assemble the e-mails
-		$emails = $this->compileMailout ($function, $statusHtml);
+		$emails = $this->compileMailout ($function, $statusHtml, $emailsPreviewHtml /* returned by reference */);
 		if ($emails === false) {
 			$html .= $statusHtml;
 			echo $html;
@@ -2677,10 +2677,11 @@ class elections
 		
 		# Ask for confirmation
 		$total = count ($emails);
-		$message = "Are you sure you want to send the {$type}, of {$total} e-mails?";
+		$message = "Are you sure you want to send the {$type}, of {$total} e-mails? (A preview of each e-mail is shown below.)";
 		$confirmation = "Yes, send the {$type}";
 		if (!$this->areYouSure ($message, $confirmation, $formHtml)) {
 			$html .= $formHtml;
+			$html .= $emailsPreviewHtml;
 			echo $html;
 			return false;
 		}
@@ -2751,7 +2752,7 @@ class elections
 	
 	
 	# Function to compile a mailout, for either letters or e-mail
-	private function compileMailout ($type /* =letters/mailout/reminders */, &$html)
+	private function compileMailout ($type /* =letters/mailout/reminders */, &$html, &$emailsPreviewHtml = '')
 	{
 		# Start the general status HTML
 		$html  = '';
@@ -2791,6 +2792,10 @@ class elections
 		$outputHtml = '';
 		$emails = array ();
 		
+		# Add to the e-mail preview HTML
+		$emailsPreviewHtml .= "\n<h3>Preview of each e-mail</h3>";
+		$emailsPreviewHtml .= "\n<hr />";
+		
 		# Loop through by ward having surveys
 		foreach ($surveys as $ward => $questionnaire) {
 			
@@ -2818,7 +2823,14 @@ class elections
 				# Create the e-mail, and a preview for display on the form page, if the candidate has an e-mail address
 				if ($type != 'letters') {
 					if ($candidate['email']) {
+						
+						# Compile the e-mail data
 						$emails[$candidateId] = $this->createEmail ($candidate, $type);
+						
+						# Create an HTML preview rendering
+						$emailsPreviewHtml .= "\n\n<p>To: " . htmlspecialchars ($emails[$candidateId]['to']) . "<br />\nSubject: " . htmlspecialchars ($emails[$candidateId]['subject']) . '</p>';
+						$emailsPreviewHtml .= "\n" . nl2br (htmlspecialchars ($emails[$candidateId]['message']));
+						$emailsPreviewHtml .= "\n<br />\n<br />\n<hr />";
 					}
 				}
 			}
