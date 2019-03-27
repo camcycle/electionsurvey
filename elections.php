@@ -669,7 +669,7 @@ class elections
 	
 	
 	# Function to get all the questions being asked in a particular election
-	private function getQuestionsForElection ($electionId, $idToIndex = false)
+	private function getQuestionsForElection ($electionId  /* will be false if all questions */, $idToIndex = false)
 	{
 		# Get all the questions for this election
 		$data = $this->getQuestions (false, $electionId, $groupByQuestionId = true);
@@ -1257,7 +1257,7 @@ class elections
 	{
 		# If there is not an election specified, i.e. top-level listing of all questions, retrieve all available questions
 		if (!$election) {
-			$query = "SELECT * FROM {$this->settings['database']}.{$this->settings['tablePrefix']}questions;";
+			$query = "SELECT *, id AS questionId FROM {$this->settings['database']}.{$this->settings['tablePrefix']}questions;";
 			
 		# Otherwise get surveys by ward
 		} else {
