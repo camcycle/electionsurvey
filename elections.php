@@ -1866,7 +1866,7 @@ class elections
 	
 	
 	# Admin area
-	private function admin ()
+	public function admin ()
 	{
 		# Ensure the user is an administrator
 		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
@@ -1930,7 +1930,7 @@ class elections
 	
 	
 	# List of all questions in the entire database
-	private function allquestions ()
+	public function allquestions ()
 	{
 		# Ensure the user is an administrator
 		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
@@ -2448,7 +2448,7 @@ class elections
 	
 	
 	# Admin helper function to create SQL INSERTS
-	private function allocations ()
+	public function allocations ()
 	{
 		# Start the HTML
 		$html  = '<h2>Create the question allocation SQL</h2>';
@@ -2984,7 +2984,7 @@ class elections
 	
 	
 	# Function to specify the elected candidates
-	private function elected ()
+	public function elected ()
 	{
 		# Start the HTML
 		$html  = '<h2>Specify the elected candidates</h2>';
