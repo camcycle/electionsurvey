@@ -363,9 +363,6 @@ class elections
 		# Get the base URL
 		$this->baseUrl = application::getBaseUrl ();
 		
-		# Obtain the actions
-		$this->actions = $this->actions ();
-		
 		# Load the local stylesheet
 		echo "\n<style type=\"text/css\" media=\"all\">@import \"{$this->baseUrl}/elections.css\";</style>";
 		
@@ -384,6 +381,9 @@ class elections
 			return false;
 		};
 		
+		# Obtain the actions
+		$this->actions = $this->actions ();
+		
 		# Determine whether the user is an administrator
 		require_once ('signin.php');
 		$this->userIsAdministrator = signin::user_has_privilege ('elections');
@@ -394,6 +394,14 @@ class elections
 			return false;
 		}
 		$this->action = $_GET['action'];
+
+		# On pages requiring administrative credentials, ensure the user is an administrator
+		if (isSet ($this->actions[$this->action]['administrator']) && $this->actions[$this->action]['administrator']) {
+			if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+				echo $html = "\n" . '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
+				return false;
+			}
+		}
 		
 		# Get the elections available
 		$this->elections = $this->getElections ();
@@ -1868,12 +1876,6 @@ class elections
 	# Admin area
 	public function admin ()
 	{
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html = '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			return false;
-		}
-		
 		# Start the HTML
 		$html  = "\n<h2>Administrative functions</h2>";
 		$html .= "\n<p><em>This section is accessible only to Administrators.</em></p>";
@@ -1932,12 +1934,6 @@ class elections
 	# List of all questions in the entire database
 	public function allquestions ()
 	{
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html = '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			return false;
-		}
-		
 		# Ensure that an election is not being supplied
 		if ($this->election) {
 			header ('HTTP/1.0 404 Not Found');
@@ -1956,12 +1952,6 @@ class elections
 	# Function to add an election
 	public function addelection ()
 	{
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html = '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			return false;
-		}
-		
 		# Start the HTML
 		$html  = "\n<h2>Add an election</h2>";
 		
@@ -2005,12 +1995,6 @@ class elections
 	# Function to add a ward
 	public function addward ()
 	{
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html = '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			return false;
-		}
-		
 		# Get current IDs
 		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_wards', array (), array ('id'), true, $orderBy = 'id');
 		
@@ -2055,12 +2039,6 @@ class elections
 	# Function to add an affiliation
 	public function addaffiliations ()
 	{
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html = '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			return false;
-		}
-		
 		# Get current IDs
 		$table = 'elections_affiliations';
 		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], $table, array (), array ('id'), true, $orderBy = 'id');
@@ -2111,12 +2089,6 @@ class elections
 	# Function to add candidates for an election
 	public function addcandidates ()
 	{
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html = '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			return false;
-		}
-		
 		# Start the HTML
 		$html  = "\n<h2>Add candidates</h2>";
 		$html .= "\n<p>Note that this will replace the data for the selected election.</p>";
@@ -2254,12 +2226,6 @@ class elections
 	# Function to add questions
 	public function addquestions ()
 	{
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html = '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			return false;
-		}
-		
 		# Define number of recent questions to show
 		$mostRecent = 20;
 		
@@ -2339,12 +2305,6 @@ class elections
 	# Function to add surveys
 	public function addsurveys ()
 	{
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html = '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			return false;
-		}
-		
 		# Define number of recent questions to show
 		$mostRecent = 20;
 		
@@ -2453,12 +2413,6 @@ class elections
 		# Start the HTML
 		$html  = '<h2>Create the question allocation SQL</h2>';
 		
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html  = '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			return false;
-		}
-		
 		# Get all elections, including forthcoming
 		$elections = $this->getElections (true);
 		
@@ -2508,13 +2462,6 @@ class elections
 		# Start the HTML
 		$html  = '<h2>Printable letters to candidates</h2>';
 		
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			$html .= '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			echo $html;
-			return false;
-		}
-		
 		# Obtain the HTML
 		if (!$mailoutHtml = $this->compileMailout (__FUNCTION__, $statusHtml)) {
 			$html .= $statusHtml;
@@ -2534,13 +2481,6 @@ class elections
 		# Start the HTML
 		$html  = "\n<h2>Send e-mail mailout to candidates</h2>";
 		
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			$html .= '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			echo $html;
-			return false;
-		}
-		
 		# Run the mailout routine
 		$html .= $this->emailMailoutRoutine (__FUNCTION__, 'e-mails');
 		
@@ -2555,13 +2495,6 @@ class elections
 		# Start the HTML
 		$html  = "\n<h2>Send reminder e-mails to candidates</h2>";
 		
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			$html .= '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			echo $html;
-			return false;
-		}
-		
 		# Run the mailout routine
 		$html .= $this->emailMailoutRoutine (__FUNCTION__, 'reminder e-mails');
 		
@@ -2575,13 +2508,6 @@ class elections
 	{
 		# Start the HTML
 		$html  = "\n<h2>Reissue an e-mail to a candidate</h2>";
-		
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			$html .= '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			echo $html;
-			return false;
-		}
 		
 		# Ensure there is an election supplied
 		if (!$this->election) {
@@ -3004,12 +2930,6 @@ class elections
 	{
 		# Start the HTML
 		$html  = '<h2>Specify the elected candidates</h2>';
-		
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			echo $html .= '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			return false;
-		}
 		
 		# Ensure there is an election supplied
 		if (!$this->election) {
