@@ -348,7 +348,7 @@ class elections
 				'administrator' => true,
 			),
 			'addsurveys'	=> array (
-				'description' => 'Add surveys',
+				'description' => 'Create surveys',
 				'administrator' => true,
 			),
 			'addaffiliations'	=> array (
@@ -1902,7 +1902,7 @@ class elections
 			<li><a href=\"{$this->baseUrl}/admin/addcandidates.html\">Add candidates</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addquestions.html\">Add questions</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/deletequestions.html\">Delete a question</a></li>
-			<li><a href=\"{$this->baseUrl}/admin/addsurveys.html\">Add surveys</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/addsurveys.html\">Create surveys</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/allocations.html\">Convert an allocations spreadsheet into SQL</a></li>
 		</ul>";
 		
@@ -2413,14 +2413,14 @@ class elections
 	}
 	
 	
-	# Function to add surveys
+	# Function to create surveys
 	public function addsurveys ()
 	{
 		# Define number of recent questions to show
 		$mostRecent = 20;
 		
 		# Start the HTML
-		$html  = "\n<h2>Add survey</h2>";
+		$html  = "\n<h2>Create survey</h2>";
 		$html .= "\n<p>In this section, you can construct a survey for each area. Note that surveys have to be created one at a time.</p>";
 		$html .= "\n<p>The {$mostRecent} most recently-added questions are shown below.</p>";
 		
