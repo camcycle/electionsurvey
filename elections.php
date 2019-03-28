@@ -2531,16 +2531,42 @@ class elections
 	# Function to create the mailout (e-mail) to candidates containing the survey
 	public function mailout ()
 	{
+		# Start the HTML
+		$html  = "\n<h2>Send e-mail mailout to candidates</h2>";
+		
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			$html .= '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
+			echo $html;
+			return false;
+		}
+		
 		# Run the mailout routine
-		$this->emailMailoutRoutine (__FUNCTION__, 'e-mails');
+		$html .= $this->emailMailoutRoutine (__FUNCTION__, 'e-mails');
+		
+		# Show the HTML
+		echo $html;
 	}
 	
 	
 	# Function to send reminder e-mails to candidates who have not yet responded to the sur
 	public function reminders ()
 	{
+		# Start the HTML
+		$html  = "\n<h2>Send reminder e-mails to candidates</h2>";
+		
+		# Ensure the user is an administrator
+		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
+			$html .= '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
+			echo $html;
+			return false;
+		}
+		
 		# Run the mailout routine
-		$this->emailMailoutRoutine (__FUNCTION__, 'reminder e-mails');
+		$html .= $this->emailMailoutRoutine (__FUNCTION__, 'reminder e-mails');
+		
+		# Show the HTML
+		echo $html;
 	}
 	
 	
@@ -2647,34 +2673,25 @@ class elections
 	private function emailMailoutRoutine ($function, $type)
 	{
 		# Start the HTML
-		$html  = "\n<h2>Send {$type} to candidates</h2>";
-		
-		# Ensure the user is an administrator
-		if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-			$html .= '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
-			echo $html;
-			return false;
-		}
+		$html = '';
 		
 		# Not available once the election is over
 		if (!$this->election['active']) {
-			echo $html .= '<p>This is no longer available now the election is over.</p>';
-			return false;
+			$html .= '<p>This is no longer available now the election is over.</p>';
+			return $html;
 		}
 		
 		# Assemble the e-mails
 		$emails = $this->compileMailout ($function, $statusHtml, $emailsPreviewHtml /* returned by reference */);
 		if ($emails === false) {
 			$html .= $statusHtml;
-			echo $html;
-			return false;
+			return $html;
 		}
 		
 		# End if no e-mails for this election
 		if (!$emails) {
 			$html .= "\n<p>There are no candidates with e-mails for this election.</p>";
-			echo $html;
-			return false;
+			return $html;
 		}
 		
 		# Ask for confirmation
@@ -2684,8 +2701,7 @@ class elections
 		if (!$this->areYouSure ($message, $confirmation, $formHtml)) {
 			$html .= $formHtml;
 			$html .= $emailsPreviewHtml;
-			echo $html;
-			return false;
+			return $html;
 		}
 		
 		# Send the e-mails
@@ -2694,8 +2710,8 @@ class elections
 		# Provide a reset page link
 		$html .= "<p><a href=\"{$this->baseUrl}/{$this->election['id']}/" . $function . ".html\">Reset page.</a></p>";
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
