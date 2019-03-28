@@ -381,7 +381,7 @@ class elections
 		}
 		
 		# Connect to the database or end
-		$this->databaseConnection = new database ($this->settings['hostname'], $this->settings['username'], $this->settings['password']);
+		$this->databaseConnection = new database ($this->settings['hostname'], $this->settings['username'], $this->settings['password'], $this->settings['database']);
 		if (!$this->databaseConnection->connection) {
  			mail ($this->settings['webmaster'], 'Problem with election system on ' . $_SERVER['SERVER_NAME'], wordwrap ('There was a problem with initalising the election facility at the database connection stage. The database server said: ' . mysql_error () . '.'));
 			echo "<p class=\"warning\">Apologies - this facility is currently unavailable, as a technical error occured. The Webmaster has been informed and will investigate.</p>";
@@ -626,7 +626,7 @@ class elections
 		#!# This section is over-complex and involves multiple SQL lookups, for the sake of avoiding code duplication in responsesBlock (which has a certain datastructure) - ideally there would be a single OUTER JOIN that would list all candidates and show the responses where the candidate has answered, but this means duplicating lookups like candidate['_name']
 		
 		# Get the wards (and their associated survey IDs) where this question was asked
-		$wardsQuery = "SELECT id,ward FROM {$this->settings['database']}.{$this->settings['tablePrefix']}surveys WHERE question = {$question['questionId']} AND election = '{$this->election['id']}';";
+		$wardsQuery = "SELECT id,ward FROM {$this->settings['tablePrefix']}surveys WHERE question = {$question['questionId']} AND election = '{$this->election['id']}';";
 		$wards = $this->databaseConnection->getPairs ($wardsQuery);
 		
 		# Get the candidates having this question
@@ -757,7 +757,7 @@ class elections
 				DATE_FORMAT(endDate,'%W %D %M %Y') AS 'polling date',
 				CONCAT( LOWER( DATE_FORMAT(CONCAT(resultsDate,' ','{$this->settings['resultsVisibleTime']}'),'%l%p, ') ), DATE_FORMAT(CONCAT(resultsDate,' ','{$this->settings['resultsVisibleTime']}'),'%W %D %M %Y') ) AS visibilityDateTime,
 				IF(name LIKE '%county%',1,0) AS isCounty
-			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}elections
+			FROM {$this->settings['tablePrefix']}elections
 			" . ($includeForthcoming ? '' : "WHERE startDate <= (CAST(NOW() AS DATE))") . "
 			ORDER BY endDate DESC, isCounty DESC /* County before others if on same day */
 		;";
@@ -853,9 +853,9 @@ class elections
 				{$this->settings['tablePrefix']}candidates.ward as id,
 				{$this->settings['tablePrefix']}wards.prefix,
 				{$this->settings['tablePrefix']}wards.ward,
-				COUNT({$this->settings['database']}.{$this->settings['tablePrefix']}wards.id) as 'candidates'
-			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}candidates
-			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}wards ON {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.ward = {$this->settings['database']}.{$this->settings['tablePrefix']}wards.id
+				COUNT({$this->settings['tablePrefix']}wards.id) as 'candidates'
+			FROM {$this->settings['tablePrefix']}candidates
+			LEFT OUTER JOIN {$this->settings['tablePrefix']}wards ON {$this->settings['tablePrefix']}candidates.ward = {$this->settings['tablePrefix']}wards.id
 			WHERE election REGEXP '^({$elections})$'
 			GROUP BY {$this->settings['tablePrefix']}wards.ward
 			ORDER BY {$this->settings['tablePrefix']}wards.ward
@@ -998,9 +998,9 @@ class elections
 				{$this->settings['tablePrefix']}affiliations.colour,
 				CONCAT(forename,' ',UPPER(surname)) as name,
 				{$this->settings['tablePrefix']}candidates.email
-			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}candidates
-			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}affiliations ON {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['database']}.{$this->settings['tablePrefix']}affiliations.id
-			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}wards ON {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.ward = {$this->settings['database']}.{$this->settings['tablePrefix']}wards.id
+			FROM {$this->settings['tablePrefix']}candidates
+			LEFT OUTER JOIN {$this->settings['tablePrefix']}affiliations ON {$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['tablePrefix']}affiliations.id
+			LEFT OUTER JOIN {$this->settings['tablePrefix']}wards ON {$this->settings['tablePrefix']}candidates.ward = {$this->settings['tablePrefix']}wards.id
 			WHERE
 				election = '{$this->election['id']}'
 				" . ($inWards ? " AND {$this->settings['tablePrefix']}candidates.ward IN('" . implode ("','", $inWards) . "')" : ($onlyWard ? "AND {$this->settings['tablePrefix']}candidates.ward = '{$onlyWard['id']}'" : '')) . "
@@ -1256,7 +1256,7 @@ class elections
 	{
 		# If there is not an election specified, i.e. top-level listing of all questions, retrieve all available questions
 		if (!$election) {
-			$query = "SELECT *, id AS questionId FROM {$this->settings['database']}.{$this->settings['tablePrefix']}questions;";
+			$query = "SELECT *, id AS questionId FROM {$this->settings['tablePrefix']}questions;";
 			
 		# Otherwise get surveys by ward
 		} else {
@@ -1269,9 +1269,9 @@ class elections
 					{$this->settings['tablePrefix']}questions.highlight,
 					{$this->settings['tablePrefix']}wards.prefix,
 					{$this->settings['tablePrefix']}wards.ward
-				FROM {$this->settings['database']}.{$this->settings['tablePrefix']}surveys
-				LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}wards ON {$this->settings['database']}.{$this->settings['tablePrefix']}surveys.ward = {$this->settings['database']}.{$this->settings['tablePrefix']}wards.id
-				LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}questions ON {$this->settings['database']}.{$this->settings['tablePrefix']}surveys.question = {$this->settings['database']}.{$this->settings['tablePrefix']}questions.id
+				FROM {$this->settings['tablePrefix']}surveys
+				LEFT OUTER JOIN {$this->settings['tablePrefix']}wards ON {$this->settings['tablePrefix']}surveys.ward = {$this->settings['tablePrefix']}wards.id
+				LEFT OUTER JOIN {$this->settings['tablePrefix']}questions ON {$this->settings['tablePrefix']}surveys.question = {$this->settings['tablePrefix']}questions.id
 				WHERE election = '{$election}'
 				" . ($ward ? "AND {$this->settings['tablePrefix']}surveys.ward = '{$ward}'" : '') . "
 				" . ($groupByQuestionId ? "GROUP BY questionId" : '') . "
@@ -1363,7 +1363,7 @@ class elections
 				candidate as candidateId,
 				survey as surveyId,
 				response, timestamp
-			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}responses
+			FROM {$this->settings['tablePrefix']}responses
 			WHERE 1=1
 			" . ($surveys ? " AND survey REGEXP '^(" . implode ('|', $surveys) . ")$'" : '') . "
 			" . (is_array ($candidateId) ? " AND candidate IN(" . implode (',', $candidateId) . ")" : ($candidateId ? " AND candidate = '{$candidateId}'" : '')) . "
@@ -1610,14 +1610,14 @@ class elections
 	{
 		# Get data
 		$query = "SELECT
-				{$this->settings['database']}.{$this->settings['tablePrefix']}candidates.id,
+				{$this->settings['tablePrefix']}candidates.id,
 				{$this->settings['tablePrefix']}candidates.ward as wardId,
 				prefix, {$this->settings['tablePrefix']}wards.ward
-			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}candidates
-			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}elections ON {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.election = {$this->settings['database']}.{$this->settings['tablePrefix']}elections.id
-			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}wards ON {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.ward = {$this->settings['database']}.{$this->settings['tablePrefix']}wards.id
+			FROM {$this->settings['tablePrefix']}candidates
+			LEFT OUTER JOIN {$this->settings['tablePrefix']}elections ON {$this->settings['tablePrefix']}candidates.election = {$this->settings['tablePrefix']}elections.id
+			LEFT OUTER JOIN {$this->settings['tablePrefix']}wards ON {$this->settings['tablePrefix']}candidates.ward = {$this->settings['tablePrefix']}wards.id
 			WHERE
-				{$this->settings['database']}.{$this->settings['tablePrefix']}elections.endDate >= (CAST(NOW() AS DATE))
+				{$this->settings['tablePrefix']}elections.endDate >= (CAST(NOW() AS DATE))
 			GROUP BY {$this->settings['tablePrefix']}candidates.ward
 			ORDER BY {$this->settings['tablePrefix']}candidates.ward
 		;";
@@ -1648,8 +1648,8 @@ class elections
 				{$this->settings['tablePrefix']}affiliations.colour,
 				election as electionId,
 				CONCAT(forename,' ',UPPER(surname)) as name
-			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}candidates
-			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}affiliations ON {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['database']}.{$this->settings['tablePrefix']}affiliations.id
+			FROM {$this->settings['tablePrefix']}candidates
+			LEFT OUTER JOIN {$this->settings['tablePrefix']}affiliations ON {$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['tablePrefix']}affiliations.id
 			WHERE
 				verification = '" . addslashes ($number) . "'
 				AND ward = '" . addslashes ($ward) . "'
@@ -1678,18 +1678,18 @@ class elections
 		
 		# Get the data
 		$query = "SELECT
-				{$this->settings['database']}.{$this->settings['tablePrefix']}candidates.id,
-				CONCAT({$this->settings['database']}.{$this->settings['tablePrefix']}candidates.forename,' ',UPPER({$this->settings['database']}.{$this->settings['tablePrefix']}candidates.surname)) as name,
-				{$this->settings['database']}.{$this->settings['tablePrefix']}wards.id as wardId,
-				{$this->settings['database']}.{$this->settings['tablePrefix']}wards.prefix,
-				{$this->settings['database']}.{$this->settings['tablePrefix']}wards.ward,
-				{$this->settings['database']}.{$this->settings['tablePrefix']}wards.districtCouncil,
-				{$this->settings['database']}.{$this->settings['tablePrefix']}affiliations.name as affiliation,
-				{$this->settings['database']}.{$this->settings['tablePrefix']}affiliations.colour
-			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}responses
-			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}candidates ON {$this->settings['database']}.{$this->settings['tablePrefix']}responses.candidate = {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.id
-			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}wards ON {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.ward = {$this->settings['database']}.{$this->settings['tablePrefix']}wards.id
-			LEFT OUTER JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}affiliations ON {$this->settings['database']}.{$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['database']}.{$this->settings['tablePrefix']}affiliations.id
+				{$this->settings['tablePrefix']}candidates.id,
+				CONCAT({$this->settings['tablePrefix']}candidates.forename,' ',UPPER({$this->settings['tablePrefix']}candidates.surname)) as name,
+				{$this->settings['tablePrefix']}wards.id as wardId,
+				{$this->settings['tablePrefix']}wards.prefix,
+				{$this->settings['tablePrefix']}wards.ward,
+				{$this->settings['tablePrefix']}wards.districtCouncil,
+				{$this->settings['tablePrefix']}affiliations.name as affiliation,
+				{$this->settings['tablePrefix']}affiliations.colour
+			FROM {$this->settings['tablePrefix']}responses
+			LEFT OUTER JOIN {$this->settings['tablePrefix']}candidates ON {$this->settings['tablePrefix']}responses.candidate = {$this->settings['tablePrefix']}candidates.id
+			LEFT OUTER JOIN {$this->settings['tablePrefix']}wards ON {$this->settings['tablePrefix']}candidates.ward = {$this->settings['tablePrefix']}wards.id
+			LEFT OUTER JOIN {$this->settings['tablePrefix']}affiliations ON {$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['tablePrefix']}affiliations.id
 			WHERE
 				election = '{$this->election['id']}'
 			ORDER BY ward,surname
@@ -2346,11 +2346,11 @@ class elections
 		# Obtain the questions not currently connected to any survey
 		$query = "
 			SELECT
-				{$this->settings['database']}.{$this->settings['tablePrefix']}questions.id,
-				CONCAT({$this->settings['database']}.{$this->settings['tablePrefix']}questions.id, ': ', SUBSTRING({$this->settings['database']}.{$this->settings['tablePrefix']}questions.question, 1, 70), ' ...') AS question
-			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}questions
-			LEFT JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}surveys ON {$this->settings['database']}.{$this->settings['tablePrefix']}questions.id = {$this->settings['database']}.{$this->settings['tablePrefix']}surveys.question
-			WHERE {$this->settings['database']}.{$this->settings['tablePrefix']}surveys.question IS NULL
+				{$this->settings['tablePrefix']}questions.id,
+				CONCAT({$this->settings['tablePrefix']}questions.id, ': ', SUBSTRING({$this->settings['tablePrefix']}questions.question, 1, 70), ' ...') AS question
+			FROM {$this->settings['tablePrefix']}questions
+			LEFT JOIN {$this->settings['tablePrefix']}surveys ON {$this->settings['tablePrefix']}questions.id = {$this->settings['tablePrefix']}surveys.question
+			WHERE {$this->settings['tablePrefix']}surveys.question IS NULL
 		;";
 		$unusedQuestions = $this->databaseConnection->getPairs ($query);
 		
@@ -2549,7 +2549,7 @@ class elections
 		if (!$result = $form->process ()) {return false;}
 		
 		# Compile the SQL
-		$sql  = "INSERT INTO {$this->settings['database']}.{$this->settings['tablePrefix']}surveys (election,ward,question) VALUES \n";
+		$sql  = "INSERT INTO {$this->settings['tablePrefix']}surveys (election,ward,question) VALUES \n";
 		$wards = explode ("\n", trim ($result['allocations']));
 		$set = array ();
 		foreach ($wards as $ward) {
@@ -2902,8 +2902,8 @@ class elections
 		# Get the candidates who have responded to any questions for their survey
 		$query = "SELECT
 				DISTINCT candidate
-			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}responses
-			LEFT JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}surveys ON elections_surveys.id = elections_responses.survey
+			FROM {$this->settings['tablePrefix']}responses
+			LEFT JOIN {$this->settings['tablePrefix']}surveys ON elections_surveys.id = elections_responses.survey
 			WHERE election = :election
 			ORDER BY candidate
 		;";
@@ -3118,7 +3118,7 @@ class elections
 			
 			# Add the winning candidates
 			$in = implode (',', $electedCandidates);
-			$query = "UPDATE {$this->settings['database']}.{$this->settings['tablePrefix']}candidates SET elected = 1 WHERE id IN({$in});";
+			$query = "UPDATE {$this->settings['tablePrefix']}candidates SET elected = 1 WHERE id IN({$in});";
 			$this->databaseConnection->query ($query);
 		}
 		
