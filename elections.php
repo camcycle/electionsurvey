@@ -435,6 +435,9 @@ class elections
 		# Determine if there are any restanding Cabinet members in this election
 		$this->cabinetRestanding = $this->getCandidates (false, false, false, $cabinetRestanding = true);
 		
+		# Open the div surrounding the application
+		echo "\n<div id=\"elections\">";
+		
 		# Show the heading
 		echo "\n<h1>Elections</h1>";
 		if ($this->election) {
@@ -455,6 +458,9 @@ class elections
 		if ($this->action != 'letters') {
 			echo "\n<p class=\"small comment\" style=\"margin-top: 50px;\"><em>{$this->settings['imprint']}</em></p>";
 		}
+		
+		# Close the div surrounding the application
+		echo "\n</div>";
 	}
 	
 	
