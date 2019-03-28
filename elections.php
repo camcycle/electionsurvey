@@ -328,6 +328,10 @@ class elections
 				'description' => 'Add an election',
 				'administrator' => true,
 			),
+			'editelection'	=> array (
+				'description' => 'Edit settings for an election',
+				'administrator' => true,
+			),
 			'addward'		=> array (
 				'description' => 'Add a ward',
 				'administrator' => true,
@@ -743,7 +747,7 @@ class elections
 				IF(NOW()<CONCAT(resultsDate,' ','{$this->settings['resultsVisibleTime']}'),0,1) AS resultsVisible,
 				DATE_FORMAT(endDate,'%W %D %M %Y') AS 'polling date',
 				CONCAT( LOWER( DATE_FORMAT(CONCAT(resultsDate,' ','{$this->settings['resultsVisibleTime']}'),'%l%p, ') ), DATE_FORMAT(CONCAT(resultsDate,' ','{$this->settings['resultsVisibleTime']}'),'%W %D %M %Y') ) AS visibilityDateTime,
-				DATE_FORMAT(respondentsDate,'%W %D %M %Y') AS respondentsDate,
+				respondentsDate,
 				IF(name LIKE '%county%',1,0) AS isCounty
 			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}elections
 			" . ($includeForthcoming ? '' : "WHERE startDate <= (CAST(NOW() AS DATE))") . "
@@ -1916,10 +1920,11 @@ class elections
 		if (!$this->userIsAdministrator) {return false;}
 		
 		# Compile the list of administrative options
-		$html .= "\n<br />";
+		$html  = "\n<br />";
 		$html .= "\n<h2>Administrative options for this election</h2>";
 		$html .= "\n<p>As an administrator you can also:</p>";
 		$html .= "\n<ul>";
+		$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$electionId}/editelection.html\">Edit the election settings</a></li>";
 		$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$electionId}/letters.html\">Create the mailout (letters) to candidates containing the survey</a></li>";
 		$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$electionId}/mailout.html\">Create the mailout (e-mail) to candidates containing the survey</a></li>";
 		$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$electionId}/reminders.html\">Send reminder e-mails to candidates who have not yet responded to the survey</a></li>";
@@ -1958,37 +1963,74 @@ class elections
 		# Get current IDs
 		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_elections', array (), array ('id'), true, $orderBy = 'id');
 		
+		# Process the form
+		if ($result = $this->electionForm (array (), $currentIds, $html /* returned by reference */)) {
+			
+			# Insert the election
+			$this->databaseConnection->insert ($this->settings['database'], 'elections_elections', $result);
+			
+			# Confirm success
+			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['id']}/\">election</a> has been added.</p>";
+			$html .= "\n<p>You may wish to <a href=\"{$this->baseUrl}/admin/\">add data</a> for it.</p>";
+		}
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Function to edit settings for an election
+	public function editelection ()
+	{
+		# Start the HTML
+		$html  = "\n<h2>Edit settings for election</h2>";
+		
+		# Ensure there is an election supplied
+		if (!$this->election) {
+			$html .= "\n<p>Please select which election:</p>";
+			$html .= $this->listElections ($this->elections, true, false, 'editelection.html');
+			echo $html;
+			return false;
+		}
+		
+		# Process the form
+		if ($result = $this->electionForm ($this->election, array (), $html /* returned by reference */)) {
+			
+			# Insert the election
+			$this->databaseConnection->update ($this->settings['database'], 'elections_elections', $result, array ('id' => $this->election['id']));
+			
+			# Confirm success
+			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['id']}/editelection.html\">settings</a> for this <a href=\"{$this->baseUrl}/{$result['id']}/\">election</a> have been updated.</p>";
+		}
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Function to create a form to add/edit settings for an election
+	private function electionForm ($data, $currentIds, &$html)
+	{
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'databaseConnection' => $this->databaseConnection,
 			'displayRestrictions' => false,
+			'formCompleteText' => false,
 			'picker' => true,
 		));
 		$form->dataBinding (array (
 			'database'	=> $this->settings['database'],
 			'table'		=> 'elections_elections',
+			'data'		=> $data,
 			'attributes' => array (
-				'id' => array ('current' => $currentIds, 'regexp' => '^[a-z0-9]+$', 'placeholder' => 'E.g. ' . date ('Y') . 'election', ),
+				'id' => array ('editable' => (!$data), 'current' => $currentIds, 'regexp' => '^[a-z0-9]+$', 'placeholder' => 'E.g. ' . date ('Y') . 'election', ),
 				'name' => array ('placeholder' => 'E.g. Elections to Placeford Council, ' . date ('Y')),
 				'description' => array ('placeholder' => 'E.g. Elections to Placeford Council in May ' . date ('Y')),
 			),
 		));
 		#!# Need to add constraints to ensure date ordering is correct
-		if (!$result = $form->process ($html)) {
-			echo $html;
-			return;
-		}
-		
-		# Insert the election
-		$this->databaseConnection->insert ($this->settings['database'], 'elections_elections', $result);
-		
-		# Confirm success
-		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['id']}/\">election</a> has been added.</p>";
-		$html .= "\n<p>You may wish to add data for it.</p>";
-		
-		# Show the HTML
-		echo $html;
+		return $result = $form->process ($html);
 	}
 	
 	
