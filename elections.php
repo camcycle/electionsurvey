@@ -2710,7 +2710,7 @@ class elections
 		foreach ($emails as $candidateId => $email) {
 			$result = application::utf8Mail ($email['to'], $email['subject'], wordwrap ($email['message']), "From: {$this->settings['emailFrom']}\r\nCc: {$this->settings['emailCc']}");
 			$sendingOutcomes[$candidateId] = ($result ? '<span class="success"><strong>Sent OK</strong></span>' : '<span class="warning"><strong>Failure</strong></span>') . ': ' . htmlspecialchars ($email['to']);
-			usleep (500000);		// Wait half a second between mails
+			usleep (250000);		// Wait quarter of a second between mails; note that a server running PHP under FastCGI will have default FcgidIOTimeout=40 so this would enable 40*4=160 e-mails
 		}
 		
 		# Show the result
