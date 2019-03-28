@@ -509,6 +509,9 @@ class elections
 		# List wards
 		$html .= $this->showWards ($election);
 		
+		# Show admin links if an administrator
+		$html .= $this->adminElection ($election['id']);
+		
 		# Return the HTML
 		return $html;
 	}
@@ -943,18 +946,6 @@ class elections
 		
 		# Construct the HTML
 		$html .= application::htmlUl ($list);
-		
-		# Show administrative options
-		if ($this->userIsAdministrator) {
-			$html .= "\n<h2>Administrative options</h2>";
-			$html .= "\n<p>As an administrator you can also:</p>";
-			$html .= "\n<ul>";
-			$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$election['id']}/letters.html\">Create the mailout (letters) to candidates containing the survey</a></li>";
-			$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$election['id']}/mailout.html\">Create the mailout (e-mail) to candidates containing the survey</a></li>";
-			$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$election['id']}/reminders.html\">Send reminder e-mails to candidates who have not yet responded to the survey</a></li>";
-			$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$election['id']}/reissue.html\">Reissue an e-mail to a candidate</a></li>";
-			$html .= "\n</ul>";
-		}
 		
 		# Return the HTML
 		return $html;
@@ -1913,6 +1904,28 @@ class elections
 		
 		# Show the HTML
 		echo $html;
+	}
+	
+	
+	# Function to show administrative options specific to an election
+	private function adminElection ($electionId)
+	{
+		# End if not an administrator
+		if (!$this->userIsAdministrator) {return false;}
+		
+		# Compile the list of administrative options
+		$html .= "\n<br />";
+		$html .= "\n<h2>Administrative options for this election</h2>";
+		$html .= "\n<p>As an administrator you can also:</p>";
+		$html .= "\n<ul>";
+		$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$electionId}/letters.html\">Create the mailout (letters) to candidates containing the survey</a></li>";
+		$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$electionId}/mailout.html\">Create the mailout (e-mail) to candidates containing the survey</a></li>";
+		$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$electionId}/reminders.html\">Send reminder e-mails to candidates who have not yet responded to the survey</a></li>";
+		$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$electionId}/reissue.html\">Reissue an e-mail to a candidate</a></li>";
+		$html .= "\n</ul>";
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	
