@@ -1990,6 +1990,10 @@ class elections
 		# Start the HTML
 		$html  = "\n<h2>Edit settings for election</h2>";
 		
+		# Get all elections, including forthcoming
+		$this->elections = $this->getElections (true);
+		$this->election = ((isSet ($_GET['election']) && isSet ($this->elections[$_GET['election']])) ? $this->elections[$_GET['election']] : false);
+		
 		# Ensure there is an election supplied
 		if (!$this->election) {
 			$html .= "\n<p>Please select which election:</p>";
