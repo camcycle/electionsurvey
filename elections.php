@@ -343,6 +343,10 @@ class elections
 				'description' => 'Add questions',
 				'administrator' => true,
 			),
+			'deletequestions'	=> array (
+				'description' => 'Delete a question',
+				'administrator' => true,
+			),
 			'addsurveys'	=> array (
 				'description' => 'Add surveys',
 				'administrator' => true,
@@ -1897,6 +1901,7 @@ class elections
 			<li><a href=\"{$this->baseUrl}/admin/addaffiliations.html\">Add an affiliation</a> (if not already present from previous elections)</li>
 			<li><a href=\"{$this->baseUrl}/admin/addcandidates.html\">Add candidates</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addquestions.html\">Add questions</a></li>
+			<li><a href=\"{$this->baseUrl}/admin/deletequestions.html\">Delete a question</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/addsurveys.html\">Add surveys</a></li>
 			<li><a href=\"{$this->baseUrl}/admin/allocations.html\">Convert an allocations spreadsheet into SQL</a></li>
 		</ul>";
@@ -2326,6 +2331,57 @@ class elections
 		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The question has been added, as shown below.</p>";
 		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
 		$html .= $this->recentlyAddedQuestions ($mostRecent);
+		
+		# Show the HTML
+		echo $html;
+	}
+	
+	
+	# Function to delete a question
+	public function deletequestions ()
+	{
+		# Start the HTML
+		$html  = "\n<h2>Delete a question</h2>";
+		
+		# Obtain the questions not currently connected to any survey
+		$query = "
+			SELECT
+				{$this->settings['database']}.{$this->settings['tablePrefix']}questions.id,
+				CONCAT({$this->settings['database']}.{$this->settings['tablePrefix']}questions.id, ': ', SUBSTRING({$this->settings['database']}.{$this->settings['tablePrefix']}questions.question, 1, 70), ' ...') AS question
+			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}questions
+			LEFT JOIN {$this->settings['database']}.{$this->settings['tablePrefix']}surveys ON {$this->settings['database']}.{$this->settings['tablePrefix']}questions.id = {$this->settings['database']}.{$this->settings['tablePrefix']}surveys.question
+			WHERE {$this->settings['database']}.{$this->settings['tablePrefix']}surveys.question IS NULL
+		;";
+		$unusedQuestions = $this->databaseConnection->getPairs ($query);
+		
+		# End if all in use
+		if (!$unusedQuestions) {
+			$html .= "\n<p>All questions in the database are currently connected to a survey, so none can be deleted.</p>";
+			echo $html;
+			return;
+		}
+		
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'databaseConnection' => $this->databaseConnection,
+			'formCompleteText' => false,
+		));
+		$form->heading ('p', 'Please select a question to delete. Only those questions not currently connected to a survey can be deleted; those in use are not listed here.');
+		$form->select (array (
+			'name'			=> 'question',
+			'title'			=> 'Question',
+			'values'		=> $unusedQuestions,
+			'required'		=> true,
+		));
+		if ($result = $form->process ($html)) {
+			
+			# Delete the question
+			$this->databaseConnection->delete ($this->settings['database'], 'elections_questions', array ('id' => $result['question']));
+			
+			# Confirm success
+			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The question has been deleted.</p>";
+			$html .= "\n<p><a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">Delete another?</a></p>";
+		}
 		
 		# Show the HTML
 		echo $html;
