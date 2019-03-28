@@ -99,8 +99,8 @@
 	  `startDate` date NOT NULL default '0000-00-00' COMMENT 'Survey opening date (e.g. as soon as all info loaded)',
 	  `resultsDate` date NOT NULL default '0000-00-00' COMMENT 'Date when responses become visible (e.g. 2 weeks before election day)',
 	  `endDate` date NOT NULL default '0000-00-00' COMMENT 'Date of election (and close of survey submissions)',
-	  `letterheadHtml` TEXT NOT NULL COMMENT  'Letterhead HTML',
-	  `organisationIntroductionHtml` TEXT NOT NULL COMMENT 'Organisation introduction HTML',
+	  `letterheadHtml` TEXT NOT NULL COMMENT  'Letterhead address (top-right)',
+	  `organisationIntroductionHtml` TEXT NOT NULL COMMENT 'Survey letter/e-mail introduction',
 	  `letterSignatureName` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Signature name',
 	  `directionsUrl` varchar(255) collate utf8_unicode_ci NOT NULL default 'https://www.cyclestreets.net/' COMMENT 'Directions to cycle to polling stations',
 	  PRIMARY KEY  (`id`)
@@ -2022,15 +2022,19 @@ class elections
 			'displayRestrictions' => false,
 			'formCompleteText' => false,
 			'picker' => true,
+			'div' => 'ultimateform electionform',
 		));
 		$form->dataBinding (array (
 			'database'	=> $this->settings['database'],
 			'table'		=> 'elections_elections',
 			'data'		=> $data,
+			'intelligence' => true,
 			'attributes' => array (
 				'id' => array ('editable' => (!$data), 'current' => $currentIds, 'regexp' => '^[a-z0-9]+$', 'placeholder' => 'E.g. ' . date ('Y') . 'election', ),
 				'name' => array ('placeholder' => 'E.g. Elections to Placeford Council, ' . date ('Y')),
 				'description' => array ('placeholder' => 'E.g. Elections to Placeford Council in May ' . date ('Y')),
+				'letterheadHtml' => array ('editorToolbarSet' => 'BasicImage', 'width' => '600px'),
+				'organisationIntroductionHtml' => array ('editorToolbarSet' => 'BasicNoLinks', 'width' => '600px'),
 			),
 		));
 		#!# Need to add constraints to ensure date ordering is correct
