@@ -2,7 +2,7 @@
 
 /*
 	Camcycle Elections: Elections survey system
-	Copyright (C) 2007-17  MLS and Camcycle (Cambridge Cycling Campaign)
+	Copyright (C) 2007-19  MLS and Camcycle (Cambridge Cycling Campaign)
 	Contributions welcome at: https://github.com/camcycle/electionsurvey
 	License: GPL3
 	
