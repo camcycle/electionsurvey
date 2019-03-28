@@ -19,7 +19,7 @@ RedirectMatch permanent ^/elections/submit$ /elections/submit/
 # Admin area
 RewriteRule ^admin/$ index.html?action=admin [L]
 RedirectMatch permanent ^/elections/admin$ /elections/admin/
-RewriteRule ^admin/(allquestions|allocations|letters|mailout|reminders|reissue|elected|addelection|addward|addcandidates|addquestions|addsurveys|addaffiliations).html$ index.html?action=$1 [L]
+RewriteRule ^admin/(allquestions|allocations|letters|mailout|reminders|reissue|elected|addelection|editelection|addward|addcandidates|addquestions|addsurveys|addaffiliations).html$ index.html?action=$1 [L]
 
 # Overview page for an election
 RewriteRule ^([a-z0-9]+)/$ index.html?election=$1&action=overview [L]
