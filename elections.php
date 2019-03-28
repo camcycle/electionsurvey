@@ -69,7 +69,7 @@
 
 
 /*	Database structure
-	# Your database structure should be as follows, with modifications to be made in the elections_wards
+	# Your database structure should be as follows, with modifications to be made in the elections_wards table for areas
 	# The user only needs SELECT,INSERT,UPDATE rights at a minimum
 	
 	
@@ -1971,13 +1971,13 @@ class elections
 		$html  = "\n<h2>Add an election</h2>";
 		
 		# Get current IDs
-		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_elections', array (), array ('id'), true, $orderBy = 'id');
+		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}elections", array (), array ('id'), true, $orderBy = 'id');
 		
 		# Process the form
 		if ($result = $this->electionForm (array (), $currentIds, $html /* returned by reference */)) {
 			
 			# Insert the election
-			$this->databaseConnection->insert ($this->settings['database'], 'elections_elections', $result);
+			$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}elections", $result);
 			
 			# Confirm success
 			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['id']}/\">election</a> has been added.</p>";
@@ -2011,7 +2011,7 @@ class elections
 		if ($result = $this->electionForm ($this->election, array (), $html /* returned by reference */)) {
 			
 			# Insert the election
-			$this->databaseConnection->update ($this->settings['database'], 'elections_elections', $result, array ('id' => $this->election['id']));
+			$this->databaseConnection->update ($this->settings['database'], "{$this->settings['tablePrefix']}elections", $result, array ('id' => $this->election['id']));
 			
 			# Confirm success
 			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['id']}/editelection.html\">settings</a> for this <a href=\"{$this->baseUrl}/{$result['id']}/\">election</a> have been updated.</p>";
@@ -2036,7 +2036,7 @@ class elections
 		));
 		$form->dataBinding (array (
 			'database'	=> $this->settings['database'],
-			'table'		=> 'elections_elections',
+			'table'		=> "{$this->settings['tablePrefix']}elections",
 			'data'		=> $data,
 			'intelligence' => true,
 			'attributes' => array (
@@ -2056,7 +2056,7 @@ class elections
 	public function addward ()
 	{
 		# Get current IDs
-		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_wards', array (), array ('id'), true, $orderBy = 'id');
+		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}wards", array (), array ('id'), true, $orderBy = 'id');
 		
 		# Start the HTML
 		$html  = "\n<h2>Add a ward</h2>";
@@ -2070,7 +2070,7 @@ class elections
 		));
 		$form->dataBinding (array (
 			'database'	=> $this->settings['database'],
-			'table'		=> 'elections_wards',
+			'table'		=> "{$this->settings['tablePrefix']}wards",
 			'attributes' => array (
 				'id' => array ('current' => $currentIds, ),
 			),
@@ -2081,7 +2081,7 @@ class elections
 		}
 		
 		# Insert the ward
-		if (!$this->databaseConnection->insert ($this->settings['database'], 'elections_wards', $result)) {
+		if (!$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}wards", $result)) {
 			$html = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> An error occurred adding the ward.</p>";
 			echo $html;
 			return;
@@ -2100,7 +2100,7 @@ class elections
 	public function addaffiliations ()
 	{
 		# Get current IDs
-		$table = 'elections_affiliations';
+		$table = "{$this->settings['tablePrefix']}affiliations";
 		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], $table, array (), array ('id'), true, $orderBy = 'id');
 		
 		# Start the HTML
@@ -2226,10 +2226,10 @@ class elections
 		}
 		
 		# Clear any existing data
-		$this->databaseConnection->delete ($this->settings['database'], 'elections_candidates', array ('election' => $result['election']));
+		$this->databaseConnection->delete ($this->settings['database'], "{$this->settings['tablePrefix']}candidates", array ('election' => $result['election']));
 		
 		# Insert the data
-		if (!$this->databaseConnection->insertMany ($this->settings['database'], 'elections_candidates', $data)) {
+		if (!$this->databaseConnection->insertMany ($this->settings['database'], "{$this->settings['tablePrefix']}candidates", $data)) {
 			$error = $this->databaseConnection->error ();
 			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured. The database server said:</p>";
 			$html .= "\n<p><tt>" . $error[2] . '</tt></p>';
@@ -2305,7 +2305,7 @@ class elections
 		));
 		$form->dataBinding (array (
 			'database'	=> $this->settings['database'],
-			'table'		=> 'elections_questions',
+			'table'		=> "{$this->settings['tablePrefix']}questions",
 			'intelligence' => true,
 			'size'	=> 80,	#!# This is here due to a bug in ultimateForm
 			'attributes' => array (
@@ -2320,7 +2320,7 @@ class elections
 		}
 		
 		# Insert the question
-		if (!$this->databaseConnection->insert ($this->settings['database'], 'elections_questions', $result)) {
+		if (!$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}questions", $result)) {
 			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
 			echo $html;
 			return false;
@@ -2376,7 +2376,7 @@ class elections
 		if ($result = $form->process ($html)) {
 			
 			# Delete the question
-			$this->databaseConnection->delete ($this->settings['database'], 'elections_questions', array ('id' => $result['question']));
+			$this->databaseConnection->delete ($this->settings['database'], "{$this->settings['tablePrefix']}questions", array ('id' => $result['question']));
 			
 			# Confirm success
 			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The question has been deleted.</p>";
@@ -2392,7 +2392,7 @@ class elections
 	private function recentlyAddedQuestions ($mostRecent)
 	{
 		# Get the latest data, but ordered most recent last
-		$recentQuestions = $this->databaseConnection->select ($this->settings['database'], 'elections_questions', array (), array ('id', 'question', 'highlight'), true, $orderBy = 'id DESC', $mostRecent);
+		$recentQuestions = $this->databaseConnection->select ($this->settings['database'], "{$this->settings['tablePrefix']}questions", array (), array ('id', 'question', 'highlight'), true, $orderBy = 'id DESC', $mostRecent);
 		
 		# Assemble as a list
 		$list = array ();
@@ -2479,10 +2479,10 @@ class elections
 		}
 		
 		# Clear any existing data
-		$this->databaseConnection->delete ($this->settings['database'], 'elections_surveys', $constraints);
+		$this->databaseConnection->delete ($this->settings['database'], "{$this->settings['tablePrefix']}surveys", $constraints);
 		
 		# Insert the data
-		if (!$this->databaseConnection->insertMany ($this->settings['database'], 'elections_surveys', $data)) {
+		if (!$this->databaseConnection->insertMany ($this->settings['database'], "{$this->settings['tablePrefix']}surveys", $data)) {
 			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
 			echo $html;
 			return false;
@@ -2500,21 +2500,21 @@ class elections
 	# Function to get a list of ward IDs and names
 	private function getWardNames ()
 	{
-		return $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_wards', array (), array ('id', "CONCAT_WS(' ', prefix, ward) AS name"), true, $orderBy = 'name');
+		return $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}wards", array (), array ('id', "CONCAT_WS(' ', prefix, ward) AS name"), true, $orderBy = 'name');
 	}
 	
 	
 	# Function to get a list of affiliation IDs and names
 	private function getAffiliationNames ()
 	{
-		return $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_affiliations', array (), array ('id', 'name'), true, $orderBy = 'name');
+		return $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}affiliations", array (), array ('id', 'name'), true, $orderBy = 'name');
 	}
 	
 	
 	# Function to get a list of question IDs and texts
 	private function getQuestionTexts ()
 	{
-		return $this->databaseConnection->selectPairs ($this->settings['database'], 'elections_questions', array (), array ('id', "CONCAT(id, ': ', SUBSTRING(question, 1, 70), ' ...') AS text"), true, $orderBy = 'id');
+		return $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}questions", array (), array ('id', "CONCAT(id, ': ', SUBSTRING(question, 1, 70), ' ...') AS text"), true, $orderBy = 'id');
 	}
 	
 	
@@ -2903,7 +2903,7 @@ class elections
 		$query = "SELECT
 				DISTINCT candidate
 			FROM {$this->settings['tablePrefix']}responses
-			LEFT JOIN {$this->settings['tablePrefix']}surveys ON elections_surveys.id = elections_responses.survey
+			LEFT JOIN {$this->settings['tablePrefix']}surveys ON {$this->settings['tablePrefix']}surveys.id = {$this->settings['tablePrefix']}responses.survey
 			WHERE election = :election
 			ORDER BY candidate
 		;";
