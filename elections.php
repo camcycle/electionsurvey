@@ -97,7 +97,6 @@
 	  `name` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Name of election',
 	  `description` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Description of election',
 	  `startDate` date NOT NULL default '0000-00-00' COMMENT 'Survey opening date (e.g. as soon as all info loaded)',
-	  `respondentsDate` date NOT NULL default '0000-00-00' COMMENT 'Date when respondents (so far) become visible (e.g. 3 weeks before election day)',
 	  `resultsDate` date NOT NULL default '0000-00-00' COMMENT 'Date when responses become visible (e.g. 2 weeks before election day)',
 	  `endDate` date NOT NULL default '0000-00-00' COMMENT 'Date of election (and close of survey submissions)',
 	  `letterheadHtml` TEXT NOT NULL COMMENT  'Letterhead HTML',
@@ -747,7 +746,6 @@ class elections
 				IF(NOW()<CONCAT(resultsDate,' ','{$this->settings['resultsVisibleTime']}'),0,1) AS resultsVisible,
 				DATE_FORMAT(endDate,'%W %D %M %Y') AS 'polling date',
 				CONCAT( LOWER( DATE_FORMAT(CONCAT(resultsDate,' ','{$this->settings['resultsVisibleTime']}'),'%l%p, ') ), DATE_FORMAT(CONCAT(resultsDate,' ','{$this->settings['resultsVisibleTime']}'),'%W %D %M %Y') ) AS visibilityDateTime,
-				respondentsDate,
 				IF(name LIKE '%county%',1,0) AS isCounty
 			FROM {$this->settings['database']}.{$this->settings['tablePrefix']}elections
 			" . ($includeForthcoming ? '' : "WHERE startDate <= (CAST(NOW() AS DATE))") . "
