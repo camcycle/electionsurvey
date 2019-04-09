@@ -2252,7 +2252,9 @@ class elections
 	{
 		# Parse the TSV string
 		require_once ('csv.php');
-		$data = csv::tsvToArray (trim ($tsv), $firstColumnIsId = false, $firstColumnIsIdIncludeInData = true);
+		if (!$data = csv::tsvToArray (trim ($tsv), $firstColumnIsId = false, $firstColumnIsIdIncludeInData = true, $errorMessage)) {
+			return array ();
+		}
 		
 		# Ensure headers are valid and that required headers are present
 		foreach ($data as $filename => $metadata) {
@@ -2261,7 +2263,7 @@ class elections
 		}
 		if ($missingRequiredFields) {
 			$errorMessage = "The fields in the pasted data do not match the specification noted above. Please correct the spreadsheet and try again.";
-			return false;
+			return array ();
 		}
 		
 		# Return the data
