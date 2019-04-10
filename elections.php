@@ -2601,6 +2601,14 @@ class elections
 		# Start the HTML
 		$html  = "\n<h2>Send e-mail mailout to candidates</h2>";
 		
+		# Ensure there is an election supplied
+		if (!$this->election) {
+			$html .= "\n<p>Please select which election:</p>";
+			$html .= $this->listElections ($this->elections, true, false, 'mailout.html');
+			echo $html;
+			return false;
+		}
+		
 		# Run the mailout routine
 		$html .= $this->emailMailoutRoutine (__FUNCTION__, 'e-mails');
 		
