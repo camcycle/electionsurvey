@@ -2266,6 +2266,13 @@ class elections
 			return array ();
 		}
 		
+		# Trim all values, e.g. to ensure e-mails do not have spaces in
+		foreach ($data as $rowNumber => $line) {
+			foreach ($line as $key => $value) {
+				$data[$rowNumber][$key] = trim ($value);
+			}
+		}
+		
 		# Return the data
 		return $data;
 	}
