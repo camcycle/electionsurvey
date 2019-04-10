@@ -2662,7 +2662,7 @@ class elections
 			foreach ($candidatesThisWard as $candidateId => $candidate) {
 				if (in_array ($candidateId, $candidateIdsResponded)) {continue;}
 				$wardName = $candidate['ward'] . ':';
-				$wardCandidates[$wardName][$candidateId] = str_replace ('&nbsp;', ' ', $candidate['_nameUncoloured']);
+				$wardCandidates[$wardName][$candidateId] = $candidate['name'] . '  (' . $candidate['affiliation'] . ')';
 			}
 		}
 		
