@@ -1674,7 +1674,7 @@ class elections
 		}
 		
 		# Title
-		$html  = "<h2>List of respondents" . ($this->election['active'] && $this->election['respondentsVisible'] && !$this->userIsAdministrator ? ' (so far)' : '') .  "</h2>";
+		$html  = "<h2>List of respondents" . ($this->election['active'] ? ' (so far)' : '') .  "</h2>";
 		
 		# Get the data
 		$query = "SELECT
