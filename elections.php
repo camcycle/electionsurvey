@@ -1417,6 +1417,7 @@ class elections
 				'div'	=> false,
 				'display'	=> 'paragraphs',
 				'displayRestrictions'	=> false,
+				'autofocus' => true,
 			));
 			$form->heading ('p', "<strong>Welcome</strong>, candidate. <strong>Thank you</strong> for responding to our survey.</p>\n<p>We've done this survey online so that constituents - including our {$this->settings['organisationConstituentsType']} - in each {$this->settings['division']} can see what each candidate thinks. Voters can then take these views into account alongside other issues of concern to them. The questions we've posed are relevant/specific to each {$this->settings['division']}.");
 			$form->heading ('p', '<br />Please firstly enter the verification number given in the letter/e-mail you received, which ensures the security of your response.');
