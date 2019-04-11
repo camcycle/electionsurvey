@@ -269,6 +269,7 @@ class elections
 	# Actions (pages) registry
 	public function actions ()
 	{
+		# Define and return the actions
 		return $actions = array (
 			'home'			=> array (
 				'description' => 'Home',
@@ -478,7 +479,7 @@ class elections
 	
 	
 	# Homes page
-	private function home ()
+	public function home ()
 	{
 		# Introductory text
 		$html  = $this->settings['welcomeTextHtml'];
@@ -500,7 +501,7 @@ class elections
 	
 	
 	# Main page for an election
-	private function overview ()
+	public function overview ()
 	{
 		# Validate the election
 		if (!$this->election) {
@@ -539,7 +540,7 @@ class elections
 	
 	
 	# Main page
-	private function ward ()
+	public function ward ()
 	{
 		# Validate the ward
 		if (!$this->election) {
@@ -575,7 +576,7 @@ class elections
 	
 	
 	# Function to construct a list of all questions, or show all responses to a single question, for a particular election
-	private function questions ()
+	public function questions ()
 	{
 		# Ensure there is an election which is validated
 		if (!$this->election) {
@@ -1389,7 +1390,7 @@ class elections
 	
 	
 	# Candidate response submission
-	private function submit ($showIds = false)
+	public function submit ($showIds = false)
 	{
 		# Get the list of all wards currently being surveyed
 		if (!$wards = $this->getActiveWards ()) {
@@ -1664,7 +1665,7 @@ class elections
 	
 	
 	# Function to show the list of respondents
-	private function respondents ()
+	public function respondents ()
 	{
 		# Validate the election
 		if (!$this->election) {
@@ -1743,7 +1744,7 @@ class elections
 	
 	
 	# Function to show the status of Cabinet members restanding in this election
-	private function cabinet ()
+	public function cabinet ()
 	{
 		# Validate the election
 		if (!$this->election) {
@@ -2838,7 +2839,7 @@ class elections
 	
 	
 	# Function to add an 'Are you sure?' form
-	public function areYouSure ($message, $confirmation, &$html)
+	private function areYouSure ($message, $confirmation, &$html)
 	{
 		# Start the HTML
 		$html = '';
