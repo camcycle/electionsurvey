@@ -278,19 +278,19 @@ class elections
 				'description' => 'Overview for an election',
 			),
 			'allquestions'	=> array (
-				'description' => 'Every question available in the database',
+				'description' => 'List all questions available',
 				'administrator' => true,
 			),
 			'letters'		=> array (
-				'description' => 'Mailout (letters) to candidates containing the survey',
+				'description' => 'Print mailout (letters) to candidates containing the survey',
 				'administrator' => true,
 			),
 			'mailout'		=> array (
-				'description' => 'Mailout (e-mail) to candidates containing the survey',
+				'description' => 'Send e-mail mailout to candidates containing the survey',
 				'administrator' => true,
 			),
 			'reminders'		=> array (
-				'description' => 'Reminders (e-mail) to candidates containing the survey',
+				'description' => 'Send reminder e-mails to candidates who have not yet responded to the survey',
 				'administrator' => true,
 			),
 			'reissue'		=> array (
@@ -301,10 +301,10 @@ class elections
 				'description' => 'Overview for an area',
 			),
 			'submit'		=> array (
-				'description' => 'Candidate response submission',
+				'description' => 'Candidate survey response form',
 			),
 			'allocations'	=> array (
-				'description' => 'Create the question allocation SQL',
+				'description' => 'Convert an questions allocations spreadsheet into SQL',
 				'administrator' => true,
 			),
 			'questions'		=> array (
@@ -318,14 +318,14 @@ class elections
 				'description' => 'List of respondents',
 			),
 			'cabinet'		=> array (
-				'description' => 'Restanding Cabinet members',
+				'description' => 'Cabinet members in surveyed wards restanding in this election',
 			),
 			'admin'			=> array (
 				'description' => 'Administrative functions',
 				'administrator' => true,
 			),
 			'addelection'	=> array (
-				'description' => 'Add an election',
+				'description' => 'Start an election survey',
 				'administrator' => true,
 			),
 			'editelection'	=> array (
@@ -333,7 +333,7 @@ class elections
 				'administrator' => true,
 			),
 			'addward'		=> array (
-				'description' => 'Add a ward',
+				'description' => 'Add a ward/division',
 				'administrator' => true,
 			),
 			'addcandidates'	=> array (
@@ -341,7 +341,7 @@ class elections
 				'administrator' => true,
 			),
 			'addquestions'	=> array (
-				'description' => 'Add questions',
+				'description' => 'Add a question',
 				'administrator' => true,
 			),
 			'deletequestions'	=> array (
@@ -349,11 +349,11 @@ class elections
 				'administrator' => true,
 			),
 			'addsurveys'	=> array (
-				'description' => 'Create surveys',
+				'description' => 'Create a survey for an area',
 				'administrator' => true,
 			),
 			'addaffiliations'	=> array (
-				'description' => 'Add affiliations',
+				'description' => 'Add details of a political party/group',
 				'administrator' => true,
 			),
 		);
@@ -1052,7 +1052,6 @@ class elections
 	{
 		# Start the HTML
 		$html  = '';
-		if (!$limitToWard) {$html .= "\n\n<h2>" . ($this->election ? 'Questions allocated to each ' . $this->settings['division'] : 'All available questions') . '</h2>';}
 		
 		# Get the data
 		$electionId = ($limitToWard ? $this->election['id'] : false);
@@ -1392,6 +1391,9 @@ class elections
 	# Candidate response submission
 	public function submit ($showIds = false)
 	{
+		# Start the HTML
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		
 		# Get the list of all wards currently being surveyed
 		if (!$wards = $this->getActiveWards ()) {
 			$html .= "\n<p>No {$this->settings['divisionPlural']} are currently being surveyed.</p>";
@@ -1751,6 +1753,9 @@ class elections
 	# Function to show the status of Cabinet members restanding in this election
 	public function cabinet ()
 	{
+		# Start the HTML
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		
 		# Validate the election
 		if (!$this->election) {
 			header ('HTTP/1.0 404 Not Found');
@@ -1782,7 +1787,6 @@ class elections
 		}
 		
 		# Compile the HTML
-		$html  = "\n<h2>Cabinet members in surveyed wards restanding in this election</h2>";
 		$html .= "\n<p>The <strong>Cabinet</strong> is the Executive of the Council, formed of members of the political party in power. They implement and drive the Council's policy. As such, their views arguably have greater effect than any other Councillors.</p>";
 		$html .= "\n<p>The listing below shows all the Cabinet members in wards we are surveying who are restanding in this election, and whether they have responded to our survey or not.</p>";
 		$html .= application::htmlTable ($cabinetMembers, array (), 'lines regulated', $keyAsFirstColumn = false, false, $allowHtml = true, $showColons = true);
@@ -1895,7 +1899,9 @@ class elections
 	public function admin ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>Administrative functions</h2>";
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		
+		# Add introduction
 		$html .= "\n<p><em>This section is accessible only to Administrators.</em></p>";
 		
 		# Election details
@@ -2000,6 +2006,9 @@ class elections
 	# List of all questions in the entire database
 	public function allquestions ()
 	{
+		# Start the HTML
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		
 		# Ensure that an election is not being supplied
 		if ($this->election) {
 			header ('HTTP/1.0 404 Not Found');
@@ -2019,7 +2028,7 @@ class elections
 	public function addelection ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>Add an election</h2>";
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
 		
 		# Get current IDs
 		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}elections", array (), array ('id'), true, $orderBy = 'id');
@@ -2044,7 +2053,7 @@ class elections
 	public function editelection ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>Edit settings for election</h2>";
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
 		
 		# Get all elections, including forthcoming
 		$this->elections = $this->getElections (true);
@@ -2106,11 +2115,11 @@ class elections
 	# Function to add a ward
 	public function addward ()
 	{
+		# Start the HTML
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		
 		# Get current IDs
 		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}wards", array (), array ('id'), true, $orderBy = 'id');
-		
-		# Start the HTML
-		$html  = "\n<h2>Add a ward</h2>";
 		
 		# Create a new form
 		require_once ('ultimateForm.php');
@@ -2150,12 +2159,12 @@ class elections
 	# Function to add an affiliation
 	public function addaffiliations ()
 	{
+		# Start the HTML
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		
 		# Get current IDs
 		$table = "{$this->settings['tablePrefix']}affiliations";
 		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], $table, array (), array ('id'), true, $orderBy = 'id');
-		
-		# Start the HTML
-		$html  = "\n<h2>Add an affiliation</h2>";
 		
 		# Create a new form
 		require_once ('ultimateForm.php');
@@ -2201,7 +2210,9 @@ class elections
 	public function addcandidates ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>Add candidates</h2>";
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		
+		# Add introduction
 		$html .= "\n<p>Note that this will replace the data for the selected election.</p>";
 		
 		# Get all elections, including forthcoming
@@ -2346,11 +2357,13 @@ class elections
 	# Function to add questions
 	public function addquestions ()
 	{
+		# Start the HTML
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		
 		# Define number of recent questions to show
 		$mostRecent = 20;
 		
-		# Start the HTML
-		$html  = "\n<h2>Add questions</h2>";
+		# Introductory text
 		$html .= "\n<p>In this section, you can add questions that can then be used in a survey. Note that questions have to be added one at a time.</p>";
 		$html .= "\n<p>The {$mostRecent} most recently-added questions are shown below.</p>";
 		
@@ -2401,7 +2414,7 @@ class elections
 	public function deletequestions ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>Delete a question</h2>";
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
 		
 		# Obtain the questions not currently connected to any survey
 		$query = "
@@ -2476,11 +2489,13 @@ class elections
 	# Function to create surveys
 	public function addsurveys ()
 	{
+		# Start the HTML
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		
 		# Define number of recent questions to show
 		$mostRecent = 20;
 		
-		# Start the HTML
-		$html  = "\n<h2>Create survey</h2>";
+		# Add introduction
 		$html .= "\n<p>In this section, you can construct a survey for each area. Note that surveys have to be created one at a time.</p>";
 		$html .= "\n<p>The {$mostRecent} most recently-added questions are shown below.</p>";
 		
@@ -2582,7 +2597,7 @@ class elections
 	public function allocations ()
 	{
 		# Start the HTML
-		$html  = '<h2>Create the question allocation SQL</h2>';
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
 		
 		# Get all elections, including forthcoming
 		$elections = $this->getElections (true);
@@ -2634,7 +2649,7 @@ class elections
 	public function letters ()
 	{
 		# Start the HTML
-		$html  = '<h2>Printable letters to candidates</h2>';
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
 		
 		# Obtain the HTML
 		if (!$mailoutHtml = $this->compileMailout (__FUNCTION__, $statusHtml)) {
@@ -2653,7 +2668,7 @@ class elections
 	public function mailout ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>Send e-mail mailout to candidates</h2>";
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
 		
 		# Ensure there is an election supplied
 		if (!$this->election) {
@@ -2675,7 +2690,7 @@ class elections
 	public function reminders ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>Send reminder e-mails to candidates</h2>";
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
 		
 		# Run the mailout routine
 		$html .= $this->emailMailoutRoutine (__FUNCTION__, 'reminder e-mails');
@@ -2689,7 +2704,7 @@ class elections
 	public function reissue ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>Reissue an e-mail to a candidate</h2>";
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
 		
 		# Ensure there is an election supplied
 		if (!$this->election) {
@@ -3111,7 +3126,7 @@ class elections
 	public function elected ()
 	{
 		# Start the HTML
-		$html  = '<h2>Specify the elected candidates</h2>';
+		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
 		
 		# Ensure there is an election supplied
 		if (!$this->election) {
