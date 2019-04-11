@@ -272,10 +272,10 @@ class elections
 		# Define and return the actions
 		return $actions = array (
 			'home'			=> array (
-				'description' => 'Home',
+				'description' => false,
 			),
 			'overview'		=> array (
-				'description' => 'Overview for an election',
+				'description' => false,
 			),
 			'allquestions'	=> array (
 				'description' => 'List all questions available',
@@ -298,7 +298,7 @@ class elections
 				'administrator' => true,
 			),
 			'ward'			=> array (
-				'description' => 'Overview for an area',
+				'description' => false,
 			),
 			'submit'		=> array (
 				'description' => 'Candidate survey response form',
@@ -308,14 +308,14 @@ class elections
 				'administrator' => true,
 			),
 			'questions'		=> array (
-				'description' => 'List of questions for an election',
+				'description' => false,
 			),
 			'elected'		=> array (
 				'description' => 'Specify the elected candidates',
 				'administrator' => true,
 			),
 			'respondents'	=> array (
-				'description' => 'List of respondents',
+				'description' => false,
 			),
 			'cabinet'		=> array (
 				'description' => 'Cabinet members in surveyed wards restanding in this election',
@@ -456,6 +456,11 @@ class elections
 			}
 		}
 		
+		# Show the title if present
+		if ($this->actions[$this->action]['description']) {
+			echo "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		}
+		
 		# Run the page action
 		$this->{$this->action} ();
 		
@@ -542,6 +547,9 @@ class elections
 	# Main page
 	public function ward ()
 	{
+		# Start the HTML
+		$html = '';
+		
 		# Validate the ward
 		if (!$this->election) {
 			header ('HTTP/1.0 404 Not Found');
@@ -556,12 +564,9 @@ class elections
 			return false;
 		}
 		
-		# Start the HTML
-		$html  = '';
-		
 		# Remind administrators
 		if ($this->userIsAdministrator && !$this->election['resultsVisible']) {
-			$html .= "<p class=\"warning\"><strong>Note: any responses shown because are only visible to you because you are an administrator.</strong> The responses will not be made public until at least {$this->election['visibilityDateTime']}.</p>";
+			$html .= "\n<p class=\"warning\"><strong>Note: any responses shown because are only visible to you because you are an administrator.</strong> The responses will not be made public until at least {$this->election['visibilityDateTime']}.</p>";
 		}
 		
 		# Start with a table of data
@@ -578,15 +583,15 @@ class elections
 	# Function to construct a list of all questions, or show all responses to a single question, for a particular election
 	public function questions ()
 	{
+		# Start the HTML
+		$html = '';
+		
 		# Ensure there is an election which is validated
 		if (!$this->election) {
 			header ('HTTP/1.0 404 Not Found');
 			echo $html = '<p>There is no such election. Please check the URL and try again.</p>';
 			return false;
 		}
-		
-		# Start the HTML
-		$html = '';
 		
 		# Get all the questions in use in this election
 		$questions = $this->getQuestionsForElection ($this->election['id']);
@@ -609,14 +614,14 @@ class elections
 	# Function to show an individual question's responses within a particular election
 	private function showQuestionForElection ($questions, $questionNumber)
 	{
+		# Start the HTML
+		$html = '';
+		
 		# Validate the question number
 		if (!isSet ($questions[$questionNumber])) {
 			header ('HTTP/1.0 404 Not Found');
 			return $html = '<p>The specific question number is invalid. Please check the URL and try again.</p>';
 		}
-		
-		# Start the HTML
-		$html = '';
 		
 		# Get the question
 		$question = $questions[$questionNumber];
@@ -877,7 +882,7 @@ class elections
 	private function droplistNavigation ($wardsOnly = false)
 	{
 		# Start the HTML
-		$html  = '';
+		$html = '';
 		
 		# In wards-only mode, if there is only one ward, just return its name - no point showing the jumplist
 		if ($wardsOnly) {
@@ -1051,7 +1056,7 @@ class elections
 	private function showQuestions ($limitToWard = false /* will be false if listing all questions across all elections */)
 	{
 		# Start the HTML
-		$html  = '';
+		$html = '';
 		
 		# Get the data
 		$electionId = ($limitToWard ? $this->election['id'] : false);
@@ -1132,7 +1137,7 @@ class elections
 	private function responsesBlock ($question, $candidates, $responses, $crossWardMode = false, $questionNumberPublic = false)
 	{
 		# Start the HTML
-		$html  = '';
+		$html = '';
 		
 		/*
 		application::dumpData ($question);
@@ -1392,7 +1397,7 @@ class elections
 	public function submit ($showIds = false)
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Get the list of all wards currently being surveyed
 		if (!$wards = $this->getActiveWards ()) {
@@ -1755,7 +1760,7 @@ class elections
 	public function cabinet ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Validate the election
 		if (!$this->election) {
@@ -1900,7 +1905,7 @@ class elections
 	public function admin ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Add introduction
 		$html .= "\n<p><em>This section is accessible only to Administrators.</em></p>";
@@ -2008,7 +2013,7 @@ class elections
 	public function allquestions ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Ensure that an election is not being supplied
 		if ($this->election) {
@@ -2029,7 +2034,7 @@ class elections
 	public function addelection ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Get current IDs
 		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}elections", array (), array ('id'), true, $orderBy = 'id');
@@ -2054,7 +2059,7 @@ class elections
 	public function editelection ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Get all elections, including forthcoming
 		$this->elections = $this->getElections (true);
@@ -2117,7 +2122,7 @@ class elections
 	public function addward ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Get current IDs
 		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}wards", array (), array ('id'), true, $orderBy = 'id');
@@ -2161,7 +2166,7 @@ class elections
 	public function addaffiliations ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Get current IDs
 		$table = "{$this->settings['tablePrefix']}affiliations";
@@ -2211,7 +2216,7 @@ class elections
 	public function addcandidates ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Add introduction
 		$html .= "\n<p>Note that this will replace the data for the selected election.</p>";
@@ -2359,7 +2364,7 @@ class elections
 	public function addquestions ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Define number of recent questions to show
 		$mostRecent = 20;
@@ -2415,7 +2420,7 @@ class elections
 	public function deletequestions ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Obtain the questions not currently connected to any survey
 		$query = "
@@ -2491,7 +2496,7 @@ class elections
 	public function addsurveys ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Define number of recent questions to show
 		$mostRecent = 20;
@@ -2598,7 +2603,7 @@ class elections
 	public function allocations ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Get all elections, including forthcoming
 		$elections = $this->getElections (true);
@@ -2650,7 +2655,7 @@ class elections
 	public function letters ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Obtain the HTML
 		if (!$mailoutHtml = $this->compileMailout (__FUNCTION__, $statusHtml)) {
@@ -2669,7 +2674,7 @@ class elections
 	public function mailout ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Ensure there is an election supplied
 		if (!$this->election) {
@@ -2691,7 +2696,7 @@ class elections
 	public function reminders ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Run the mailout routine
 		$html .= $this->emailMailoutRoutine (__FUNCTION__, 'reminder e-mails');
@@ -2705,7 +2710,7 @@ class elections
 	public function reissue ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Ensure there is an election supplied
 		if (!$this->election) {
@@ -2897,7 +2902,7 @@ class elections
 	private function compileMailout ($type /* =letters/mailout/reminders */, &$html, &$emailsPreviewHtml = '')
 	{
 		# Start the general status HTML
-		$html  = '';
+		$html = '';
 		
 		# Ensure there is an election supplied
 		if (!$this->election) {
@@ -3127,7 +3132,7 @@ class elections
 	public function elected ()
 	{
 		# Start the HTML
-		$html  = "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+		$html = '';
 		
 		# Ensure there is an election supplied
 		if (!$this->election) {
