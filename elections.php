@@ -1394,7 +1394,8 @@ class elections
 	{
 		# Get the list of all wards currently being surveyed
 		if (!$wards = $this->getActiveWards ()) {
-			echo $html = "\n<p>No {$this->settings['divisionPlural']} are currently being surveyed.</p>";
+			$html .= "\n<p>No {$this->settings['divisionPlural']} are currently being surveyed.</p>";
+			echo $html;
 			return;
 		}
 		
@@ -1433,7 +1434,10 @@ class elections
 			));
 			
 			# Process the form or end
-			if (!$result = $form->process ()) {return false;}
+			if (!$result = $form->process ($html)) {
+				echo $html;
+				return false;
+			}
 		}
 		
 		# Determine the number and ward to be checked
@@ -1443,7 +1447,8 @@ class elections
 		# Confirm the details
 		#!# Use getUnfinalised to improve the UI here
 		if (!$candidate = $this->verifyCandidate ($number, $ward)) {
-			echo "\n<p>The verification/{$this->settings['division']} pair you submitted does not seem to be correct. Please check the letter/e-mail we sent you and <a href=\"{$this->baseUrl}/submit/\">try again</a>.</p>";
+			$html .= "\n<p>The verification/{$this->settings['division']} pair you submitted does not seem to be correct. Please check the letter/e-mail we sent you and <a href=\"{$this->baseUrl}/submit/\">try again</a>.</p>";
+			echo $html;
 			return false;
 		}
 		
@@ -1453,7 +1458,7 @@ class elections
 		# Create a shortcut to the ward name
 		$wardName = $wards[$candidate['wardId']];
 		
-		# Start the page
+		# Start the page with a new heading
 		$html  = "\n\n<h2 class=\"ward\" id=\"{$wardName}\">Questions for {$wardName} {$this->settings['division']} candidates</h2>";
 		
 		# End if election is over
@@ -1749,14 +1754,14 @@ class elections
 		# Validate the election
 		if (!$this->election) {
 			header ('HTTP/1.0 404 Not Found');
-			echo $html = '<p>There is no such election. Please check the URL and try again.</p>';
+			echo $html .= '<p>There is no such election. Please check the URL and try again.</p>';
 			return false;
 		}
 		
 		# End if no Cabinet members restanding in this election
 		if (!$this->cabinetRestanding) {
 			header ('HTTP/1.0 404 Not Found');
-			echo $html = '<p>There are no Cabinet members in wards we are surveying restanding in this election. Please check the URL and try again.</p>';
+			echo $html .= '<p>There are no Cabinet members in wards we are surveying restanding in this election. Please check the URL and try again.</p>';
 			return false;
 		}
 		
@@ -2003,7 +2008,7 @@ class elections
 		}
 		
 		# Get data
-		$html = $this->showQuestions ();
+		$html .= $this->showQuestions ();
 		
 		# Show the HTML
 		echo $html;
@@ -2601,7 +2606,10 @@ class elections
 		));
 		
 		# Process the result
-		if (!$result = $form->process ()) {return false;}
+		if (!$result = $form->process ($html)) {
+			echo $html;
+			return false;
+		}
 		
 		# Compile the SQL
 		$sql  = "INSERT INTO {$this->settings['tablePrefix']}surveys (election,ward,question) VALUES \n";
