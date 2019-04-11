@@ -279,52 +279,13 @@ class elections
 				'description' => false,
 				'url' => '%election/',
 			),
-			'allquestions'	=> array (
-				'description' => 'List all questions available',
-				'url' => 'admin/allquestions.html',
-				'administrator' => true,
-			),
-			'letters'		=> array (
-				'description' => 'Print mailout (letters) to candidates containing the survey',
-				'url' => 'admin/letters.html',
-				'administrator' => true,
-			),
-			'mailout'		=> array (
-				'description' => 'Send e-mail mailout to candidates containing the survey',
-				'url' => 'admin/mailout.html',
-				'administrator' => true,
-			),
-			'reminders'		=> array (
-				'description' => 'Send reminder e-mails to candidates who have not yet responded to the survey',
-				'url' => 'admin/reminders.html',
-				'administrator' => true,
-			),
-			'reissue'		=> array (
-				'description' => 'Reissue an e-mail to a candidate',
-				'url' => 'admin/reissue.html',
-				'administrator' => true,
-			),
 			'ward'			=> array (
 				'description' => false,
 				'url' => '%election/%ward/',
 			),
-			'submit'		=> array (
-				'description' => 'Candidate survey response form',
-				'url' => 'submit/',
-			),
-			'allocations'	=> array (
-				'description' => 'Convert an questions allocations spreadsheet into SQL',
-				'url' => 'admin/allocations.html',
-				'administrator' => true,
-			),
 			'questions'		=> array (
 				'description' => false,
 				'url' => '%election/questions/',
-			),
-			'elected'		=> array (
-				'description' => 'Specify the elected candidates',
-				'url' => 'admin/elected.html',
-				'administrator' => true,
 			),
 			'respondents'	=> array (
 				'description' => false,
@@ -343,41 +304,120 @@ class elections
 				'description' => 'Start an election survey',
 				'url' => 'admin/addelection.html',
 				'administrator' => true,
+				'admingroup' => 'election',
 			),
 			'editelection'	=> array (
 				'description' => 'Edit settings for an election',
 				'url' => 'admin/editelection.html',
 				'administrator' => true,
+				'admingroup' => 'election',
 			),
 			'addward'		=> array (
 				'description' => 'Add a ward/division',
 				'url' => 'admin/addward.html',
 				'administrator' => true,
+				'admingroup' => 'wardaffilations',
 			),
-			'addcandidates'	=> array (
-				'description' => 'Add candidates',
-				'url' => 'admin/addcandidates.html',
+			'editward'		=> array (
+				'description' => 'Show/edit existing wards/divisions',
+				'url' => 'admin/editward.html',
 				'administrator' => true,
-			),
-			'addquestions'	=> array (
-				'description' => 'Add a question',
-				'url' => 'admin/addquestions.html',
-				'administrator' => true,
-			),
-			'deletequestions'	=> array (
-				'description' => 'Delete a question',
-				'url' => 'admin/deletequestions.html',
-				'administrator' => true,
-			),
-			'addsurveys'	=> array (
-				'description' => 'Create a survey for an area',
-				'url' => 'admin/addsurveys.html',
-				'administrator' => true,
+				'admingroup' => 'wardaffilations',
 			),
 			'addaffiliations'	=> array (
 				'description' => 'Add details of a political party/group',
 				'url' => 'admin/addaffiliations.html',
 				'administrator' => true,
+				'admingroup' => 'wardaffilations',
+			),
+			'editaffiliations'	=> array (
+				'description' => 'Show/edit existing political parties/groups',
+				'url' => 'admin/editaffiliations.html',
+				'administrator' => true,
+				'admingroup' => 'wardaffilations',
+			),
+			'addquestions'	=> array (
+				'description' => 'Add a question',
+				'url' => 'admin/addquestions.html',
+				'administrator' => true,
+				'admingroup' => 'questions',
+			),
+			'allquestions'	=> array (
+				'description' => 'List all questions available',
+				'url' => 'admin/allquestions.html',
+				'administrator' => true,
+				'admingroup' => 'questions',
+			),
+			'deletequestions'	=> array (
+				'description' => 'Delete a question',
+				'url' => 'admin/deletequestions.html',
+				'administrator' => true,
+				'admingroup' => 'questions',
+			),
+			'addsurveys'	=> array (
+				'description' => 'Create a survey for an area',
+				'url' => 'admin/addsurveys.html',
+				'administrator' => true,
+				'admingroup' => 'surveys',
+			),
+			'editsurveys'	=> array (
+				'description' => 'Show/edit existing surveys',
+				'url' => 'admin/editsurveys.html',
+				'administrator' => true,
+				'admingroup' => 'surveys',
+			),
+			'allocations'	=> array (
+				'description' => 'Convert an questions allocations spreadsheet into SQL',
+				'url' => 'admin/allocations.html',
+				'administrator' => true,
+				'admingroup' => 'surveys',
+			),
+			'addcandidates'	=> array (
+				'description' => 'Add candidates',
+				'url' => 'admin/addcandidates.html',
+				'administrator' => true,
+				'admingroup' => 'candidates',
+			),
+			'editcandidates'	=> array (
+				'description' => 'Show/edit candidates',
+				'url' => 'admin/editcandidates.html',
+				'administrator' => true,
+				'admingroup' => 'candidates',
+			),
+			'mailout'		=> array (
+				'description' => 'Send e-mail mailout to candidates containing the survey',
+				'url' => 'admin/mailout.html',
+				'administrator' => true,
+				'admingroup' => 'candidates',
+			),
+			'letters'		=> array (
+				'description' => 'Print mailout (letters) to candidates containing the survey',
+				'url' => 'admin/letters.html',
+				'administrator' => true,
+				'admingroup' => 'candidates',
+			),
+			'reminders'		=> array (
+				'description' => 'Send reminder e-mails to candidates who have not yet responded to the survey',
+				'url' => 'admin/reminders.html',
+				'administrator' => true,
+				'admingroup' => 'candidates',
+			),
+			'reissue'		=> array (
+				'description' => 'Reissue an e-mail to a candidate',
+				'url' => 'admin/reissue.html',
+				'administrator' => true,
+				'admingroup' => 'candidates',
+			),
+			'submit'		=> array (
+				'description' => 'Candidate survey response form',
+				'url' => 'submit/',
+				'admingroup' => 'candidates',
+			),
+			'elected'		=> array (
+				'description' => 'Specify the elected candidates',
+				'url' => 'admin/elected.html',
+				'administrator' => true,
+				'admingroup' => 'postelection',
 			),
 		);
 	}
@@ -1933,73 +1973,58 @@ class elections
 		# Add introduction
 		$html .= "\n<p><em>This section is accessible only to Administrators.</em></p>";
 		
-		# Election details
-		$html .= "\n<div class=\"graybox\">
-		<h3><img src=\"/images/icons/application_view_list.png\" class=\"icon\" /> Election details</h3>
-		<p>To run a survey for an election, you need to create settings for that election, defining its name, date, and other details.</p>
-		<ul>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['addelection']['url']}\">{$this->actions['addelection']['description']}</a></li>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['editelection']['url']}\">{$this->actions['editelection']['description']}</a></li>
-		</ul>
-		</div>";
+		# Define the groups
+		$groups = array (
+			'election' => array (
+				'title' => 'Election details',
+				'icon' => 'application_view_list',
+				'introduction' => 'To run a survey for an election, you need to create settings for that election, defining its name, date, and other details.',
+			),
+			'wardaffilations' => array (
+				'title' => 'Geographical areas and party details',
+				'icon' => 'map',
+				'introduction' => 'In order to create a survey, you need to ensure that each geographical area and party name exists in the database. Once added, these are available for any survey you create for any election.',
+			),
+			'questions' => array (
+				'title' => 'Questions',
+				'icon' => 'help',
+				'introduction' => 'In order to create surveys for each geographical area, you must add each available question to the database. Once added, a question can be used for any surveys, e.g. across multiple geographical areas or in future elections.',
+			),
+			'surveys' => array (
+				'title' => 'Surveys',
+				'icon' => 'script',
+				'introduction' => 'Having defined an election, ensured that the geographical areas and party names are in the database, and that the questions are available, you can now create the survey for each area.',
+			),
+			'candidates' => array (
+				'title' => 'Candidates',
+				'icon' => 'group',
+				'introduction' => 'At the start of the election, you can either e-mail or print out letters for each candidate, inviting them to contribute their answers. You can also send reminder e-mails, or reissue an e-mail. You can also check what a candidate sees when they visit the submission form.',
+			),
+			'postelection' => array (
+				'title' => 'After the election',
+				'icon' => 'medal_gold_2',
+				'introduction' => 'After the election, you can specify the winning candidates, so that their answers are shown highlighted.',
+			),
+		);
 		
-		# Geographical areas and party details
-		$html .= "\n<div class=\"graybox\">
-		<h3><img src=\"/images/icons/map.png\" class=\"icon\" /> Geographical areas and <img src=\"/images/icons/rosette.png\" class=\"icon\" /> party details</h3>
-		<p>In order to create a survey, you need to ensure that each geographical area and party name exists in the database. Once added, these are available for any survey you create for any election.</p>
-		<ul>
-			<li><span class=\"comment\">List existing wards/divisions</span> (not yet available)</li>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['addward']['url']}\">{$this->actions['addward']['description']}</a></li>
-			<li><span class=\"comment\">List existing political parties/groups</span> (not yet available)</li>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['addaffiliations']['url']}\">{$this->actions['addaffiliations']['description']}</a></li>
-		</ul>  
-		</div>";
-		
-		# Questions
-		$html .= "\n<div class=\"graybox\">
-		<h3><img src=\"/images/icons/help.png\" class=\"icon\" /> Questions</h3>
-		<p>In order to create surveys for each geographical area, you must add each available question to the database. Once added, a question can be used for any surveys, e.g. across multiple geographical areas or in future elections.</p>
-		<ul>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['addquestions']['url']}\">{$this->actions['addquestions']['description']}</a></li>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['allquestions']['url']}\">{$this->actions['allquestions']['description']}</a></li>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['deletequestions']['url']}\">{$this->actions['deletequestions']['description']}</a></li>
-		</ul>
-		</div>";
-		
-		# Surveys
-		$html .= "\n<div class=\"graybox\">
-		<h3><img src=\"/images/icons/script.png\" class=\"icon\" /> Surveys</h3>
-		<p>Having defined an election, ensured that the geographical areas and party names are in the database, and that the questions are available, you can now create the survey for each area.</p>
-		<ul>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['addsurveys']['url']}\">{$this->actions['addsurveys']['description']}</a></li>
-			<li><span class=\"comment\">Show/edit created surveys</span> (not yet available)</li>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['allocations']['url']}\">{$this->actions['allocations']['description']}</a></li>
-		</ul>
-		</div>";
-		
-		# Candidates
-		$html .= "\n<div class=\"graybox\">
-		<h3><img src=\"/images/icons/group.png\" class=\"icon\" /> Candidates</h3>
-		<p>At the start of the election, you can either e-mail or print out letters for each candidate, inviting them to contribute their answers. You can also send reminder e-mails, or reissue an e-mail. You can also check what a candidate sees when they visit the submission form.</p>
-		<ul>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['addcandidates']['url']}\">{$this->actions['addcandidates']['description']}</a></li>
-			<li><span class=\"comment\">Show/edit candidates</span> (not yet available)</li>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['mailout']['url']}\">{$this->actions['mailout']['description']}</a></li>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['letters']['url']}\">{$this->actions['letters']['description']}</a></li>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['reminders']['url']}\">{$this->actions['reminders']['description']}</a></li>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['reissue']['url']}\">{$this->actions['reissue']['description']}</a></li>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['submit']['url']}\">{$this->actions['submit']['description']}</a></li>
-		</ul>
-		</div>";
-		
-		# After the election
-		$html .= "\n<div class=\"graybox\">
-		<h3><img src=\"/images/icons/medal_gold_2.png\" class=\"icon\" /> After the election</h3>
-		<p>After the election, you can specify the winning candidates, so that their answers are shown highlighted.</p>
-		<ul>
-			<li><a href=\"{$this->baseUrl}/{$this->actions['elected']['url']}\">{$this->actions['elected']['description']}</a></li>
-		</ul>
-		</div>";
+		# Construct the page
+		foreach ($groups as $groupId => $group) {
+			$html .= "\n<div class=\"graybox\">";
+			$html .= "\n<h3><img src=\"/images/icons/{$group['icon']}.png\" class=\"icon\" /> " . htmlspecialchars ($group['title']) . '</h3>';
+			$html .= "\n\t<p>" . htmlspecialchars ($group['introduction']) . '</p>';
+			$html .= "\n\t<ul>";
+			foreach ($this->actions as $actionId => $action) {
+				if (isSet ($action['admingroup']) && $action['admingroup'] == $groupId) {
+					if (method_exists ($this, $actionId)) {
+						$html .= "\n\t\t<li><a href=\"{$this->baseUrl}/{$action['url']}\">" . htmlspecialchars ($action['description']) . '</a></li>';
+					} else {
+						$html .= "\n\t\t<li><span class=\"comment\">" . htmlspecialchars ($action['description']) . '</span> (not yet available)</li>';
+					}
+				}
+			}
+			$html .= "\n\t<ul>";
+			$html .= "\n</div>";
+		};
 		
 		# Show the HTML
 		echo $html;
