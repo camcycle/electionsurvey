@@ -14,24 +14,25 @@ RewriteRule ^$ index.html?action=home [L,QSA]
 
 # Submission page (this uses / at the end rather than .html as some candidates seem not to type that correctly)
 RewriteRule ^submit/$ index.html?action=submit [L]
-RedirectMatch permanent ^/elections/submit$ /elections/submit/
+RewriteRule ^submit$ submit/ [R=301,L]
 
 # Admin area
 RewriteRule ^admin/$ index.html?action=admin [L]
-RedirectMatch permanent ^/elections/admin$ /elections/admin/
+RewriteRule ^admin$ admin/ [R=301,L]
 RewriteRule ^admin/(allquestions|allocations|letters|mailout|reminders|reissue|elected|addelection|editelection|addward|addcandidates|addquestions|deletequestions|addsurveys|addaffiliations).html$ index.html?action=$1 [L]
 
 # Overview page for an election
 RewriteRule ^([a-z0-9]+)/$ index.html?election=$1&action=overview [L]
-RedirectMatch permanent ^/elections/([a-z0-9]+)$ /elections/$1/
+RewriteRule ^([a-z0-9]+)$ $1/ [R=301,L]
 
 # List of all/per-ward questions available
 RewriteRule ^([a-z0-9]+)/(editelection|letters|mailout|reminders|reissue|respondents|cabinet|elected).html$ index.html?election=$1&action=$2 [L]
 RewriteRule ^([a-z0-9]+)/(questions)/$ index.html?election=$1&action=$2 [L]
-RedirectMatch permanent ^/elections/([a-z0-9]+)/(questions)$ /elections/$1/$2/
+RewriteRule ^([a-z0-9]+)/(questions)$ $1/$2/ [R=301,L]
 RewriteRule ^([a-z0-9]+)/(questions)/([0-9]{1,2})/$ index.html?election=$1&action=$2&question=$3 [L]
-RedirectMatch permanent ^/elections/([a-z0-9]+)/(questions)/([0-9]{1,2})$ /elections/$1/$2/$3/
+RewriteRule ^([a-z0-9]+)/(questions)/([0-9]{1,2})$ $1/$2/$3/ [R=301,L]
 
 # Overview page for a ward in an election
 RewriteRule ^([a-z0-9]+)/([a-z0-9]+)/$ index.html?election=$1&ward=$2&action=ward [L]
-RedirectMatch permanent ^/elections/([a-z0-9]+)/([a-z0-9]+)$ /elections/$1/$2/
+RewriteRule ^([a-z0-9]+)/([a-z0-9]+)$ $1/$2/ [R=301,L]
+
