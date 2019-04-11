@@ -273,87 +273,110 @@ class elections
 		return $actions = array (
 			'home'			=> array (
 				'description' => false,
+				'url' => '',
 			),
 			'overview'		=> array (
 				'description' => false,
+				'url' => '%election/',
 			),
 			'allquestions'	=> array (
 				'description' => 'List all questions available',
+				'url' => 'admin/allquestions.html',
 				'administrator' => true,
 			),
 			'letters'		=> array (
 				'description' => 'Print mailout (letters) to candidates containing the survey',
+				'url' => 'admin/letters.html',
 				'administrator' => true,
 			),
 			'mailout'		=> array (
 				'description' => 'Send e-mail mailout to candidates containing the survey',
+				'url' => 'admin/mailout.html',
 				'administrator' => true,
 			),
 			'reminders'		=> array (
 				'description' => 'Send reminder e-mails to candidates who have not yet responded to the survey',
+				'url' => 'admin/reminders.html',
 				'administrator' => true,
 			),
 			'reissue'		=> array (
 				'description' => 'Reissue an e-mail to a candidate',
+				'url' => 'admin/reissue.html',
 				'administrator' => true,
 			),
 			'ward'			=> array (
 				'description' => false,
+				'url' => '%election/%ward/',
 			),
 			'submit'		=> array (
 				'description' => 'Candidate survey response form',
+				'url' => 'submit/',
 			),
 			'allocations'	=> array (
 				'description' => 'Convert an questions allocations spreadsheet into SQL',
+				'url' => 'admin/allocations.html',
 				'administrator' => true,
 			),
 			'questions'		=> array (
 				'description' => false,
+				'url' => '%election/questions/',
 			),
 			'elected'		=> array (
 				'description' => 'Specify the elected candidates',
+				'url' => 'admin/elected.html',
 				'administrator' => true,
 			),
 			'respondents'	=> array (
 				'description' => false,
+				'url' => '%election/respondents.html',
 			),
 			'cabinet'		=> array (
 				'description' => 'Cabinet members in surveyed wards restanding in this election',
+				'url' => '%election/cabinet.html',
 			),
 			'admin'			=> array (
 				'description' => 'Administrative functions',
+				'url' => 'admin/',
 				'administrator' => true,
 			),
 			'addelection'	=> array (
 				'description' => 'Start an election survey',
+				'url' => 'admin/addelection.html',
 				'administrator' => true,
 			),
 			'editelection'	=> array (
 				'description' => 'Edit settings for an election',
+				'url' => 'admin/editelection.html',
 				'administrator' => true,
 			),
 			'addward'		=> array (
 				'description' => 'Add a ward/division',
+				'url' => 'admin/addward.html',
 				'administrator' => true,
 			),
 			'addcandidates'	=> array (
 				'description' => 'Add candidates',
+				'url' => 'admin/addcandidates.html',
 				'administrator' => true,
 			),
 			'addquestions'	=> array (
 				'description' => 'Add a question',
+				'url' => 'admin/addquestions.html',
 				'administrator' => true,
 			),
 			'deletequestions'	=> array (
 				'description' => 'Delete a question',
+				'url' => 'admin/deletequestions.html',
 				'administrator' => true,
 			),
 			'addsurveys'	=> array (
 				'description' => 'Create a survey for an area',
+				'url' => 'admin/addsurveys.html',
 				'administrator' => true,
 			),
 			'addaffiliations'	=> array (
 				'description' => 'Add details of a political party/group',
+				'url' => 'admin/addaffiliations.html',
 				'administrator' => true,
 			),
 		);
@@ -1915,8 +1938,8 @@ class elections
 		<h3><img src=\"/images/icons/application_view_list.png\" class=\"icon\" /> Election details</h3>
 		<p>To run a survey for an election, you need to create settings for that election, defining its name, date, and other details.</p>
 		<ul>
-			<li><a href=\"{$this->baseUrl}/admin/addelection.html\">{$this->actions['addelection']['description']}</a></li>
-			<li><a href=\"{$this->baseUrl}/admin/editelection.html\">{$this->actions['editelection']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['addelection']['url']}\">{$this->actions['addelection']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['editelection']['url']}\">{$this->actions['editelection']['description']}</a></li>
 		</ul>
 		</div>";
 		
@@ -1926,9 +1949,9 @@ class elections
 		<p>In order to create a survey, you need to ensure that each geographical area and party name exists in the database. Once added, these are available for any survey you create for any election.</p>
 		<ul>
 			<li><span class=\"comment\">List existing wards/divisions</span> (not yet available)</li>
-			<li><a href=\"{$this->baseUrl}/admin/addward.html\">{$this->actions['addward']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['addward']['url']}\">{$this->actions['addward']['description']}</a></li>
 			<li><span class=\"comment\">List existing political parties/groups</span> (not yet available)</li>
-			<li><a href=\"{$this->baseUrl}/admin/addaffiliations.html\">{$this->actions['addaffiliations']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['addaffiliations']['url']}\">{$this->actions['addaffiliations']['description']}</a></li>
 		</ul>  
 		</div>";
 		
@@ -1937,9 +1960,9 @@ class elections
 		<h3><img src=\"/images/icons/help.png\" class=\"icon\" /> Questions</h3>
 		<p>In order to create surveys for each geographical area, you must add each available question to the database. Once added, a question can be used for any surveys, e.g. across multiple geographical areas or in future elections.</p>
 		<ul>
-			<li><a href=\"{$this->baseUrl}/admin/addquestions.html\">{$this->actions['addquestions']['description']}</a></li>
-			<li><a href=\"{$this->baseUrl}/admin/allquestions.html\">{$this->actions['allquestions']['description']}</a></li>
-			<li><a href=\"{$this->baseUrl}/admin/deletequestions.html\">{$this->actions['deletequestions']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['addquestions']['url']}\">{$this->actions['addquestions']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['allquestions']['url']}\">{$this->actions['allquestions']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['deletequestions']['url']}\">{$this->actions['deletequestions']['description']}</a></li>
 		</ul>
 		</div>";
 		
@@ -1948,9 +1971,9 @@ class elections
 		<h3><img src=\"/images/icons/script.png\" class=\"icon\" /> Surveys</h3>
 		<p>Having defined an election, ensured that the geographical areas and party names are in the database, and that the questions are available, you can now create the survey for each area.</p>
 		<ul>
-			<li><a href=\"{$this->baseUrl}/admin/addsurveys.html\">{$this->actions['addsurveys']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['addsurveys']['url']}\">{$this->actions['addsurveys']['description']}</a></li>
 			<li><span class=\"comment\">Show/edit created surveys</span> (not yet available)</li>
-			<li><a href=\"{$this->baseUrl}/admin/allocations.html\">{$this->actions['allocations']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['allocations']['url']}\">{$this->actions['allocations']['description']}</a></li>
 		</ul>
 		</div>";
 		
@@ -1959,13 +1982,13 @@ class elections
 		<h3><img src=\"/images/icons/group.png\" class=\"icon\" /> Candidates</h3>
 		<p>At the start of the election, you can either e-mail or print out letters for each candidate, inviting them to contribute their answers. You can also send reminder e-mails, or reissue an e-mail. You can also check what a candidate sees when they visit the submission form.</p>
 		<ul>
-			<li><a href=\"{$this->baseUrl}/admin/addcandidates.html\">{$this->actions['addcandidates']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['addcandidates']['url']}\">{$this->actions['addcandidates']['description']}</a></li>
 			<li><span class=\"comment\">Show/edit candidates</span> (not yet available)</li>
-			<li><a href=\"{$this->baseUrl}/admin/mailout.html\">{$this->actions['mailout']['description']}</a></li>
-			<li><a href=\"{$this->baseUrl}/admin/letters.html\">{$this->actions['letters']['description']}</a></li>
-			<li><a href=\"{$this->baseUrl}/admin/reminders.html\">{$this->actions['reminders']['description']}</a></li>
-			<li><a href=\"{$this->baseUrl}/admin/reissue.html\">{$this->actions['reissue']['description']}</a></li>
-			<li><a href=\"{$this->baseUrl}/submit/\">{$this->actions['submit']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['mailout']['url']}\">{$this->actions['mailout']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['letters']['url']}\">{$this->actions['letters']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['reminders']['url']}\">{$this->actions['reminders']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['reissue']['url']}\">{$this->actions['reissue']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['submit']['url']}\">{$this->actions['submit']['description']}</a></li>
 		</ul>
 		</div>";
 		
@@ -1974,7 +1997,7 @@ class elections
 		<h3><img src=\"/images/icons/medal_gold_2.png\" class=\"icon\" /> After the election</h3>
 		<p>After the election, you can specify the winning candidates, so that their answers are shown highlighted.</p>
 		<ul>
-			<li><a href=\"{$this->baseUrl}/admin/elected.html\">{$this->actions['elected']['description']}</a></li>
+			<li><a href=\"{$this->baseUrl}/{$this->actions['elected']['url']}\">{$this->actions['elected']['description']}</a></li>
 		</ul>
 		</div>";
 		
