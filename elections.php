@@ -277,26 +277,31 @@ class elections
 			),
 			'overview'		=> array (
 				'description' => false,
-				'url' => '%election/',
+				'url' => '',
+				'election' => true,
 			),
 			'ward'			=> array (
 				'description' => false,
-				'url' => '%election/%ward/',
+				'url' => '%ward/',
+				'election' => true,
 			),
 			'questions'		=> array (
 				'description' => false,
-				'url' => '%election/questions/',
+				'url' => 'questions/',
+				'election' => true,
 			),
 			'respondents'	=> array (
 				'description' => false,
-				'url' => '%election/respondents.html',
+				'url' => 'respondents.html',
+				'election' => true,
 			),
 			'cabinet'		=> array (
 				'description' => 'Cabinet members in surveyed wards restanding in this election',
-				'url' => '%election/cabinet.html',
+				'url' => 'cabinet.html',
+				'election' => true,
 			),
 			'admin'			=> array (
-				'description' => 'Administrative functions',
+				'description' => false,
 				'url' => 'admin/',
 				'administrator' => true,
 			),
@@ -305,12 +310,14 @@ class elections
 				'url' => 'admin/addelection.html',
 				'administrator' => true,
 				'admingroup' => 'election',
+				'election' => false,
 			),
 			'editelection'	=> array (
 				'description' => 'Edit settings for an election',
 				'url' => 'admin/editelection.html',
 				'administrator' => true,
 				'admingroup' => 'election',
+				'election' => true,
 			),
 			'addward'		=> array (
 				'description' => 'Add a ward/division',
@@ -359,54 +366,63 @@ class elections
 				'url' => 'admin/addsurveys.html',
 				'administrator' => true,
 				'admingroup' => 'surveys',
+				//'election' => true,
 			),
 			'editsurveys'	=> array (
 				'description' => 'Show/edit existing surveys',
 				'url' => 'admin/editsurveys.html',
 				'administrator' => true,
 				'admingroup' => 'surveys',
+				'election' => true,
 			),
 			'allocations'	=> array (
 				'description' => 'Convert an questions allocations spreadsheet into SQL',
 				'url' => 'admin/allocations.html',
 				'administrator' => true,
 				'admingroup' => 'surveys',
+				//'election' => true,
 			),
 			'addcandidates'	=> array (
 				'description' => 'Add candidates',
 				'url' => 'admin/addcandidates.html',
 				'administrator' => true,
 				'admingroup' => 'candidates',
+				//'election' => true,
 			),
 			'editcandidates'	=> array (
 				'description' => 'Show/edit candidates',
 				'url' => 'admin/editcandidates.html',
 				'administrator' => true,
 				'admingroup' => 'candidates',
+				'election' => true,
 			),
 			'mailout'		=> array (
 				'description' => 'Send e-mail mailout to candidates containing the survey',
 				'url' => 'admin/mailout.html',
 				'administrator' => true,
 				'admingroup' => 'candidates',
+				'election' => true,
 			),
 			'letters'		=> array (
 				'description' => 'Print mailout (letters) to candidates containing the survey',
 				'url' => 'admin/letters.html',
 				'administrator' => true,
 				'admingroup' => 'candidates',
+				'election' => true,
 			),
 			'reminders'		=> array (
 				'description' => 'Send reminder e-mails to candidates who have not yet responded to the survey',
 				'url' => 'admin/reminders.html',
 				'administrator' => true,
 				'admingroup' => 'candidates',
+				'election' => true,
 			),
 			'reissue'		=> array (
 				'description' => 'Reissue an e-mail to a candidate',
 				'url' => 'admin/reissue.html',
 				'administrator' => true,
 				'admingroup' => 'candidates',
+				'election' => true,
 			),
 			'submit'		=> array (
 				'description' => 'Candidate survey response form',
@@ -418,6 +434,7 @@ class elections
 				'url' => 'admin/elected.html',
 				'administrator' => true,
 				'admingroup' => 'postelection',
+				'election' => true,
 			),
 		);
 	}
@@ -599,8 +616,12 @@ class elections
 		# List wards
 		$html .= $this->showWards ($election);
 		
-		# Show admin links if an administrator
-		$html .= $this->adminElection ($election['id']);
+		# Show administrative options for this election
+		if ($this->userIsAdministrator) {
+			$html .= "\n<br />";
+			$html .= "\n<h2>Administrative options for this election</h2>";
+			$html .= "\n<p><a href=\"{$this->baseUrl}/{$this->election['id']}/admin/\">Administrative area for this election</a></p>";
+		}
 		
 		# Return the HTML
 		return $html;
@@ -1967,8 +1988,8 @@ class elections
 	# Admin area
 	public function admin ()
 	{
-		# Start the HTML
-		$html = '';
+		# Start the HTML with a customised heading
+		$html = "\n<h2>Administrative functions" . ($this->election ? ' for this election' : '') . '</h2>';
 		
 		# Add introduction
 		$html .= "\n<p><em>This section is accessible only to Administrators.</em></p>";
@@ -2015,8 +2036,10 @@ class elections
 			$html .= "\n\t<ul>";
 			foreach ($this->actions as $actionId => $action) {
 				if (isSet ($action['admingroup']) && $action['admingroup'] == $groupId) {
+					if (isSet ($action['election']) && !$action['election']) {continue;}	// Skip if explicitly false
 					if (method_exists ($this, $actionId)) {
-						$html .= "\n\t\t<li><a href=\"{$this->baseUrl}/{$action['url']}\">" . htmlspecialchars ($action['description']) . '</a></li>';
+						$url = "{$this->baseUrl}/" . ((isSet ($action['election']) && $this->election) ? str_replace ('admin/', "{$this->election['id']}/", $action['url']) : $action['url']);
+						$html .= "\n\t\t<li><a href=\"{$url}\">" . htmlspecialchars ($action['description']) . '</a></li>';
 					} else {
 						$html .= "\n\t\t<li><span class=\"comment\">" . htmlspecialchars ($action['description']) . '</span> (not yet available)</li>';
 					}
@@ -2028,29 +2051,6 @@ class elections
 		
 		# Show the HTML
 		echo $html;
-	}
-	
-	
-	# Function to show administrative options specific to an election
-	private function adminElection ($electionId)
-	{
-		# End if not an administrator
-		if (!$this->userIsAdministrator) {return false;}
-		
-		# Compile the list of administrative options
-		$html  = "\n<br />";
-		$html .= "\n<h2>Administrative options for this election</h2>";
-		$html .= "\n<p>As an administrator you can also:</p>";
-		$html .= "\n<ul>";
-		$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$electionId}/editelection.html\">Edit the election settings</a></li>";
-		$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$electionId}/letters.html\">Create the mailout (letters) to candidates containing the survey</a></li>";
-		$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$electionId}/mailout.html\">Create the mailout (e-mail) to candidates containing the survey</a></li>";
-		$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$electionId}/reminders.html\">Send reminder e-mails to candidates who have not yet responded to the survey</a></li>";
-		$html .= "\n\t<li><a href=\"{$this->baseUrl}/{$electionId}/reissue.html\">Reissue an e-mail to a candidate</a></li>";
-		$html .= "\n</ul>";
-		
-		# Return the HTML
-		return $html;
 	}
 	
 	

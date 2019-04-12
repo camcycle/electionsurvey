@@ -19,6 +19,8 @@ RewriteRule ^submit$ submit/ [R=301,L]
 # Admin area
 RewriteRule ^admin/$ index.html?action=admin [L]
 RewriteRule ^admin$ admin/ [R=301,L]
+RewriteRule ^([a-z0-9]+)/admin/$ index.html?action=admin&election=$1 [L]
+RewriteRule ^([a-z0-9]+)/admin$ $1/admin/ [R=301,L]
 RewriteRule ^admin/(allquestions|allocations|letters|mailout|reminders|reissue|elected|addelection|editelection|addward|addcandidates|addquestions|deletequestions|addsurveys|addaffiliations).html$ index.html?action=$1 [L]
 
 # Overview page for an election
