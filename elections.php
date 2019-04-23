@@ -2019,7 +2019,7 @@ class elections
 			'candidates' => array (
 				'title' => 'Candidates',
 				'icon' => 'group',
-				'introduction' => 'At the start of the election, you can either e-mail or print out letters for each candidate, inviting them to contribute their answers. You can also send reminder e-mails, or reissue an e-mail. You can also check what a candidate sees when they visit the submission form.',
+				'introduction' => 'At the start of the election, you can either e-mail or print out letters for each candidate, inviting them to contribute their answers. You can also send reminder e-mails, or reissue an e-mail. You can also check what a candidate sees when they visit the submission form. Candidates can submit responses at any time from the opening of the survey until the date of the election; they can also edit an existing response until the responses are made live.',
 			),
 			'postelection' => array (
 				'title' => 'After the election',
@@ -2144,6 +2144,7 @@ class elections
 			'formCompleteText' => false,
 			'picker' => true,
 			'div' => 'ultimateform electionform',
+			'display' => 'paragraphs',
 		));
 		$form->dataBinding (array (
 			'database'	=> $this->settings['database'],
@@ -2153,6 +2154,9 @@ class elections
 			'attributes' => array (
 				'id' => array ('editable' => (!$data), 'current' => $currentIds, 'regexp' => '^[a-z0-9]+$', 'placeholder' => 'E.g. ' . date ('Y') . 'election', ),
 				'name' => array ('placeholder' => 'E.g. Elections to Placeford Council, ' . date ('Y')),
+				'startDate' => array ('description' => 'This is the date when candidates can start to enter their responses, assuming that questions, wards, etc., are all loaded.'),
+				'resultsDate' => array ('description' => 'This is the date when responses from candidates will become visible to the general public. Admis can log in and see responses before this date. Candidates can edit any existing response they have made until this date.'),
+				'endDate' => array ('description' => 'This is the date of the election, and candidates will not be able to edit their responses after this date.'),
 				'description' => array ('placeholder' => 'E.g. Elections to Placeford Council in May ' . date ('Y')),
 				'letterheadHtml' => array ('editorToolbarSet' => 'BasicImage', 'width' => '600px'),
 				'organisationIntroductionHtml' => array ('editorToolbarSet' => 'BasicNoLinks', 'width' => '600px'),
