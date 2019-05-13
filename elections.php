@@ -762,7 +762,7 @@ class elections
 	private function applyHighlighting ($questionHtml, $highlight)
 	{
 		# Return unmodified if not required
-		if (!$highlight) {return $question;}
+		if (!$highlight) {return $questionHtml;}
 		
 		# Perform replacement and return the result
 		$questionHtml = str_replace (htmlspecialchars ($highlight), '<strong>' . htmlspecialchars ($highlight) . '</strong>', $questionHtml);
