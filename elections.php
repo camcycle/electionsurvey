@@ -2036,7 +2036,7 @@ class elections
 			$html .= "\n\t<ul>";
 			foreach ($this->actions as $actionId => $action) {
 				if (isSet ($action['admingroup']) && $action['admingroup'] == $groupId) {
-					if (isSet ($action['election']) && !$action['election']) {continue;}	// Skip if explicitly false
+					if ($this->election && isSet ($action['election']) && !$action['election']) {continue;}	// Skip if explicitly false
 					if (method_exists ($this, $actionId)) {
 						$url = "{$this->baseUrl}/" . ((isSet ($action['election']) && $this->election) ? str_replace ('admin/', "{$this->election['id']}/", $action['url']) : $action['url']);
 						$html .= "\n\t\t<li><a href=\"{$url}\">" . htmlspecialchars ($action['description']) . '</a></li>';
