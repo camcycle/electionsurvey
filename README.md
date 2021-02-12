@@ -26,7 +26,7 @@ Funding is sought to enable the system to be moved to the next level. If you are
 
 ## Code
 
-License: GPL2.
+License: GPL3.
 
 Pull requests welcome.
 
