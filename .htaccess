@@ -2,39 +2,37 @@
 
 AddDefaultCharset utf-8
 
-# You may need a line like this to ensure that .html is parsed by PHP:
-#AddType application/x-httpd-php .html .php
 
 RewriteEngine On
 RewriteBase /elections/
 
 # Front page
-RewriteRule ^index.html$ index.html?action=home [L,QSA]
-RewriteRule ^$ index.html?action=home [L,QSA]
+RewriteRule ^index.php$ index.php?action=home [L,QSA]
+RewriteRule ^$ index.php?action=home [L,QSA]
 
-# Submission page (this uses / at the end rather than .html as some candidates seem not to type that correctly)
-RewriteRule ^submit/$ index.html?action=submit [L]
+# Submission page (this uses / at the end rather than .php as some candidates seem not to type that correctly)
+RewriteRule ^submit/$ index.php?action=submit [L]
 RewriteRule ^submit$ submit/ [R=301,L]
 
 # Admin area
-RewriteRule ^admin/$ index.html?action=admin [L]
+RewriteRule ^admin/$ index.php?action=admin [L]
 RewriteRule ^admin$ admin/ [R=301,L]
-RewriteRule ^([a-z0-9]+)/admin/$ index.html?action=admin&election=$1 [L]
+RewriteRule ^([a-z0-9]+)/admin/$ index.php?action=admin&election=$1 [L]
 RewriteRule ^([a-z0-9]+)/admin$ $1/admin/ [R=301,L]
-RewriteRule ^admin/(allquestions|allocations|letters|mailout|reminders|reissue|elected|addelection|editelection|addward|addcandidates|addquestions|deletequestions|addsurveys|addaffiliations).html$ index.html?action=$1 [L]
+RewriteRule ^admin/(allquestions|allocations|letters|mailout|reminders|reissue|elected|addelection|editelection|addward|addcandidates|addquestions|deletequestions|addsurveys|addaffiliations).php$ index.php?action=$1 [L]
 
 # Overview page for an election
-RewriteRule ^([a-z0-9]+)/$ index.html?election=$1&action=overview [L]
+RewriteRule ^([a-z0-9]+)/$ index.php?election=$1&action=overview [L]
 RewriteRule ^([a-z0-9]+)$ $1/ [R=301,L]
 
 # List of all/per-ward questions available
-RewriteRule ^([a-z0-9]+)/(editelection|letters|mailout|reminders|reissue|respondents|cabinet|elected).html$ index.html?election=$1&action=$2 [L]
-RewriteRule ^([a-z0-9]+)/(questions)/$ index.html?election=$1&action=$2 [L]
+RewriteRule ^([a-z0-9]+)/(editelection|letters|mailout|reminders|reissue|respondents|cabinet|elected).php$ index.php?election=$1&action=$2 [L]
+RewriteRule ^([a-z0-9]+)/(questions)/$ index.php?election=$1&action=$2 [L]
 RewriteRule ^([a-z0-9]+)/(questions)$ $1/$2/ [R=301,L]
-RewriteRule ^([a-z0-9]+)/(questions)/([0-9]{1,2})/$ index.html?election=$1&action=$2&question=$3 [L]
+RewriteRule ^([a-z0-9]+)/(questions)/([0-9]{1,2})/$ index.php?election=$1&action=$2&question=$3 [L]
 RewriteRule ^([a-z0-9]+)/(questions)/([0-9]{1,2})$ $1/$2/$3/ [R=301,L]
 
 # Overview page for a ward in an election
-RewriteRule ^([a-z0-9]+)/([a-z0-9]+)/$ index.html?election=$1&ward=$2&action=ward [L]
+RewriteRule ^([a-z0-9]+)/([a-z0-9]+)/$ index.php?election=$1&ward=$2&action=ward [L]
 RewriteRule ^([a-z0-9]+)/([a-z0-9]+)$ $1/$2/ [R=301,L]
 
