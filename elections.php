@@ -1010,12 +1010,8 @@ class elections
 		
 		# Convert to a droplist
 		#!# NB This doesn't work in IE7, probably because the window.location.href presumably needs a full URL rather than a location; fix needed upstream in pureContent library
-		require_once ('pureContent.php');
 		$submitTo = "{$this->baseUrl}/{$this->election['id']}/";
-		$html = pureContent::htmlJumplist ($list, $selected, $submitTo, 'jumplist', $parentTabLevel = 3, ($wardsOnly ? '' : 'jumplist'), ($wardsOnly ? '' : 'Jump to:'));
-		
-		# Create a processor to handle changes
-		pureContent::jumplistProcessor ();
+		$html = application::htmlJumplist ($list, $selected, $submitTo, 'jumplist', $parentTabLevel = 3, ($wardsOnly ? '' : 'jumplist'), ($wardsOnly ? '' : 'Jump to:'));
 		
 		# Show directions to polling stations if required under the main jumplist
 		if ($this->election['votingToday']) {
