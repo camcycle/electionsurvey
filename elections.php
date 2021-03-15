@@ -68,84 +68,6 @@
 */
 
 
-/*	Database structure
-	# Your database structure should be as follows, with modifications to be made in the elections_wards table for areas
-	# The user only needs SELECT,INSERT,UPDATE rights at a minimum
-	
-	
-	CREATE DATABASE elections;
-	USE elections;
-	
-	CREATE TABLE IF NOT EXISTS `elections_candidates` (
-	  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
-	  `election` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Election / year (join to elections)',
-	  `ward` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Ward (join to wards)',
-	  `forename` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Forename',
-	  `surname` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Surname',
-	  `address` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Address',
-	  `email` varchar(255) collate utf8_unicode_ci NULL COMMENT 'E-mail address',
-	  `verification` varchar(6) collate utf8_unicode_ci NOT NULL COMMENT 'Verification number',
-	  `affiliation` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Affiliation (join to affiliations)',
-	  `cabinetRestanding` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'Whether the candidate is a restanding Cabinet member, and if so, their current Cabinet post',
-	  `private` int(1) default NULL,
-	  PRIMARY KEY  (`id`),
-	  UNIQUE KEY `verification` (`verification`)
-	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Candidates' AUTO_INCREMENT=224 ;
-	
-	CREATE TABLE IF NOT EXISTS `elections_elections` (
-	  `id` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Unique ID (used for the URL)',
-	  `name` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Name of election',
-	  `description` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Description of election',
-	  `startDate` date NOT NULL default '0000-00-00' COMMENT 'Survey opening date (e.g. as soon as all info loaded)',
-	  `resultsDate` date NOT NULL default '0000-00-00' COMMENT 'Date when responses become visible (e.g. 2 weeks before election day)',
-	  `endDate` date NOT NULL default '0000-00-00' COMMENT 'Date of election (and close of survey submissions)',
-	  `letterheadHtml` TEXT NOT NULL COMMENT  'Letterhead address (top-right)',
-	  `organisationIntroductionHtml` TEXT NOT NULL COMMENT 'Survey letter/e-mail introduction',
-	  `letterSignatureName` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Signature name',
-	  `directionsUrl` varchar(255) collate utf8_unicode_ci NOT NULL default 'https://www.cyclestreets.net/' COMMENT 'Directions to cycle to polling stations',
-	  PRIMARY KEY  (`id`)
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Election overview';
-	
-	CREATE TABLE IF NOT EXISTS `elections_questions` (
-	  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
-	  `question` text collate utf8_unicode_ci NOT NULL COMMENT 'Text of question',
-	  `links` text collate utf8_unicode_ci COMMENT 'Background links (as URL then text)',
-	  PRIMARY KEY  (`id`)
-	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Available questions' AUTO_INCREMENT=58 ;
-	
-	CREATE TABLE IF NOT EXISTS `elections_responses` (
-	  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
-	  `candidate` int(11) NOT NULL default '0' COMMENT 'Candidates (join to candidates)',
-	  `survey` int(11) NOT NULL default '0' COMMENT 'Survey (join to surveys)',
-	  `response` text collate utf8_unicode_ci COMMENT 'Response',
-	  `timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP COMMENT 'Timestamp',
-	  PRIMARY KEY  (`id`)
-	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Responses' AUTO_INCREMENT=729 ;
-	
-	CREATE TABLE IF NOT EXISTS `elections_surveys` (
-	  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
-	  `election` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Election / year (join to elections)',
-	  `ward` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Ward (join to wards)',
-	  `question` int(11) NOT NULL default '0' COMMENT 'Question (join to questions)',
-	  `ordering` int(1) default NULL COMMENT 'Ordering',
-	  PRIMARY KEY  (`id`)
-	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Surveys' AUTO_INCREMENT=343 ;
-	
-	CREATE TABLE IF NOT EXISTS `elections_wards` (
-	  `id` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Unique key',
-	  `prefix` varchar(255) collate utf8_unicode_ci default NULL COMMENT 'Ward name prefix',
-	  `ward` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Ward name',
-	  `districtCouncil` enum('','Cambridge City Council','South Cambridgeshire District Council','East Cambridgeshire District Council','Fenland District Council','Huntingdonshire District Council') collate utf8_unicode_ci default NULL COMMENT 'District council',
-	  `countyCouncil` enum('','Cambridgeshire County Council') collate utf8_unicode_ci default NULL COMMENT 'County Council',
-	  `districtCouncillors` tinyint(1) default NULL COMMENT 'District councillors',
-	  `countyCouncillors` tinyint(1) default NULL COMMENT 'County councillors',
-	  `parishes` varchar(255) collate utf8_unicode_ci default NULL COMMENT 'Parishes incorporated',
-	  PRIMARY KEY  (`id`)
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Wards';
-	
-	*/
-
-
 /*
 	Stub launching file example
 	Just create a PHP file containing settings and then running the class; something like:
@@ -582,6 +504,87 @@ class elections
 		
 		# Show the HTML
 		echo $html;
+	}
+	
+	
+	# Function to define the database structure
+	#!# Not currently auto-executed on first run
+	private function databaseStructure ()
+	{
+		# The database structure should be as follows, with modifications to be made in the elections_wards table for areas
+		# The user only needs SELECT,INSERT,UPDATE rights at a minimum
+		return $sql = "
+			
+			CREATE DATABASE {$this->settings['database']};
+			USE {$this->settings['database']};
+			
+			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}_candidates` (
+			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
+			  `election` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Election / year (join to elections)',
+			  `ward` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Ward (join to wards)',
+			  `forename` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Forename',
+			  `surname` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Surname',
+			  `address` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Address',
+			  `email` varchar(255) collate utf8_unicode_ci NULL COMMENT 'E-mail address',
+			  `verification` varchar(6) collate utf8_unicode_ci NOT NULL COMMENT 'Verification number',
+			  `affiliation` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Affiliation (join to affiliations)',
+			  `cabinetRestanding` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'Whether the candidate is a restanding Cabinet member, and if so, their current Cabinet post',
+			  `private` int(1) default NULL,
+			  PRIMARY KEY  (`id`),
+			  UNIQUE KEY `verification` (`verification`)
+			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Candidates';
+			
+			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}_elections` (
+			  `id` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Unique ID (used for the URL)',
+			  `name` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Name of election',
+			  `description` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Description of election',
+			  `startDate` date NOT NULL default '0000-00-00' COMMENT 'Survey opening date (e.g. as soon as all info loaded)',
+			  `resultsDate` date NOT NULL default '0000-00-00' COMMENT 'Date when responses become visible (e.g. 2 weeks before election day)',
+			  `endDate` date NOT NULL default '0000-00-00' COMMENT 'Date of election (and close of survey submissions)',
+			  `letterheadHtml` TEXT NOT NULL COMMENT  'Letterhead address (top-right)',
+			  `organisationIntroductionHtml` TEXT NOT NULL COMMENT 'Survey letter/e-mail introduction',
+			  `letterSignatureName` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Signature name',
+			  `directionsUrl` varchar(255) collate utf8_unicode_ci NOT NULL default 'https://www.cyclestreets.net/' COMMENT 'Directions to cycle to polling stations',
+			  PRIMARY KEY  (`id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Election overview';
+			
+			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}_questions` (
+			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
+			  `question` text collate utf8_unicode_ci NOT NULL COMMENT 'Text of question',
+			  `links` text collate utf8_unicode_ci COMMENT 'Background links (as URL then text)',
+			  PRIMARY KEY  (`id`)
+			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Available questions';
+			
+			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}_responses` (
+			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
+			  `candidate` int(11) NOT NULL default '0' COMMENT 'Candidates (join to candidates)',
+			  `survey` int(11) NOT NULL default '0' COMMENT 'Survey (join to surveys)',
+			  `response` text collate utf8_unicode_ci COMMENT 'Response',
+			  `timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP COMMENT 'Timestamp',
+			  PRIMARY KEY  (`id`)
+			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Responses';
+			
+			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}_surveys` (
+			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
+			  `election` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Election / year (join to elections)',
+			  `ward` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Ward (join to wards)',
+			  `question` int(11) NOT NULL default '0' COMMENT 'Question (join to questions)',
+			  `ordering` int(1) default NULL COMMENT 'Ordering',
+			  PRIMARY KEY  (`id`)
+			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Surveys';
+			
+			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}_wards` (
+			  `id` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Unique key',
+			  `prefix` varchar(255) collate utf8_unicode_ci default NULL COMMENT 'Ward name prefix',
+			  `ward` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Ward name',
+			  `districtCouncil` enum('','Cambridge City Council','South Cambridgeshire District Council','East Cambridgeshire District Council','Fenland District Council','Huntingdonshire District Council') collate utf8_unicode_ci default NULL COMMENT 'District council',
+			  `countyCouncil` enum('','Cambridgeshire County Council') collate utf8_unicode_ci default NULL COMMENT 'County Council',
+			  `districtCouncillors` tinyint(1) default NULL COMMENT 'District councillors',
+			  `countyCouncillors` tinyint(1) default NULL COMMENT 'County councillors',
+			  `parishes` varchar(255) collate utf8_unicode_ci default NULL COMMENT 'Parishes incorporated',
+			  PRIMARY KEY  (`id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Wards';
+		";
 	}
 	
 	
