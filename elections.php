@@ -331,6 +331,7 @@ class elections
 				'administrator' => true,
 				'admingroup' => 'wardaffilations',
 			),
+			#!# Not present
 			'editward'		=> array (
 				'description' => 'Show/edit existing wards/divisions',
 				'url' => 'admin/editward.html',
@@ -343,6 +344,7 @@ class elections
 				'administrator' => true,
 				'admingroup' => 'wardaffilations',
 			),
+			#!# Not present
 			'editaffiliations'	=> array (
 				'description' => 'Show/edit existing political parties/groups',
 				'url' => 'admin/editaffiliations.html',
@@ -374,6 +376,7 @@ class elections
 				'admingroup' => 'surveys',
 				//'election' => true,
 			),
+			#!# Not present
 			'editsurveys'	=> array (
 				'description' => 'Show/edit existing surveys',
 				'url' => 'admin/editsurveys.html',
@@ -395,6 +398,7 @@ class elections
 				'admingroup' => 'candidates',
 				//'election' => true,
 			),
+			#!# Not present
 			'editcandidates'	=> array (
 				'description' => 'Show/edit candidates',
 				'url' => 'admin/editcandidates.html',
