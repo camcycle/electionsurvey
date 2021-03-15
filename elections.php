@@ -2090,6 +2090,7 @@ class elections
 			'div' => 'ultimateform electionform',
 			'display' => 'paragraphs',
 			'richtextEditorBasePath' => $this->settings['richtextEditorBasePath'],
+			'autofocus' => true,
 		));
 		$form->dataBinding (array (
 			'database'	=> $this->settings['database'],
