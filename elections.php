@@ -2343,9 +2343,6 @@ class elections
 			'table'		=> "{$this->settings['tablePrefix']}questions",
 			'intelligence' => true,
 			'size'	=> 80,	#!# This is here due to a bug in ultimateForm
-			'attributes' => array (
-				
-			),
 		));
 		#!# Need to check that highlight text appears in the question
 		if (!$result = $form->process ($html)) {
