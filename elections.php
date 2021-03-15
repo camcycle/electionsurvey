@@ -458,16 +458,20 @@ class elections
 		require_once ('database.php');
 		require_once ('pureContent.php');
 		
+		# Start the HTML
+		$html = '';
+		
 		# Get the base URL
 		$this->baseUrl = application::getBaseUrl ();
 		
 		# Load the local stylesheet
-		echo "\n<style type=\"text/css\" media=\"all\">@import \"{$this->baseUrl}/elections.css\";</style>";
+		$html .= "\n<style type=\"text/css\" media=\"all\">@import \"{$this->baseUrl}/elections.css\";</style>";
 		
 		# Function to merge the arguments; note that $errors returns the errors by reference and not as a result from the method
 		$this->errors = array ();
 		if (!$this->settings = $this->mergeConfiguration ($this->defaults, $settings)) {
-			echo "<p>The following setup error was found. The administrator needs to correct the setup before this system will run.</p>\n" . application::htmlUl ($this->errors);
+			$html .= "<p>The following setup error was found. The administrator needs to correct the setup before this system will run.</p>\n" . application::htmlUl ($this->errors);
+			echo $html;
 			return false;
 		}
 		
@@ -475,7 +479,8 @@ class elections
 		$this->databaseConnection = new database ($this->settings['hostname'], $this->settings['username'], $this->settings['password'], $this->settings['database']);
 		if (!$this->databaseConnection->connection) {
  			mail ($this->settings['webmaster'], 'Problem with election system on ' . $_SERVER['SERVER_NAME'], wordwrap ('There was a problem with initalising the election facility at the database connection stage. The database server said: ' . mysql_error () . '.'));
-			echo "<p class=\"warning\">Apologies - this facility is currently unavailable, as a technical error occured. The Webmaster has been informed and will investigate.</p>";
+			$html .= "<p class=\"warning\">Apologies - this facility is currently unavailable, as a technical error occured. The Webmaster has been informed and will investigate.</p>";
+			echo $html;
 			return false;
 		};
 		
@@ -488,7 +493,8 @@ class elections
 		
 		# Set the action, checking that a valid page has been supplied
 		if (!isSet ($_GET['action']) || !array_key_exists ($_GET['action'], $this->actions)) {
-			$this->pageNotFound ();
+			echo $html;
+			$html .= $this->pageNotFound ();
 			return false;
 		}
 		$this->action = $_GET['action'];
@@ -496,7 +502,8 @@ class elections
 		# On pages requiring administrative credentials, ensure the user is an administrator
 		if (isSet ($this->actions[$this->action]['administrator']) && $this->actions[$this->action]['administrator']) {
 			if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-				echo $html = "\n" . '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
+				$html = "\n" . '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
+				echo $html;
 				return false;
 			}
 		}
@@ -531,36 +538,39 @@ class elections
 		$this->cabinetRestanding = $this->getCandidates (false, false, false, $cabinetRestanding = true);
 		
 		# Open the div surrounding the application
-		echo "\n<div id=\"elections\">";
+		$html .= "\n<div id=\"elections\">";
 		
 		# Show the heading
-		echo "\n<h1>" . htmlspecialchars ($this->settings['applicationName']) . '</h1>';
+		$html .= "\n<h1>" . htmlspecialchars ($this->settings['applicationName']) . '</h1>';
 		if ($this->election) {
-			echo $this->droplistNavigation ();
+			$html .= $this->droplistNavigation ();
 		}
 		
 		# Add link to admin menu
 		if (isSet ($this->actions[$this->action]['administrator']) && $this->actions[$this->action]['administrator']) {
 			if ($this->action != 'admin') {		// Don't add link to self
-				echo "\n<p class=\"alignright\"><a href=\"{$this->baseUrl}/admin/\">&laquo; Return to admin menu</a></p>";
+				$html .= "\n<p class=\"alignright\"><a href=\"{$this->baseUrl}/admin/\">&laquo; Return to admin menu</a></p>";
 			}
 		}
 		
 		# Show the title if present
 		if ($this->actions[$this->action]['description']) {
-			echo "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
+			$html .= "\n<h2>" . htmlspecialchars ($this->actions[$this->action]['description']) . '</h2>';
 		}
 		
 		# Run the page action
-		$this->{$this->action} ();
+		$html .= $this->{$this->action} ();
 		
 		# End with disclaimer
 		if ($this->action != 'letters') {
-			echo "\n<p class=\"small comment\" style=\"margin-top: 50px;\"><em>{$this->settings['imprint']}</em></p>";
+			$html .= "\n<p class=\"small comment\" style=\"margin-top: 50px;\"><em>{$this->settings['imprint']}</em></p>";
 		}
 		
 		# Close the div surrounding the application
-		echo "\n</div>";
+		$html .= "\n</div>";
+		
+		# Show the HTML
+		echo $html;
 	}
 	
 	
@@ -568,6 +578,7 @@ class elections
 	private function pageNotFound ()
 	{
 		# Create a 404 page
+		#!# Needs to return HTML instead of echo
 		header ('HTTP/1.0 404 Not Found');
 		include ($this->settings['page404']);
 	}
@@ -590,8 +601,8 @@ class elections
 			$html .= "\n<p><a href=\"{$this->baseUrl}/admin/\">Administrative area</a></p>";
 		}
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -601,8 +612,8 @@ class elections
 		# Validate the election
 		if (!$this->election) {
 			header ('HTTP/1.0 404 Not Found');
-			echo $html = '<p>There is no such election. Please check the URL and try again.</p>';
-			return false;
+			$html = '<p>There is no such election. Please check the URL and try again.</p>';
+			return $html;
 		}
 		
 		# Add introduction
@@ -612,8 +623,8 @@ class elections
 		$html .= "<p class=\"graphic\"><img src=\"/elections/pollingstations.jpg\" width=\"89\" height=\"121\" alt=\"Ballot box\" /></p>";
 		$html .= $this->showOverviewDetails ($this->election);
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -647,15 +658,15 @@ class elections
 		# Validate the ward
 		if (!$this->election) {
 			header ('HTTP/1.0 404 Not Found');
-			echo $html = '<p>There is no such election. Please check the URL and try again.</p>';
-			return false;
+			$html = '<p>There is no such election. Please check the URL and try again.</p>';
+			return $html;
 		}
 		
 		# Validate the ward
 		if (!$this->ward) {
 			header ('HTTP/1.0 404 Not Found');
-			echo $html = '<p>There is no such ' . $this->settings['division'] . ' being contested in this election. Please check the URL and try again.</p>';
-			return false;
+			$html = '<p>There is no such ' . $this->settings['division'] . ' being contested in this election. Please check the URL and try again.</p>';
+			return $html;
 		}
 		
 		# Remind administrators
@@ -669,8 +680,8 @@ class elections
 		# List the questions asked
 		$html .= $this->showQuestions ($this->ward['id']);
 		
-		# Echo the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -683,8 +694,8 @@ class elections
 		# Ensure there is an election which is validated
 		if (!$this->election) {
 			header ('HTTP/1.0 404 Not Found');
-			echo $html = '<p>There is no such election. Please check the URL and try again.</p>';
-			return false;
+			$html = '<p>There is no such election. Please check the URL and try again.</p>';
+			return $html;
 		}
 		
 		# Get all the questions in use in this election
@@ -700,8 +711,8 @@ class elections
 			$html .= $this->listQuestionsForElection ($questions);
 		}
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -1492,8 +1503,7 @@ class elections
 		# Get the list of all wards currently being surveyed
 		if (!$wards = $this->getActiveWards ()) {
 			$html .= "\n<p>No {$this->settings['divisionPlural']} are currently being surveyed.</p>";
-			echo $html;
-			return;
+			return $html;
 		}
 		
 		# Determine whether a (validly-structured) second-stage submission has been made
@@ -1533,8 +1543,7 @@ class elections
 			
 			# Process the form or end
 			if (!$result = $form->process ($html)) {
-				echo $html;
-				return false;
+				return $html;
 			}
 		}
 		
@@ -1546,8 +1555,7 @@ class elections
 		#!# Use getUnfinalised to improve the UI here
 		if (!$candidate = $this->verifyCandidate ($number, $ward)) {
 			$html .= "\n<p>The verification/{$this->settings['division']} pair you submitted does not seem to be correct. Please check the letter/e-mail we sent you and <a href=\"{$this->baseUrl}/submit/\">try again</a>.</p>";
-			echo $html;
-			return false;
+			return $html;
 		}
 		
 		# Retrieve and cache the election data
@@ -1561,8 +1569,7 @@ class elections
 		
 		# End if election is over
 		if (!$this->election['active']) {
-			echo $html .= "<p>The election is now over, so submissions cannot be made any longer.</p>";
-			return false;
+			return $html .= "<p>The election is now over, so submissions cannot be made any longer.</p>";
 		}
 		
 		# Show the candidate's data
@@ -1575,8 +1582,7 @@ class elections
 		
 		# Get the questions for this candidate's ward
 		if (!$questions = $this->getQuestions ($candidate['wardId'], $candidate['electionId'])) {
-			echo $html .= "\n<p>There are no questions assigned for this {$this->settings['division']} at present.</p>";
-			return false;
+			return $html .= "\n<p>There are no questions assigned for this {$this->settings['division']} at present.</p>";
 		}
 		
 		# Get the responses for this candidate's questions
@@ -1586,8 +1592,7 @@ class elections
 		
 		# Prevent updates after the results are visible
 		if ($responses && $this->election['resultsVisible']) {
-			echo $html .= "<p>You have previously submitted a set of responses, which is now <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['wardId']}/\">shown online</a>, so submissions cannot be made any longer. Thank you for taking part.</p>";
-			return false;
+			return $html .= "<p>You have previously submitted a set of responses, which is now <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['wardId']}/\">shown online</a>, so submissions cannot be made any longer. Thank you for taking part.</p>";
 		}
 		
 		# Build up the template
@@ -1651,8 +1656,7 @@ class elections
 		
 		# Process the form or end
 		if (!$result = $form->process ($html)) {
-			echo $html;
-			return false;
+			return $html;
 		}
 		
 		# Prepare the data
@@ -1673,15 +1677,13 @@ class elections
 				$data = array ('response' => $result["question{$questionId}"]);
 				$conditions = array ("candidate" => $candidate['id'], "survey" => $questionId,);
 				if (!$this->databaseConnection->update ($this->settings['database'], "{$this->settings['tablePrefix']}responses", $data, $conditions)) {
-					echo "<p>There was a problem saving your updated responses. Please kindly contact the webmaster.</p>";
-					return false;
+					return "<p>There was a problem saving your updated responses. Please kindly contact the webmaster.</p>";
 				}
 				
 			# Otherwise do a normal insert
 			} else {
 				if (!$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}responses", $insert)) {
-					echo "<p>There was a problem saving the responses. Please kindly contact the webmaster.</p>";
-					return false;
+					return "<p>There was a problem saving the responses. Please kindly contact the webmaster.</p>";
 				}
 			}
 		}
@@ -1704,8 +1706,8 @@ class elections
 			$html .= "\n</div>";
 		}
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -1773,8 +1775,8 @@ class elections
 		# Validate the election
 		if (!$this->election) {
 			header ('HTTP/1.0 404 Not Found');
-			echo $html = '<p>There is no such election. Please check the URL and try again.</p>';
-			return false;
+			$html = '<p>There is no such election. Please check the URL and try again.</p>';
+			return $html;
 		}
 		
 		# Title
@@ -1841,8 +1843,8 @@ class elections
 			}
 		}
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -1855,15 +1857,15 @@ class elections
 		# Validate the election
 		if (!$this->election) {
 			header ('HTTP/1.0 404 Not Found');
-			echo $html .= '<p>There is no such election. Please check the URL and try again.</p>';
-			return false;
+			$html .= '<p>There is no such election. Please check the URL and try again.</p>';
+			return $html;
 		}
 		
 		# End if no Cabinet members restanding in this election
 		if (!$this->cabinetRestanding) {
 			header ('HTTP/1.0 404 Not Found');
-			echo $html .= '<p>There are no Cabinet members in wards we are surveying restanding in this election. Please check the URL and try again.</p>';
-			return false;
+			$html .= '<p>There are no Cabinet members in wards we are surveying restanding in this election. Please check the URL and try again.</p>';
+			return $html;
 		}
 		
 		# Get the responses
@@ -1887,8 +1889,8 @@ class elections
 		$html .= "\n<p>The listing below shows all the Cabinet members in wards we are surveying who are restanding in this election, and whether they have responded to our survey or not.</p>";
 		$html .= application::htmlTable ($cabinetMembers, array (), 'lines regulated', $keyAsFirstColumn = false, false, $allowHtml = true, $showColons = true);
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2055,8 +2057,8 @@ class elections
 			$html .= "\n</div>";
 		};
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2069,15 +2071,14 @@ class elections
 		# Ensure that an election is not being supplied
 		if ($this->election) {
 			header ('HTTP/1.0 404 Not Found');
-			echo $html = '<p>This listing is not election-specific. Please check the URL and try again.</p>';
-			return false;
+			return $html = '<p>This listing is not election-specific. Please check the URL and try again.</p>';
 		}
 		
 		# Get data
 		$html .= $this->showQuestions ();
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2101,8 +2102,8 @@ class elections
 			$html .= "\n<p>You may wish to <a href=\"{$this->baseUrl}/admin/\">add data</a> for it.</p>";
 		}
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2120,8 +2121,7 @@ class elections
 		if (!$this->election) {
 			$html .= "\n<p>Please select which election:</p>";
 			$html .= $this->listElections ($this->elections, true, false, 'editelection.html');
-			echo $html;
-			return false;
+			return $html;
 		}
 		
 		# Process the form
@@ -2134,8 +2134,8 @@ class elections
 			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['id']}/editelection.html\">settings</a> for this <a href=\"{$this->baseUrl}/{$result['id']}/\">election</a> have been updated.</p>";
 		}
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2201,23 +2201,21 @@ class elections
 			),
 		));
 		if (!$result = $form->process ($html)) {
-			echo $html;
-			return;
+			return $html;
 		}
 		
 		# Insert the ward
 		if (!$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}wards", $result)) {
 			$html = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> An error occurred adding the ward.</p>";
-			echo $html;
-			return;
+			return $html;
 		}
 		
 		# Confirm success
 		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The ward has been added.</p>";
 		$html .= "\n<p>Add another?</p>";
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2250,8 +2248,7 @@ class elections
 			),
 		));
 		if (!$result = $form->process ($html)) {
-			echo $html;
-			return;
+			return $html;
 		}
 		
 		# Replace hash in colour code
@@ -2261,16 +2258,15 @@ class elections
 		# Insert the new entry
 		if (!$this->databaseConnection->insert ($this->settings['database'], $table, $result)) {
 			$html = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> An error occurred adding the affiliation.</p>";
-			echo $html;
-			return;
+			return $html;
 		}
 		
 		# Confirm success
 		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The affiliation has been added.</p>";
 		$html .= "\n<p><a href=\"{$this->baseUrl}/admin/addaffiliations.html\">Add another?</a></p>";
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2341,8 +2337,7 @@ class elections
 			}
 		}
 		if (!$result = $form->process ($html)) {
-			echo $html;
-			return;
+			return $html;
 		}
 		
 		# Process the data to add fixed fields
@@ -2363,8 +2358,7 @@ class elections
 			$error = $this->databaseConnection->error ();
 			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured. The database server said:</p>";
 			$html .= "\n<p><tt>" . $error[2] . '</tt></p>';
-			echo $html;
-			return false;
+			return $html;
 		}
 		
 		# Confirm success
@@ -2372,8 +2366,8 @@ class elections
 		#!# Ideally the message should make clear if this was entirely new or a replacement
 		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The candidate data (total: {$total}) for this <a href=\"{$this->baseUrl}/{$result['election']}/\">election</a> has been entered.</p>";
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2456,15 +2450,13 @@ class elections
 		#!# Need to check that highlight text appears in the question
 		if (!$result = $form->process ($html)) {
 			$html .= $this->recentlyAddedQuestions ($mostRecent);
-			echo $html;
-			return;
+			return $html;
 		}
 		
 		# Insert the question
 		if (!$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}questions", $result)) {
 			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
-			echo $html;
-			return false;
+			return $html;
 		}
 		$questionId = $this->databaseConnection->getLatestId ();
 		
@@ -2473,8 +2465,8 @@ class elections
 		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
 		$html .= $this->recentlyAddedQuestions ($mostRecent);
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2498,8 +2490,7 @@ class elections
 		# End if all in use
 		if (!$unusedQuestions) {
 			$html .= "\n<p>All questions in the database are currently connected to a survey, so none can be deleted.</p>";
-			echo $html;
-			return;
+			return $html;
 		}
 		
 		require_once ('ultimateForm.php');
@@ -2524,8 +2515,8 @@ class elections
 			$html .= "\n<p><a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">Delete another?</a></p>";
 		}
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2597,9 +2588,8 @@ class elections
 			'output'		=> array ('processing' => 'compiled'),
 		));
 		if (!$result = $form->process ($html)) {
-			echo $html;
-			echo $this->recentlyAddedQuestions ($mostRecent);
-			return;
+			$html .= $this->recentlyAddedQuestions ($mostRecent);
+			return $html;
 		}
 		
 		# Post-process the multiple select output format in ultimateForm
@@ -2627,16 +2617,15 @@ class elections
 		# Insert the data
 		if (!$this->databaseConnection->insertMany ($this->settings['database'], "{$this->settings['tablePrefix']}surveys", $data)) {
 			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
-			echo $html;
-			return false;
+			return $html;
 		}
 		
 		# Confirm success
 		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['election']}/{$result['ward']}/\">survey</a> has been added.</p>";
 		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2690,8 +2679,7 @@ class elections
 		
 		# Process the result
 		if (!$result = $form->process ($html)) {
-			echo $html;
-			return false;
+			return $html;
 		}
 		
 		# Compile the SQL
@@ -2709,7 +2697,10 @@ class elections
 		$sql .= "\n;";
 		
 		# Show the SQL
-		echo nl2br (htmlspecialchars ($sql));
+		$html .= nl2br (htmlspecialchars ($sql));
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2722,13 +2713,12 @@ class elections
 		# Obtain the HTML
 		if (!$mailoutHtml = $this->compileMailout (__FUNCTION__, $statusHtml)) {
 			$html .= $statusHtml;
-			echo $html;
-			return false;
+			return $html;
 		}
 		$html .= $mailoutHtml;
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2742,15 +2732,14 @@ class elections
 		if (!$this->election) {
 			$html .= "\n<p>Please select which election:</p>";
 			$html .= $this->listElections ($this->elections, true, false, 'mailout.html');
-			echo $html;
-			return false;
+			return $html;
 		}
 		
 		# Run the mailout routine
 		$html .= $this->emailMailoutRoutine (__FUNCTION__, 'e-mails');
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2763,8 +2752,8 @@ class elections
 		# Run the mailout routine
 		$html .= $this->emailMailoutRoutine (__FUNCTION__, 'reminder e-mails');
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2778,21 +2767,18 @@ class elections
 		if (!$this->election) {
 			$html .= "\n<p>Please select which election:</p>";
 			$html .= $this->listElections ($this->elections, true, false, 'reissue.html');
-			echo $html;
-			return false;
+			return $html;
 		}
 		
 		# Not available once the election is over
 		if (!$this->election['active']) {
-			echo $html .= '<p>This is no longer available now the election is over.</p>';
-			return false;
+			return $html .= '<p>This is no longer available now the election is over.</p>';
 		}
 		
 		# Get the candidates
 		if (!$candidates = $this->getCandidates (true)) {
 			$html .= '<p>There are no candidates at present.</p>';
-			echo $html;
-			return false;
+			return $html;
 		}
 		
 		# Regroup
@@ -2855,8 +2841,8 @@ class elections
 			$html .= "<p><a href=\"{$this->baseUrl}/{$this->election['id']}/" . __FUNCTION__ . ".html\">Send another.</a></p>";
 		}
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -2989,7 +2975,7 @@ class elections
 		if ($type == 'reminders') {
 			$candidateIdsResponded = $this->getCandidateIdsResponded ($this->election['id']);
 		}
-				
+		
 		# Increase allowed execution time
 		ini_set ('max_execution_time', 3600);
 		
@@ -3010,7 +2996,7 @@ class elections
 			
 			# Miss out if no candidates in a ward; a warning is shown if none, in case of trailing spaces, etc.
 			if (!isSet ($this->wards[$ward])) {
-				echo "\n<p class=\"warning\">Warning: No candidates for <em>{$ward}</em> ward.</p>";
+				$html .= "\n<p class=\"warning\">Warning: No candidates for <em>{$ward}</em> ward.</p>";
 				continue;
 			}
 			
@@ -3200,20 +3186,17 @@ class elections
 		if (!$this->election) {
 			$html .= "\n<p>Please select which election:</p>";
 			$html .= $this->listElections ($this->elections, true, false, 'elected.html');
-			echo $html;
-			return false;
+			return $html;
 		}
 		
 		# Ensure the election is no longer active
 		if ($this->election['active']) {
-			echo $html .= '<p>This cannot be done until after the election is over.</p>';
-			return false;
+			return $html .= '<p>This cannot be done until after the election is over.</p>';
 		}
 		
 		# Get the candidates
 		if (!$candidates = $this->getCandidates (true)) {
-			echo $html .= '<p>There are no candidates at present.</p>';
-			return false;
+			return $html .= '<p>There are no candidates at present.</p>';
 		}
 		
 		# Arrange the candidates by ward
@@ -3276,8 +3259,8 @@ class elections
 			$this->databaseConnection->query ($query);
 		}
 		
-		# Show the HTML
-		echo $html;
+		# Return the HTML
+		return $html;
 	}
 }
 
