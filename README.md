@@ -33,6 +33,6 @@ Pull requests welcome.
 
 ## Authors
 
-* Martin Lucas-Smith
+Martin Lucas-Smith, Camcycle and CycleStreets, 2007-21
 
 
