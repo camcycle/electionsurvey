@@ -292,7 +292,7 @@ class elections
 		$this->baseUrl = application::getBaseUrl ();
 		
 		# Load the local stylesheet
-		$html .= "\n<style type=\"text/css\" media=\"all\">@import \"{$this->baseUrl}/elections.css\";</style>";
+		$html .= "\n<style type=\"text/css\" media=\"all\">@import \"{$this->baseUrl}/css/elections.css\";</style>";
 		
 		# Function to merge the arguments; note that $errors returns the errors by reference and not as a result from the method
 		$this->errors = array ();
