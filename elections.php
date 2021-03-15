@@ -240,8 +240,40 @@ class elections
 				'admingroup' => 'postelection',
 				'election' => true,
 			),
+			'logininternal' => array (
+				'description' => 'Login',
+				'url' => 'login/',
+				'usetab' => 'home',
+			),
+			'register' => array (
+				'description' => 'Create a new account',
+				'url' => 'login/register/',
+				'usetab' => 'home',
+			),
+			'resetpassword' => array (
+				'description' => 'Reset a forgotten password',
+				'url' => 'login/resetpassword/',
+				'usetab' => 'home',
+			),
+			'accountdetails' => array (
+				'description' => 'Change login account details',
+				'url' => 'login/accountdetails/',
+				'usetab' => 'home',
+				'authentication' => true,
+			),
+			'logoutinternal' => array (
+				'description' => 'Logout',
+				'url' => 'login/logout/',
+				'usetab' => 'home',
+			),
+			'loggedout' => array (
+				'description' => 'Logged out',
+				'url' => 'loggedout.html',
+				'usetab' => 'home',
+			),
 		);
 	}
+	
 	
 	
 	# Constructor
@@ -284,10 +316,6 @@ class elections
 		# Obtain the actions
 		$this->actions = $this->actions ();
 		
-		# Determine whether the user is an administrator
-		require_once ('signin.php');
-		$this->userIsAdministrator = signin::user_has_privilege ('elections');
-		
 		# Set the action, checking that a valid page has been supplied
 		if (!isSet ($_GET['action']) || !array_key_exists ($_GET['action'], $this->actions)) {
 			$html = $this->settings['headerHtml'] . $html . $this->settings['footerHtml'];
@@ -297,10 +325,16 @@ class elections
 		}
 		$this->action = $_GET['action'];
 
+		# Deal with internal auth (often not used)
+		$this->loadInternalAuth ();
+		$this->user = $this->internalAuthClass->getUserId ();
+		$this->userIsAdministrator = $this->internalAuthClass->hasPrivilege ('administrator');
+		$html .= $this->internalAuthClass->getHtml ();
+		
 		# On pages requiring administrative credentials, ensure the user is an administrator
 		if (isSet ($this->actions[$this->action]['administrator']) && $this->actions[$this->action]['administrator']) {
 			if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-				$html = "\n" . '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
+				$html = "\n<p>You must be <a href=\"{$this->baseUrl}/{$this->actions['logininternal']['url']}?/{$this->actions['admin']['url']}\">logged in</a> as an administrator to access this page.</p>";
 				$html = $this->settings['headerHtml'] . $html . $this->settings['footerHtml'];
 				echo $html;
 				return false;
@@ -470,6 +504,9 @@ class elections
 			  `parishes` varchar(255) collate utf8_unicode_ci default NULL COMMENT 'Parishes incorporated',
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Wards';
+			
+			-- Users
+			-- {$this->settings['tablePrefix']}users defined in libraries/userAccount.php databaseStructure ()
 		";
 	}
 	
@@ -1897,7 +1934,8 @@ class elections
 	public function admin ()
 	{
 		# Start the HTML with a customised heading
-		$html = "\n<h2>Administrative functions" . ($this->election ? ' for this election' : '') . '</h2>';
+		$html = "\n<p class=\"right\"><a href=\"{$this->baseUrl}/{$this->actions['logoutinternal']['url']}\">Logout</a></p>";
+		$html .= "\n<h2>Administrative functions" . ($this->election ? ' for this election' : '') . '</h2>';
 		
 		# Add introduction
 		$html .= "\n<p><em>This section is accessible only to Administrators.</em></p>";
@@ -2062,7 +2100,7 @@ class elections
 				'id' => array ('editable' => (!$data), 'current' => $currentIds, 'regexp' => '^[a-z0-9]+$', 'placeholder' => 'E.g. ' . date ('Y') . 'election', ),
 				'name' => array ('placeholder' => 'E.g. Elections to Placeford Council, ' . date ('Y')),
 				'startDate' => array ('description' => 'This is the date when candidates can start to enter their responses, assuming that questions, wards, etc., are all loaded.'),
-				'resultsDate' => array ('description' => 'This is the date when responses from candidates will become visible to the general public. Admis can log in and see responses before this date. Candidates can edit any existing response they have made until this date.'),
+				'resultsDate' => array ('description' => 'This is the date when responses from candidates will become visible to the general public. Admins can log in and see responses before this date. Candidates can edit any existing response they have made until this date.'),
 				'endDate' => array ('description' => 'This is the date of the election, and candidates will not be able to edit their responses after this date.'),
 				'description' => array ('placeholder' => 'E.g. Elections to Placeford Council in May ' . date ('Y')),
 				'letterheadHtml' => array ('editorToolbarSet' => 'BasicImage', 'width' => '600px'),
@@ -3155,6 +3193,100 @@ class elections
 			$query = "UPDATE {$this->settings['tablePrefix']}candidates SET elected = 1 WHERE id IN({$in});";
 			$this->databaseConnection->query ($query);
 		}
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to provide cookie-based login internally
+	private function loadInternalAuth ()
+	{
+		# Assemble the settings to use
+		$internalAuthSettings = array (
+			'applicationName'	=> $this->settings['applicationName'],
+			'baseUrl'		=> $this->baseUrl,
+			'database'		=> $this->settings['database'],
+			'table'			=> $this->settings['tablePrefix'] . 'users',
+			'administratorEmail'	=> $this->settings['webmaster'],
+			'usernames'		=> true,
+			'privileges'		=> true,
+			'redirectToAfterLogin'	=> '/' . $this->actions['admin']['url'],
+		);
+		
+		# Load the user account system
+		require_once ('userAccount.php');
+		$this->internalAuthClass = new userAccount ($internalAuthSettings, $this->databaseConnection);
+	}
+	
+	
+	# Login function, only available if internalAuth is enabled
+	public function logininternal (&$status = false)
+	{
+		# Run the validation and return the supplied e-mail
+		$this->user = $this->internalAuthClass->login ($showStatus = true);
+		
+		# Set the status
+		$status = ($this->user);
+		
+		# Assemble the HTML
+		$html = $this->internalAuthClass->getHtml ();
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Logout message, only available if internalAuth is enabled
+	public function logoutinternal ()
+	{
+		# Log out and confirm this status
+		$this->internalAuthClass->logout ();
+		
+		# Assemble the HTML
+		$html  = $this->internalAuthClass->getHtml ();
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Register page
+	public function register ()
+	{
+		# Run the registration page
+		$this->internalAuthClass->register ();
+		
+		# Assemble the HTML
+		$html  = $this->internalAuthClass->getHtml ();
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Reset password page
+	public function resetpassword ()
+	{
+		# Log out and confirm this status
+		$this->internalAuthClass->resetpassword ();
+		
+		# Assemble the HTML
+		$html  = $this->internalAuthClass->getHtml ();
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Login account details page
+	public function accountdetails ()
+	{
+		# Log out and confirm this status
+		$this->internalAuthClass->accountdetails ();
+		
+		# Assemble the HTML
+		$html  = $this->internalAuthClass->getHtml ();
 		
 		# Return the HTML
 		return $html;

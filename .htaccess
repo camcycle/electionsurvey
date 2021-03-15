@@ -9,6 +9,16 @@ RewriteBase /elections/
 # Front page
 RewriteRule ^$ index.php?action=home [L,QSA]
 
+# User account
+RewriteRule ^(login)/$ index.php?action=logininternal [L]
+RewriteRule ^(login)$ $1/ [L,R=301]
+RewriteRule ^login/(register|resetpassword|accountdetails)/$ index.php?action=$1 [L]
+RewriteRule ^login/(register|resetpassword|accountdetails|logout)$ login/$1/ [L,R=301]
+RewriteRule ^login/(register|resetpassword)/([a-z0-9]{24})/$ index.php?action=$1&token=$2 [L]
+RewriteRule ^login/(register|resetpassword)/([a-z0-9]{24})$ login/$1/$2/ [L,R=301]
+RewriteRule ^login/logout/$ index.php?action=logoutinternal [L]
+RewriteRule ^login/logout$ $1/ [L,R=301]
+
 # Submission page (this uses / at the end rather than .php as some candidates seem not to type that correctly)
 RewriteRule ^submit/$ index.php?action=submit [L]
 RewriteRule ^submit$ submit/ [R=301,L]
