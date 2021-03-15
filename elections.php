@@ -1,52 +1,5 @@
 <?php
 
-/*	INSTALLATION NOTES
-	
-	Server requirements:
-		Apache (should run on IIS but you will need to provide a URL rewriting solution)
-		MySQL server
-		PHP5 server with PDO-mysql installed
-	
-	PHP information:
-		This is written as a self-contained PHP5 class
-		The system should be error/warning/notice-free at error_reporting 2047
-		Register_globals and similar deprecated things are not required
-		
-	Libraries:
-		Some discrete libraries are needed. These are also PHP class files.
-		They need to be in your PHP installation's include_path.
-		For instance, if your site is at /srv/www/htdocs/ and your libraries are in a folder /libraries/, then the include_path must have /srv/www/htdocs/libraries/ within it
-		Download these freely from these URLs.
-		application.php		https://download.geog.cam.ac.uk/projects/application/
-		database.php		https://download.geog.cam.ac.uk/projects/database/
-		ultimateForm.php	https://download.geog.cam.ac.uk/projects/ultimateform/
-			which has dependencies:
-		pureContent.php		https://download.geog.cam.ac.uk/projects/purecontent/
-		timedate.php		https://download.geog.cam.ac.uk/projects/timedate/
-		
-	Signin:
-		You also need to create a library called signin.php which is just an authentication stub for the website administrator (not the candidates though)
-		This acts as a means for the website administrator to log in to print off the printable letters.
-		It just needs one method, user_has_privilege, which accepts an argument, and returns true or false. You need to hook into your site's own authentication system or write your own.
-		signin::user_has_privilege ('elections')
-		
-	Stub launching file:
-		A stub launching file needs to be created, to instantiate this class.
-		Example is below.
-		It is basically an array of settings, followed by loading the class and instantiating it.
-		The settings noted in the class at $defaults are available, with NULL representing a required setting
-		
-	URL rewriting: .htaccess file
-		Use the .htaccess file supplied
-		
-	SUMMARY
-		- Download the above libraries and put them, together with this class file, into a folder that is in your include_path
-		- Create the .htaccess file, and change the RewriteBase if necessary
-		- Create the database structure, and a user with SELECT,INSERT,UPDATE rights
-		- Create the stub launching file, index.html containing your settings; that file then just loads elections.php and runs the program with the specified settings
-*/
-
-
 /*
 	# Documentation - joins in the database structure are:
 	
