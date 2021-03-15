@@ -1,28 +1,6 @@
 <?php
 
-/*
-	# Documentation - joins in the database structure are:
-	
-	candidates:
-		election	Election / year (join to elections)
-		ward	Ward (join to wards)
-		affiliation	Affiliation (join to affiliations)
-	
-	responses:
-		candidate	Candidates (join to candidates)
-		survey	Survey (join to surveys)
-	
-	surveys:
-		election	Election / year (join to elections)
-		ward	Ward (join to wards)
-		question	Question (join to questions)
- */
-
-
-
 #!# Add some sort of testing candidate system
-
-
 
 # Class to create an elections lobbying system
 class elections
@@ -399,6 +377,23 @@ class elections
 	
 	# Function to define the database structure
 	#!# Not currently auto-executed on first run
+	/*
+		# Documentation - joins in the database structure are:
+		
+		candidates:
+			election	Election / year (join to elections)
+			ward	Ward (join to wards)
+			affiliation	Affiliation (join to affiliations)
+		
+		responses:
+			candidate	Candidates (join to candidates)
+			survey	Survey (join to surveys)
+		
+		surveys:
+			election	Election / year (join to elections)
+			ward	Ward (join to wards)
+			question	Question (join to questions)
+	*/
 	private function databaseStructure ()
 	{
 		# The database structure should be as follows, with modifications to be made in the elections_wards table for areas
