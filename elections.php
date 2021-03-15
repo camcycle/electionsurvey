@@ -28,9 +28,6 @@ class elections
 		
 		'page404' => 'sitetech/404.html',
 		
-		# Libraries
-		'richtextEditorBasePath' => '/_ckeditor/',
-		
 		# Date/times
 		'resultsVisibleTime' => '21:00:00',
 		
@@ -2089,7 +2086,7 @@ class elections
 			'picker' => true,
 			'div' => 'ultimateform electionform',
 			'display' => 'paragraphs',
-			'richtextEditorBasePath' => $this->settings['richtextEditorBasePath'],
+			'richtextEditorBasePath' => $this->baseUrl . '/js/libraries/ckeditor/',
 			'richtextEditorFileBrowser' => false,
 			'autofocus' => true,
 		));
