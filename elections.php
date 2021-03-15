@@ -248,6 +248,7 @@ class elections
 	public function __construct ($settings = array ())
 	{
 		# Load external libraries
+		ini_set ('include_path', ini_get ('include_path') . PATH_SEPARATOR . './libraries/');
 		require_once ('application.php');
 		require_once ('database.php');
 		require_once ('pureContent.php');
