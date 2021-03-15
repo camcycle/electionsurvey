@@ -17,20 +17,7 @@
 
 ## Libraries
 
-Some discrete libraries are needed. These are also PHP class files.
-
-They need to be in your PHP installation's include_path.
-
-For instance, if your site is at `/var/www/example.org/` and your libraries are in a folder `/libraries/`, then the include_path must have `/var/www/example.org/libraries/` within it.
-
-Download these libraries, available freely at the links given:
-
-- [application.php](https://download.geog.cam.ac.uk/projects/application/)
-- [database.php](https://download.geog.cam.ac.uk/projects/database/)
-- [userAccount.php](https://download.geog.cam.ac.uk/projects/useraccount/)
-- [ultimateForm.php](https://download.geog.cam.ac.uk/projects/ultimateform/) which has dependencies:
-  - [pureContent.php](https://download.geog.cam.ac.uk/projects/purecontent/)
-  - [timedate.php](https://download.geog.cam.ac.uk/projects/timedate/)
+Some discrete third-parties libraries are supplied as part of the repository.
 
 
 ## Config file
