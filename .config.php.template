@@ -3,6 +3,10 @@
 # Define the settings
 $settings = array (
 	
+	# GUI header/footer, if required
+	'headerHtml' => false,
+	'footerHtml' => false,
+	
 	# Database
 	'hostname'	=> 'localhost',
 	'database'	=> 'YOUR_DATABASE_NAME_HERE',

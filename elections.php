@@ -221,6 +221,10 @@ class elections
 		# Application
 		'applicationName' => 'Elections',
 		
+		# GUI header/footer, if required
+		'headerHtml' => false,
+		'footerHtml' => false,
+		
 		# Database
 		'hostname'	=> 'localhost',
 		'database'	=> NULL,
@@ -471,6 +475,7 @@ class elections
 		$this->errors = array ();
 		if (!$this->settings = $this->mergeConfiguration ($this->defaults, $settings)) {
 			$html .= "<p>The following setup error was found. The administrator needs to correct the setup before this system will run.</p>\n" . application::htmlUl ($this->errors);
+			$html = $this->settings['headerHtml'] . $html . $this->settings['footerHtml'];
 			echo $html;
 			return false;
 		}
@@ -480,6 +485,7 @@ class elections
 		if (!$this->databaseConnection->connection) {
  			mail ($this->settings['webmaster'], 'Problem with election system on ' . $_SERVER['SERVER_NAME'], wordwrap ('There was a problem with initalising the election facility at the database connection stage. The database server said: ' . mysql_error () . '.'));
 			$html .= "<p class=\"warning\">Apologies - this facility is currently unavailable, as a technical error occured. The Webmaster has been informed and will investigate.</p>";
+			$html = $this->settings['headerHtml'] . $html . $this->settings['footerHtml'];
 			echo $html;
 			return false;
 		};
@@ -493,6 +499,7 @@ class elections
 		
 		# Set the action, checking that a valid page has been supplied
 		if (!isSet ($_GET['action']) || !array_key_exists ($_GET['action'], $this->actions)) {
+			$html = $this->settings['headerHtml'] . $html . $this->settings['footerHtml'];
 			echo $html;
 			$html .= $this->pageNotFound ();
 			return false;
@@ -503,6 +510,7 @@ class elections
 		if (isSet ($this->actions[$this->action]['administrator']) && $this->actions[$this->action]['administrator']) {
 			if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
 				$html = "\n" . '<p>You must be <a href="/signin/">signed in</a> as an administrator to access this page.</p>';
+				$html = $this->settings['headerHtml'] . $html . $this->settings['footerHtml'];
 				echo $html;
 				return false;
 			}
@@ -568,6 +576,9 @@ class elections
 		
 		# Close the div surrounding the application
 		$html .= "\n</div>";
+		
+		# Surround with header and footer, if supplied
+		$html = $this->settings['headerHtml'] . $html . $this->settings['footerHtml'];
 		
 		# Show the HTML
 		echo $html;
