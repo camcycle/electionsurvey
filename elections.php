@@ -218,6 +218,9 @@ class elections
 	# Defaults; NULL indicates a required argument
 	var $defaults = array (
 		
+		# Application
+		'applicationName' => 'Elections',
+		
 		# Database
 		'hostname'	=> 'localhost',
 		'database'	=> NULL,
@@ -527,7 +530,7 @@ class elections
 		echo "\n<div id=\"elections\">";
 		
 		# Show the heading
-		echo "\n<h1>Elections</h1>";
+		echo "\n<h1>" . htmlspecialchars ($this->settings['applicationName']) . '</h1>';
 		if ($this->election) {
 			echo $this->droplistNavigation ();
 		}
