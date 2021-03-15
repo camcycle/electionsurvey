@@ -404,7 +404,7 @@ class elections
 			CREATE DATABASE {$this->settings['database']};
 			USE {$this->settings['database']};
 			
-			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}_candidates` (
+			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}candidates` (
 			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
 			  `election` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Election / year (join to elections)',
 			  `ward` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Ward (join to wards)',
@@ -420,7 +420,7 @@ class elections
 			  UNIQUE KEY `verification` (`verification`)
 			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Candidates';
 			
-			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}_elections` (
+			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}elections` (
 			  `id` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Unique ID (used for the URL)',
 			  `name` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Name of election',
 			  `description` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Description of election',
@@ -434,14 +434,14 @@ class elections
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Election overview';
 			
-			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}_questions` (
+			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}questions` (
 			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
 			  `question` text collate utf8_unicode_ci NOT NULL COMMENT 'Text of question',
 			  `links` text collate utf8_unicode_ci COMMENT 'Background links (as URL then text)',
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Available questions';
 			
-			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}_responses` (
+			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}responses` (
 			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
 			  `candidate` int(11) NOT NULL default '0' COMMENT 'Candidates (join to candidates)',
 			  `survey` int(11) NOT NULL default '0' COMMENT 'Survey (join to surveys)',
@@ -450,7 +450,7 @@ class elections
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Responses';
 			
-			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}_surveys` (
+			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}surveys` (
 			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
 			  `election` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Election / year (join to elections)',
 			  `ward` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Ward (join to wards)',
@@ -459,7 +459,7 @@ class elections
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Surveys';
 			
-			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}_wards` (
+			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}wards` (
 			  `id` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Unique key',
 			  `prefix` varchar(255) collate utf8_unicode_ci default NULL COMMENT 'Ward name prefix',
 			  `ward` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Ward name',
