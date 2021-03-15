@@ -69,48 +69,6 @@
 
 
 /*
-	Stub launching file example
-	Just create a PHP file containing settings and then running the class; something like:
-	
-	
-	# Define the settings
-	$settings = array (
-		
-		# Database
-		'hostname'	=> 'localhost',
-		'database'	=> 'yourdatabase',
-		'username'	=> 'yourusername',
-		'password'	=> 'yourpassword',
-		'tablePrefix'	=> 'elections_',	// If any
-		
-		# E-mail addresses
-		'webmaster' => 'webmaster@example.com',
-		'recipient' => 'elections@lists.example.com',
-		
-		# Texts
-		'welcomeTextHtml' => "<p>Welcome to BLAH's Elections section, which profiles what candidates standing in the elections are saying about BLAH issues. Use your vote to raise the profile of BLAH in this election.</p>",
-		'introductoryTextHtml' => "<p>We have sent a short list of questions to each candidate standing to find out what they think about improving BLAH. Their responses can be seen online within these pages.</p>",
-		'imprint' => 'BLAH is a non-partisan body. All candidates are given an equal opportunity to submit their views. Information published by BLAH.',
-		
-		# Pre-formatted letters
-		'letterSignaturePosition' => 'Committee member',
-		'letterSignatureOrganisationName' => 'BLAH',
-		
-		# Emails
-		'emailSubject' => 'Survey of election candidates',
-		'emailFrom' => 'YOUR_MAIN_EMAIL_HERE',
-		'emailCc' => 'YOUR_MAIN_EMAIL_HERE',
-	);
-	
-	
-	# Load and run the elections system with that settings list
-	require_once ('elections.php');
-	new elections ($settings);
-	
- */
-
-
-/*
 	# Documentation - joins in the database structure are:
 	
 	candidates:
