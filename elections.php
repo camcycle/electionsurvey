@@ -376,7 +376,7 @@ class elections
 			$html .= $this->droplistNavigation ();
 		}
 		
-		# Add link to admin menu
+		# Add link back to admin menu
 		if (isSet ($this->actions[$this->action]['administrator']) && $this->actions[$this->action]['administrator']) {
 			if ($this->action != 'admin') {		// Don't add link to self
 				$html .= "\n<p class=\"alignright\"><a href=\"{$this->baseUrl}/admin/\">&laquo; Return to admin menu</a></p>";
@@ -1931,7 +1931,7 @@ class elections
 	public function admin ()
 	{
 		# Start the HTML with a customised heading
-		$html = "\n<p class=\"right\"><a href=\"{$this->baseUrl}/{$this->actions['logoutinternal']['url']}\">Logout</a></p>";
+		$html = "\n<p class=\"right\"><a href=\"{$this->baseUrl}/\">Public home</a> | <a href=\"{$this->baseUrl}/{$this->actions['logoutinternal']['url']}\">Logout</a></p>";
 		$html .= "\n<h2>Administrative functions" . ($this->election ? ' for this election' : '') . '</h2>';
 		
 		# Add introduction
