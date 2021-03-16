@@ -13,10 +13,6 @@ $settings = array (
 	'username'	=> 'YOUR_DATABASE_USERNAME_HERE',
 	'password'	=> 'YOUR_DATABASE_PASSWORD_HERE',
 	'tablePrefix'	=> 'elections_',	// If any
-	
-	# Letters
-	'letterSignatureName' => 'YOUR_SIGNATORY_NAME_HERE',
-	'letterSignaturePosition' => 'YOUR_SIGNATORY_POSITION_HERE',
 );
 
 ?>

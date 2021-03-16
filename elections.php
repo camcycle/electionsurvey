@@ -25,16 +25,6 @@ class elections
 		# 404 page
 		'page404' => 'sitetech/404.html',
 		
-		# Date/times
-		'resultsVisibleTime' => '21:00:00',
-		
-		# Letter signature position
-		'letterSignaturePosition' => 'Trustee',
-		
-		# Text
-		'division' => 'ward',	// E.g. could be 'district' or 'constituency' instead
-		'divisionPlural' => 'wards',
-		
 		# Temporary override of admin privileges
 		'overrideAdmin' => false,
 	);
@@ -442,12 +432,16 @@ class elections
 			  `id` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Unique ID (used for the URL)',
 			  `name` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Name of election',
 			  `description` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Description of election',
+			  `division` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Division type, e.g. ward/division/constituency',
+			  `divisionPlural` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Division type - plural, e.g. wards/divisions/constituencies',
 			  `startDate` date NOT NULL default '0000-00-00' COMMENT 'Survey opening date (e.g. as soon as all info loaded)',
 			  `resultsDate` date NOT NULL default '0000-00-00' COMMENT 'Date when responses become visible (e.g. 2 weeks before election day)',
+			  `resultsVisibleTime` TIME NOT NULL DEFAULT '21:00:00' COMMENT 'Results visible time (hh:mm:ss)',
 			  `endDate` date NOT NULL default '0000-00-00' COMMENT 'Date of election (and close of survey submissions)',
 			  `letterheadHtml` TEXT NOT NULL COMMENT  'Letterhead address (top-right)',
 			  `organisationIntroductionHtml` TEXT NOT NULL COMMENT 'Survey letter/e-mail introduction',
 			  `letterSignatureName` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Signature name',
+			  `letterSignaturePosition` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Signature position',
 			  `directionsUrl` varchar(255) collate utf8_unicode_ci NOT NULL default 'https://www.cyclestreets.net/' COMMENT 'Directions to cycle to polling stations',
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Election overview';
@@ -627,7 +621,7 @@ class elections
 		# Validate the ward
 		if (!$this->ward) {
 			header ('HTTP/1.0 404 Not Found');
-			$html = '<p>There is no such ' . $this->settings['division'] . ' being contested in this election. Please check the URL and try again.</p>';
+			$html = '<p>There is no such ' . $this->election['division'] . ' being contested in this election. Please check the URL and try again.</p>';
 			return $html;
 		}
 		
@@ -796,7 +790,7 @@ class elections
 		
 		# List the candidates
 		if ($this->ward) {
-			$table['Candidates<br />(by surname)'] = $this->showCandidates ();
+			$table['Candidates<br />(by surname)'] = $this->showCandidates ($election);
 		}
 		
 		# Show the respondents
@@ -826,9 +820,9 @@ class elections
 				IF(endDate=(CAST(NOW() AS DATE)),1,0) AS votingToday,
 				IF(((DATEDIFF(CAST(NOW() AS DATE),endDate) < 28) && endDate<(CAST(NOW() AS DATE))),1,0) AS isRecent,
 				IF((CAST(NOW() AS DATE))<resultsDate,0,1) AS resultsVisible,
-				IF(NOW()<CONCAT(resultsDate,' ','{$this->settings['resultsVisibleTime']}'),0,1) AS resultsVisible,
+				IF(NOW()<CONCAT(resultsDate,' ',resultsVisibleTime),0,1) AS resultsVisible,
 				DATE_FORMAT(endDate,'%W %D %M %Y') AS 'polling date',
-				CONCAT( LOWER( DATE_FORMAT(CONCAT(resultsDate,' ','{$this->settings['resultsVisibleTime']}'),'%l%p, ') ), DATE_FORMAT(CONCAT(resultsDate,' ','{$this->settings['resultsVisibleTime']}'),'%W %D %M %Y') ) AS visibilityDateTime,
+				CONCAT( LOWER( DATE_FORMAT(CONCAT(resultsDate,' ',resultsVisibleTime),'%l%p, ') ), DATE_FORMAT(CONCAT(resultsDate,' ',resultsVisibleTime),'%W %D %M %Y') ) AS visibilityDateTime,
 				IF(name LIKE '%county%',1,0) AS isCounty
 			FROM {$this->settings['tablePrefix']}elections
 			" . ($includeForthcoming ? '' : "WHERE startDate <= (CAST(NOW() AS DATE))") . "
@@ -1016,15 +1010,15 @@ class elections
 	private function showWards ($election)
 	{
 		# Start the HTML
-		$html  = "\n\n" . '<h2><img src="/images/general/next.jpg" width="20" height="20" alt="&gt;" border="0" /> Candidates\' responses for each ' . $this->settings['division'] . '</h2>';
-		$html .= "\n<p>The following " . $this->settings['divisionPlural'] . " being contested are those for which we have sent questions to candidates:</p>";
+		$html  = "\n\n" . '<h2><img src="/images/general/next.jpg" width="20" height="20" alt="&gt;" border="0" /> Candidates\' responses for each ' . $election['division'] . '</h2>';
+		$html .= "\n<p>The following " . $election['divisionPlural'] . " being contested are those for which we have sent questions to candidates:</p>";
 		
 		# Get the wards for this election
 		$wards = $this->getWards ($election['id']);
 		
 		# Get the data
 		if (!$wards) {
-			return $html .= "\n<p>There are no " . $this->settings['divisionPlural'] . " being contested.</p>";
+			return $html .= "\n<p>There are no " . $election['divisionPlural'] . " being contested.</p>";
 		}
 		
 		# Construct the HTML
@@ -1092,11 +1086,11 @@ class elections
 	
 	
 	# Function to show candidates in a ward
-	private function showCandidates ()
+	private function showCandidates ($election)
 	{
 		# Get the data
 		if (!$this->candidates) {
-			return $html = "\n<p>There are no candidates contesting this " . $this->settings['division'] . '.</p>';
+			return $html = "\n<p>There are no candidates contesting this " . $election['division'] . '.</p>';
 		}
 		
 		# Construct the HTML
@@ -1109,8 +1103,8 @@ class elections
 		
 		# Construct the HTML
 		$html  = '';
-		// $html .= "<h3>Candidates standing for " . $this->wardName ($this->ward) . ' ' . $this->settings['division'] . '</h3>';
-		// $html .= "\n<p>The following candidates (listed in surname order) are standing for " . $this->wardName ($this->ward) . ' ' . $this->settings['division'] . '</p>';
+		// $html .= "<h3>Candidates standing for " . $this->wardName ($this->ward) . ' ' . $election['division'] . '</h3>';
+		// $html .= "\n<p>The following candidates (listed in surname order) are standing for " . $this->wardName ($this->ward) . ' ' . $election['division'] . '</p>';
 		$html .= application::htmlUl ($list, 0, 'nobullet' . ($this->settings['showAddresses'] ? ' spaced' : ''));
 		
 		# Return the HTML
@@ -1128,8 +1122,8 @@ class elections
 		$electionId = ($limitToWard ? $this->election['id'] : false);
 		if (!$data = $this->getQuestions ($limitToWard, $electionId)) {
 			$wardName = $this->wards[$limitToWard]['_name'];
-			$html .= "\n\n<h3 class=\"ward\" id=\"{$wardName}\">Questions for {$wardName} {$this->settings['division']} candidates</h3>";
-			return $html .= "\n<p>There are no questions assigned for this {$this->settings['division']} at present.</p>";
+			$html .= "\n\n<h3 class=\"ward\" id=\"{$wardName}\">Questions for {$wardName} {$this->election['division']} candidates</h3>";
+			return $html .= "\n<p>There are no questions assigned for this {$this->election['division']} at present.</p>";
 		}
 		
 		# Regroup by ward
@@ -1160,8 +1154,8 @@ class elections
 			if ($this->election && $ward != '_all') {
 				#!# Ward may not exist if no candidates
 				$wardName = $this->wards[$ward]['_name'];
-				$questionsHtml .= "\n\n<h3 class=\"ward\" id=\"{$ward}\">Questions for {$wardName} {$this->settings['division']} candidates ({$totalQuestions} questions)</h3>";
-				$wardsHtml[] = "<a href=\"#{$ward}\">{$wardName} {$this->settings['division']}</a> ({$totalQuestions} questions)";
+				$questionsHtml .= "\n\n<h3 class=\"ward\" id=\"{$ward}\">Questions for {$wardName} {$this->election['division']} candidates ({$totalQuestions} questions)</h3>";
+				$wardsHtml[] = "<a href=\"#{$ward}\">{$wardName} {$this->election['division']}</a> ({$totalQuestions} questions)";
 			}
 			
 			# Construct the HTML
@@ -1184,7 +1178,7 @@ class elections
 		
 		# Add the questions HTML
 		if (!$limitToWard) {
-			$html .= "\n<p>Below is a list of " . ($this->election ? 'the questions allocated to each ' . $this->settings['division'] : 'all questions available in the database') . ":</p>";
+			$html .= "\n<p>Below is a list of " . ($this->election ? 'the questions allocated to each ' . $this->election['division'] : 'all questions available in the database') . ":</p>";
 			if ($this->election) {
 				$html .= application::htmlUl ($wardsHtml);
 				if ($this->userIsAdministrator) {
@@ -1467,7 +1461,7 @@ class elections
 		
 		# Get the list of all wards currently being surveyed
 		if (!$wards = $this->getActiveWards ()) {
-			$html .= "\n<p>No {$this->settings['divisionPlural']} are currently being surveyed.</p>";
+			$html .= "\n<p>No areas are currently being surveyed.</p>";
 			return $html;
 		}
 		
@@ -1489,7 +1483,7 @@ class elections
 				'displayRestrictions'	=> false,
 				'autofocus' => true,
 			));
-			$form->heading ('p', "<strong>Welcome</strong>, candidate. <strong>Thank you</strong> for responding to our survey.</p>\n<p>We've done this survey online so that constituents - including our {$this->settings['organisationConstituentsType']} - in each {$this->settings['division']} can see what each candidate thinks. Voters can then take these views into account alongside other issues of concern to them. The questions we've posed are relevant/specific to each {$this->settings['division']}.");
+			$form->heading ('p', "<strong>Welcome</strong>, candidate. <strong>Thank you</strong> for responding to our survey.</p>\n<p>We've done this survey online so that constituents - including our {$this->settings['organisationConstituentsType']} - in each area can see what each candidate thinks. Voters can then take these views into account alongside other issues of concern to them. The questions we've posed are relevant/specific to each area.");
 			$form->heading ('p', '<br />Please firstly enter the verification number given in the letter/e-mail you received, which ensures the security of your response.');
 			$form->input (array (
 				'name'			=> 'number',
@@ -1500,7 +1494,7 @@ class elections
 			));
 			$form->select (array (
 				'name'			=> 'ward',
-				'title'			=> ucfirst ($this->settings['division']),
+				'title'			=> 'Area',
 				'required'		=> 1,
 				#!# Remove this hack
 				'values'		=> str_replace ('&amp;', '&', $wards),
@@ -1519,7 +1513,7 @@ class elections
 		# Confirm the details
 		#!# Use getUnfinalised to improve the UI here
 		if (!$candidate = $this->verifyCandidate ($number, $ward)) {
-			$html .= "\n<p>The verification/{$this->settings['division']} pair you submitted does not seem to be correct. Please check the letter/e-mail we sent you and <a href=\"{$this->baseUrl}/submit/\">try again</a>.</p>";
+			$html .= "\n<p>The verification/area pair you submitted does not seem to be correct. Please check the letter/e-mail we sent you and <a href=\"{$this->baseUrl}/submit/\">try again</a>.</p>";
 			return $html;
 		}
 		
@@ -1530,7 +1524,7 @@ class elections
 		$wardName = $wards[$candidate['wardId']];
 		
 		# Start the page with a new heading
-		$html  = "\n\n<h2 class=\"ward\" id=\"{$wardName}\">Questions for {$wardName} {$this->settings['division']} candidates</h2>";
+		$html  = "\n\n<h2 class=\"ward\" id=\"{$wardName}\">Questions for {$wardName} {$this->election['division']} candidates</h2>";
 		
 		# End if election is over
 		if (!$this->election['active']) {
@@ -1547,7 +1541,7 @@ class elections
 		
 		# Get the questions for this candidate's ward
 		if (!$questions = $this->getQuestions ($candidate['wardId'], $candidate['electionId'])) {
-			return $html .= "\n<p>There are no questions assigned for this {$this->settings['division']} at present.</p>";
+			return $html .= "\n<p>There are no questions assigned for this {$this->election['division']} at present.</p>";
 		}
 		
 		# Get the responses for this candidate's questions
@@ -1563,7 +1557,7 @@ class elections
 		# Build up the template
 		$total = count ($questions);
 		$i = 0;
-		$template  = '<p>There ' . ($total == 1 ? 'is 1 question' : "are {$total} questions") . " for this {$this->settings['division']} on which we would invite your response.<br /><strong>Please kindly enter your responses in the boxes below and click the 'submit' button at the end.</strong></p>";
+		$template  = '<p>There ' . ($total == 1 ? 'is 1 question' : "are {$total} questions") . " for this {$this->election['division']} on which we would invite your response.<br /><strong>Please kindly enter your responses in the boxes below and click the 'submit' button at the end.</strong></p>";
 		if ($responses) {$template .= "<p>You are able to update your previous answers below, before they become visible online at {$this->election['visibilityDateTime']}.</p>";}
 		$template .= "<p>Your answers will not be visible on this website until {$this->election['visibilityDateTime']}.</p>";
 		$template .= '<p>{[[PROBLEMS]]}</p>';
@@ -1789,10 +1783,10 @@ class elections
 		$responseRatesByPartyTable = $this->responseRatesByAspectTable ($allCandidates, $respondents, 'affiliation', 'affiliation (party)', $colours, true);
 		
 		# Construct the HTML
-		$html .= "\n<p>The following is an index to all candidates " . ($responseRatesByDistrictTable ? '' : "({$total}, out of {$totalCandidates} standing, i.e. {$percentageReplied}%)") . " who have submitted public responses. Click on the {$this->settings['division']} name to see them.</p>";
+		$html .= "\n<p>The following is an index to all candidates " . ($responseRatesByDistrictTable ? '' : "({$total}, out of {$totalCandidates} standing, i.e. {$percentageReplied}%)") . " who have submitted public responses. Click on the {$this->election['division']} name to see them.</p>";
 		$html .= $responseRatesByDistrictTable;
 		$html .= $responseRatesByPartyTable;
-		$html .= "\n<p><em>This list is ordered by {$this->settings['division']} and then surname.</em></p>";
+		$html .= "\n<p><em>This list is ordered by {$this->election['division']} and then surname.</em></p>";
 		foreach ($this->wards as $ward => $attributes) {
 			$html .= "<h4><a href=\"{$this->baseUrl}/{$this->election['id']}/{$ward}/\">{$this->wards[$ward]['_name']} <span>[view responses]</span></a>:</h4>";
 			if (!isSet ($wards[$ward])) {
@@ -3064,13 +3058,13 @@ class elections
 					<td colspan=\"2\">
 						<p>&nbsp;</p>
 						<p>&nbsp;</p>
-						<p>Dear " . $wardName . ' ' . $this->settings['division'] . " candidate,</p>
+						<p>Dear " . $wardName . ' ' . $this->election['division'] . " candidate,</p>
 						" . $this->election['organisationIntroductionHtml'] . "
 						<p>We ask candidates to submit their responses via the automated facility on our website. Just go to: <u>{$submissionUrl}</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
 						" . $screenshotHtml . "
 						<p>If you are unable to complete this survey online or you require any other assistance please e-mail, phone or write to us and we will be happy to make alternative arrangements.</p>
 						<p>Many thanks for your time.<br />Yours sincerely,</p>
-						<p>" . htmlspecialchars ($this->election['letterSignatureName']) . ",<br />" . htmlspecialchars ($this->settings['letterSignaturePosition']) . ', ' . htmlspecialchars ($this->settings['letterSignatureOrganisationName']) . "</p>
+						<p>" . htmlspecialchars ($this->election['letterSignatureName']) . ",<br />" . htmlspecialchars ($this->election['letterSignaturePosition']) . ', ' . htmlspecialchars ($this->settings['letterSignatureOrganisationName']) . "</p>
 						<p>&nbsp;</p>
 					</td>
 				</tr>
@@ -3114,7 +3108,7 @@ class elections
 		if ($type == 'reminders') {
 			$text .= "\n" . 'Dear candidate - Just a reminder of this below - thanks in advance for your time.' . "\n\n--\n\n";
 		}
-		$text .= "\n" . 'Dear ' . $wardName . ' ' . $this->settings['division'] . ' candidate,';
+		$text .= "\n" . 'Dear ' . $wardName . ' ' . $this->election['division'] . ' candidate,';
 		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' https://www', $this->election['organisationIntroductionHtml'])));
 		$text .= "\n";
 		$text .= "\n" . 'Please access the survey and submit your responses online, here:';
@@ -3128,7 +3122,7 @@ class elections
 		$text .= "\n" . 'Yours sincerely,';
 		$text .= "\n";
 		$text .= "\n" . $this->election['letterSignatureName'] . ',';
-		$text .= "\n" . $this->settings['letterSignaturePosition'] . ', ' . $this->settings['letterSignatureOrganisationName'];
+		$text .= "\n" . $this->election['letterSignaturePosition'] . ', ' . $this->settings['letterSignatureOrganisationName'];
 		$text .= "\n";
 		$text .= "\n";
 		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' https://www', $this->settings['postSubmissionHtmlLetters'])));
