@@ -14,35 +14,9 @@ $settings = array (
 	'password'	=> 'YOUR_DATABASE_PASSWORD_HERE',
 	'tablePrefix'	=> 'elections_',	// If any
 	
-	# E-mail addresses
-	'webmaster' => 'YOUR_WEBMASTER_EMAIL_HERE',
-	'recipient' => 'YOUR_MAIN_EMAIL_HERE',	// Responses are also e-mailed, as a backup
-	
-	# Texts
-	'welcomeTextHtml' => "<p>Welcome to ORGANISATION NAME's Elections section, which profiles what candidates standing in the elections are saying about cycling (and walking) issues. Use your vote to raise the profile of cycling and walking in this election.</p>",
-	'introductoryTextHtml' => "<p>We have sent a short list of questions to each candidate standing to find out what they think about improving provision for cycling in our area. Their responses can be seen online within these pages.</p>",
-	'imprint' => 'ORGANISATION NAME is a non-partisan body. All candidates are given an equal opportunity to submit their views. Information published by ORGANISATION NAME, ADDRESS.',
-	
-	# Pre-formatted letters
-	'letterheadHtml' => '
-		<p>ORGANISATION NAME<br />
-		ORGANISATION ADDRESS LINE 1<br />
-		ORGANISATION ADDRESS LINE 2<br />
-		ETC.</p>
-		',
-	'organisationIntroductionHtml' =>
-		"<p>By way of introduction, ORGANISATION NAME is BLURB. Full information about our activities and views can be found on our extensive website, at URL .</p>" .
-		"<p>We write to you, as a candidate, to ask your views on a range of issues of concern to our members. We would be most grateful if you could spend a few moments on the short survey below to let us know your views, as soon as you are able. All views submitted (as well as non-responses) will be shown on our website, for the information of voters. We would additionally be interested to hear from you if you have any other views or questions that we might be able to help with.</p>",
+	# Letters
 	'letterSignatureName' => 'YOUR_SIGNATORY_NAME_HERE',
 	'letterSignaturePosition' => 'YOUR_SIGNATORY_POSITION_HERE',
-	'letterSignatureOrganisationName' => 'YOUR_ORGANISATION_NAME_HERE',
-	'postSubmissionHtml' => '<p>Have you thought about joining our organisation? BLURB</p>',
-	'postSubmissionHtmlLetters' => '<p>P.S. Have you thought about joining our organisation? BLURB</p>',
-	
-	# Emails
-	'emailSubject' => 'Survey of election candidates',
-	'emailFrom' => 'YOUR_MAIN_EMAIL_HERE',
-	'emailCc' => 'YOUR_MAIN_EMAIL_HERE',
 );
 
 ?>

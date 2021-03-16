@@ -22,44 +22,21 @@ class elections
 		'password'	=> NULL,
 		'tablePrefix'	=> 'elections_',
 		
-		# E-mail addresses
-		'webmaster' => NULL,
-		'recipient' => NULL,
-		
+		# 404 page
 		'page404' => 'sitetech/404.html',
 		
 		# Date/times
 		'resultsVisibleTime' => '21:00:00',
 		
+		# Letter signature position
+		'letterSignaturePosition' => 'Trustee',
+		
 		# Text
-		'welcomeTextHtml' => NULL,
-		'introductoryTextHtml' => NULL,
-		'imprint' => NULL,
 		'division' => 'ward',	// E.g. could be 'district' or 'constituency' instead
 		'divisionPlural' => 'wards',
 		
-		# Pre-formatted letters
-		'organisationConstituentsType' => 'members',	// E.g. could be 'supporters' or similar instead
-		'letterSignaturePosition' => 'Committee member',
-		'letterSignatureOrganisationName' => NULL,
-		
-		# Post-submission HTML
-		'postSubmissionHtml' => false,
-		'postSubmissionHtmlLetters' => false,
-		
-		# E-mails
-		'emailSubject' => false,
-		'emailFrom' => false,
-		'emailCc' => false,
-		
 		# Temporary override of admin privileges
 		'overrideAdmin' => false,
-		
-		# Whether to show candidate addresses
-		'showAddresses' => false,
-		
-		# Whether to list archived elections
-		'listArchived' => true,
 	);
 	
 	
@@ -101,6 +78,13 @@ class elections
 				'description' => false,
 				'url' => 'admin/',
 				'administrator' => true,
+			),
+			'settings' => array (
+				'description' => 'Settings and configuration for this system',
+				'description' => 'System settings',
+				'url' => 'admin/settings.html',
+				'administrator' => true,
+				'admingroup' => 'system',
 			),
 			'addelection'	=> array (
 				'description' => 'Start an election survey',
@@ -310,6 +294,9 @@ class elections
 			return false;
 		};
 		
+		# Get the settings from the settings table
+		$this->addSettingsTableConfig ();
+		
 		# Obtain the actions
 		$this->actions = $this->actions ();
 		
@@ -502,9 +489,49 @@ class elections
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Wards';
 			
+			CREATE TABLE `{$this->settings['tablePrefix']}settings` (
+			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Automatic key (ignored),
+			  `welcomeTextHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Welcome text on front page',
+			  `introductoryTextHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Introductory text for ballots (also on main page)',
+			  `imprint` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Imprint',
+			  `emailSubject` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'E-mail subject',
+			  `emailFrom` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'E-mail ''From'' address',
+			  `emailCc` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'E-mail Cc address',
+			  `organisationConstituentsType` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Organisation people type (e.g. members / supporters)',
+			  `letterSignatureOrganisationName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'E-mails/letters signature - organisation name',
+			  `postSubmissionHtmlLetters` text COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'E-mails/letters P.S.',
+			  `postSubmissionHtml` text COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Post-submission message (webpage)',
+			  `recipient` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Survey submission receipts e-mail address',
+			  `showAddresses` TINYINT(1) NULL COMMENT 'Show candidate postal addresses?',
+			  `webmaster` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'System administrator (webmaster) e-mail address',
+			  `listArchived` tinyint(1) DEFAULT 1 COMMENT 'List archived elections?',
+			  PRIMARY KEY (`id`)
+			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Settings';
+			
 			-- Users
 			-- {$this->settings['tablePrefix']}users defined in libraries/userAccount.php databaseStructure ()
 		";
+	}
+	
+	
+	# Function to get settings table config
+	private function addSettingsTableConfig ()
+	{
+		# Add table name prefix if required
+		$this->settings['settingsTable'] = $this->settings['tablePrefix'] . 'settings';
+		
+		# Ensure the settings table exists
+		$tables = $this->databaseConnection->getTables ($this->settings['database']);
+		if (!in_array ($this->settings['settingsTable'], $tables)) {return false;}
+		
+		# Get the settings
+		if (!$settingsFromTable = $this->databaseConnection->selectOne ($this->settings['database'], $this->settings['settingsTable'], array ('id' => 1))) {return false;}
+		
+		# Merge in the settings, ignoring the id, and overwriting anything currently present
+		foreach ($settingsFromTable as $key => $value) {
+			if ($key == 'id') {continue;}
+			$this->settings[$key] = $value;
+		}
 	}
 	
 	
@@ -518,7 +545,8 @@ class elections
 	}
 	
 	
-	# Homes page
+	
+	# Home page
 	public function home ()
 	{
 		# Introductory text
@@ -856,6 +884,7 @@ class elections
 		}
 		
 		# Now show archived, non-recent elections
+		#!# This should take account of listArchived rather than just the listing itself
 		$html .= '<h2>Previous election surveys</h2>';
 		if (isSet ($elections[0])) {
 			$html .= $this->listElections ($elections[0], true);
@@ -1073,7 +1102,9 @@ class elections
 		# Construct the HTML
 		foreach ($this->candidates as $key => $candidate) {
 			$list[$key]  = $candidate['_name'];
-			if ($this->settings['showAddresses']) {$list[$key] .= '<br /><span class="small comment">' . htmlspecialchars ($candidate['address']) . '</span>';}
+			if ($this->settings['showAddresses']) {
+				$list[$key] .= '<br /><span class="small comment">' . htmlspecialchars ($candidate['address']) . '</span>';
+			}
 		}
 		
 		# Construct the HTML
@@ -1939,6 +1970,11 @@ class elections
 		
 		# Define the groups
 		$groups = array (
+			'system' => array (
+				'title' => 'System settings',
+				'icon' => 'cog',
+				'introduction' => 'Overall system configuration',
+			),
 			'election' => array (
 				'title' => 'Election details',
 				'icon' => 'application_view_list',
@@ -3286,6 +3322,70 @@ class elections
 		
 		# Assemble the HTML
 		$html  = $this->internalAuthClass->getHtml ();
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Settings form
+	public function settings ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Define default dataBinding settings
+		$dataBindingSettings = array (
+			'database' => $this->settings['database'],
+			'table' => $this->settings['settingsTable'],
+			'intelligence' => true,
+			'int1ToCheckbox' => true,
+			'data' => $this->settings,
+			'attributes' => array (
+				'welcomeTextHtml' => array ('heading' => array (3 => 'In-page text'), ),
+				'emailSubject' => array ('type' => 'input', 'heading' => array (3 => 'E-mails/letters to candidates'), ),
+				'postSubmissionHtml' => array ('heading' => array (3 => 'Post-submission message'), ),
+				'showAddresses' => array ('heading' => array (3 => 'Candidate addresses visibility'), ),
+				'recipient' => array ('heading' => array (3 => 'Survey submission receipts'), ),
+				'webmaster' => array ('heading' => array (3 => 'Webmaster'), ),
+				'listArchived' => array ('heading' => array (3 => 'Listings'), ),
+			),
+		);
+		
+		# Databind a form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'databaseConnection'	=> $this->databaseConnection,
+			'div' => 'ultimateform settings horizontalonly',
+			'reappear' => true,
+			'formCompleteText' => false,
+			'displayRestrictions' => false,
+			'unsavedDataProtection' => true,
+			'cols' => 80,
+			'richtextEditorBasePath' => $this->baseUrl . '/js/libraries/ckeditor/',
+			'richtextEditorToolbarSet' => 'BasicLonger',	// Settings tend to be simple text, such as a paragraph with minimal formatting
+			'richtextEditorFileBrowser' => false,
+			'richtextHeight' => 150,
+		));
+		$form->dataBinding ($dataBindingSettings);
+		
+		# Add getUnfinalised post-processing if such a function is defined in the calling class
+		if (method_exists ($this, 'settingsGetUnfinalised')) {
+			$this->settingsGetUnfinalised ($form);	// Needs to be received by reference
+		}
+		
+		# Process the form
+		if ($result = $form->process ($html)) {
+			
+			# Add in fixed data
+			$result['id'] = 1;
+			
+			# Insert/update the data
+			$this->databaseConnection->insert ($this->settings['database'], $this->settings['settingsTable'], $result, $onDuplicateKeyUpdate = true);
+			
+			# Confirm success
+			$html = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" alt=\"\" /> The settings have been updated.</p>" . $html;
+		}
 		
 		# Return the HTML
 		return $html;

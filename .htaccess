@@ -28,7 +28,7 @@ RewriteRule ^admin/$ index.php?action=admin [L]
 RewriteRule ^admin$ admin/ [R=301,L]
 RewriteRule ^([a-z0-9]+)/admin/$ index.php?action=admin&election=$1 [L]
 RewriteRule ^([a-z0-9]+)/admin$ $1/admin/ [R=301,L]
-RewriteRule ^admin/(allquestions|allocations|letters|mailout|reminders|reissue|elected|addelection|editelection|addward|addcandidates|addquestions|deletequestions|addsurveys|addaffiliations).html$ index.php?action=$1 [L]
+RewriteRule ^admin/(settings|allquestions|allocations|letters|mailout|reminders|reissue|elected|addelection|editelection|addward|addcandidates|addquestions|deletequestions|addsurveys|addaffiliations).html$ index.php?action=$1 [L]
 
 # Overview page for an election
 RewriteRule ^([a-z0-9]+)/$ index.php?election=$1&action=overview [L]
