@@ -102,16 +102,15 @@ class elections
 				'administrator' => true,
 				'admingroup' => 'wardaffilations',
 			),
-			'addaffiliations'	=> array (
-				'description' => 'Add details of a political party/group',
-				'url' => 'admin/addaffiliations.html',
+			'showaffiliations'	=> array (
+				'description' => 'Show/edit existing political parties/groups',
+				'url' => 'admin/showaffiliations.html',
 				'administrator' => true,
 				'admingroup' => 'wardaffilations',
 			),
-			#!# Not present
-			'editaffiliations'	=> array (
-				'description' => 'Show/edit existing political parties/groups',
-				'url' => 'admin/editaffiliations.html',
+			'addaffiliations'	=> array (
+				'description' => 'Add details of a political party/group',
+				'url' => 'admin/addaffiliations.html',
 				'administrator' => true,
 				'admingroup' => 'wardaffilations',
 			),
@@ -2265,6 +2264,33 @@ class elections
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Function to show exiting affiliations
+	public function showaffiliations ()
+	{
+		# Get the data for all affiliations in the database
+		$affiliations = $this->getAllAffiliations ();
+		
+		# Start the HTML with the total
+		$totalAffiliations = count ($affiliations);
+		$html = "\n<p>There are {$totalAffiliations} parties/groups in the database:</p>";
+		
+		# Render as HTML
+		$headings = $this->databaseConnection->getHeadings ($this->settings['database'], "{$this->settings['tablePrefix']}affiliations");
+		$html .= application::htmlTable ($affiliations, $headings, 'showwards lines compressed', $keyAsFirstColumn = false, false, false, false, $addCellClasses = true, false, $showFields);
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to get all affiliations in the database
+	private function getAllAffiliations ()
+	{
+		# Get and return the data
+		return $this->databaseConnection->select ($this->settings['database'], "{$this->settings['tablePrefix']}affiliations", array (), array (), true, $orderBy = 'name');
 	}
 	
 	
