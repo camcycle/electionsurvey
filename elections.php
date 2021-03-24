@@ -90,16 +90,15 @@ class elections
 				'admingroup' => 'election',
 				'election' => true,
 			),
-			'addward'		=> array (
-				'description' => 'Add a ward/division',
-				'url' => 'admin/addward.html',
+			'showwards'		=> array (
+				'description' => 'Show existing wards/divisions',
+				'url' => 'admin/showwards.html',
 				'administrator' => true,
 				'admingroup' => 'wardaffilations',
 			),
-			#!# Not present
-			'editward'		=> array (
-				'description' => 'Show/edit existing wards/divisions',
-				'url' => 'admin/editward.html',
+			'addward'		=> array (
+				'description' => 'Add a ward/division',
+				'url' => 'admin/addward.html',
 				'administrator' => true,
 				'admingroup' => 'wardaffilations',
 			),
@@ -325,7 +324,7 @@ class elections
 		$this->ward = false;
 		$this->wards = array ();
 		if ($this->election) {
-			$this->wards = $this->getWards ($this->election['id']);
+			$this->wards = $this->getWardsForElection ($this->election['id']);
 			
 			# Determine which ward
 			$this->ward = ((isSet ($_GET['ward']) && isSet ($this->wards[$_GET['ward']])) ? $this->wards[$_GET['ward']] : false);
@@ -914,14 +913,14 @@ class elections
 	
 	
 	# Function to get wards being contested in an election
-	private function getWards ($electionId)
+	private function getWardsForElection ($electionId)
 	{
 		# Get data
 		$query = "SELECT
-				{$this->settings['tablePrefix']}candidates.ward as id,
+				{$this->settings['tablePrefix']}candidates.ward AS id,
 				{$this->settings['tablePrefix']}wards.prefix,
 				{$this->settings['tablePrefix']}wards.ward,
-				COUNT({$this->settings['tablePrefix']}wards.id) as 'candidates'
+				COUNT({$this->settings['tablePrefix']}wards.id) AS 'candidates'
 			FROM {$this->settings['tablePrefix']}candidates
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}wards ON {$this->settings['tablePrefix']}candidates.ward = {$this->settings['tablePrefix']}wards.id
 			WHERE election REGEXP '^({$electionId})$'
@@ -1014,7 +1013,7 @@ class elections
 		$html .= "\n<p>The following " . $election['divisionPlural'] . " being contested are those for which we have sent questions to candidates:</p>";
 		
 		# Get the wards for this election
-		$wards = $this->getWards ($election['id']);
+		$wards = $this->getWardsForElection ($election['id']);
 		
 		# Get the data
 		if (!$wards) {
@@ -2183,6 +2182,34 @@ class elections
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Function to show exiting wards
+	public function showwards ()
+	{
+		# Get the data for all wards in the database
+		$wards = $this->getAllWards ();
+		
+		# Start the HTML with the total
+		$totalWards = count ($wards);
+		$html = "\n<p>There are {$totalWards} areas in the database:</p>";
+		
+		# Render as HTML
+		$headings = $this->databaseConnection->getHeadings ($this->settings['database'], "{$this->settings['tablePrefix']}wards");
+		$html .= application::htmlTable ($wards, $headings, 'showwards lines compressed', $keyAsFirstColumn = false, false, false, false, $addCellClasses = true, false, $showFields);
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to get all wards in the database
+	private function getAllWards ()
+	{
+		# Get and return the data
+		$showFields = array ('id', 'prefix', 'ward', 'districtCouncil', 'countyCouncil', 'parishes', 'districtCouncillors', 'countyCouncillors');
+		return $this->databaseConnection->select ($this->settings['database'], "{$this->settings['tablePrefix']}wards", array (), $showFields, true, $orderBy = 'ward');
 	}
 	
 	
