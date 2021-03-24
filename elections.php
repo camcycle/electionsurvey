@@ -2281,9 +2281,15 @@ class elections
 		$totalAffiliations = count ($affiliations);
 		$html = "\n<p>There are {$totalAffiliations} parties/groups in the database:</p>";
 		
+		# Colourise colour codes
+		foreach ($affiliations as $id => $affiliation) {
+			$hexColour = '#' . $affiliation['colour'];
+			$affiliations[$id]['colour'] = "<span style=\"color: {$hexColour};\">{$hexColour}</style>";
+		}
+		
 		# Render as HTML
 		$headings = $this->databaseConnection->getHeadings ($this->settings['database'], "{$this->settings['tablePrefix']}affiliations");
-		$html .= application::htmlTable ($affiliations, $headings, 'showwards lines compressed', $keyAsFirstColumn = false, false, false, false, $addCellClasses = true, false, $showFields);
+		$html .= application::htmlTable ($affiliations, $headings, 'showwards lines compressed', $keyAsFirstColumn = false, false, $allowHtml = array ('colour'));
 		
 		# Return the HTML
 		return $html;
