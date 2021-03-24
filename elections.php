@@ -1958,6 +1958,7 @@ class elections
 		$html .= "\n<h2>Administrative functions" . ($this->election ? ' for this election' : '') . '</h2>';
 		
 		# Add introduction
+		$html .= "\n<p>To set up an election survey, work through the numbered sections below, adding the relevant information via the links provided.</p>";
 		$html .= "\n<p><em>This section is accessible only to Administrators.</em></p>";
 		
 		# Define the groups
@@ -1968,27 +1969,27 @@ class elections
 				'introduction' => 'Overall system configuration',
 			),
 			'election' => array (
-				'title' => 'Election details',
+				'title' => '1. Overall election details',
 				'icon' => 'application_view_list',
 				'introduction' => 'To run a survey for an election, you need to create settings for that election, defining its name, date, and other details.',
 			),
 			'wardaffilations' => array (
-				'title' => 'Geographical areas and party details',
+				'title' => '2. Geographical areas and party details',
 				'icon' => 'map',
 				'introduction' => 'In order to create a survey, you need to ensure that each geographical area and party name exists in the database. Once added, these are available for any survey you create for any election.',
 			),
 			'questions' => array (
-				'title' => 'Questions',
+				'title' => '3. Questions available for surveys',
 				'icon' => 'help',
 				'introduction' => 'In order to create surveys for each geographical area, you must add each available question to the database. Once added, a question can be used for any surveys, e.g. across multiple geographical areas or in future elections.',
 			),
 			'surveys' => array (
-				'title' => 'Surveys',
+				'title' => '4. Surveys for each area',
 				'icon' => 'script',
 				'introduction' => 'Having defined an election, ensured that the geographical areas and party names are in the database, and that the questions are available, you can now create the survey for each area.',
 			),
 			'candidates' => array (
-				'title' => 'Candidates',
+				'title' => '5. Candidates standing in each area',
 				'icon' => 'group',
 				'introduction' => 'At the start of the election, you can either e-mail or print out letters for each candidate, inviting them to contribute their answers. You can also send reminder e-mails, or reissue an e-mail. You can also check what a candidate sees when they visit the submission form. Candidates can submit responses at any time from the opening of the survey until the date of the election; they can also edit an existing response until the responses are made live.',
 			),
