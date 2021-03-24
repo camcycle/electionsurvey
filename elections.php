@@ -2147,7 +2147,8 @@ class elections
 		$html = '';
 		
 		# Add introduction
-		$html .= "\n<p>Here you can add a ward/division to the database. You only need to do this if the ward/division has not already been added in a previous election.</p>";
+		$html .= "\n<p>Here you can add a ward/division to the database.</p>";
+		$html .= "\n<p>You <strong>only</strong> need to add a new ward/division if it not already listed <a href=\"#existing\">below</a>.</p>";
 		
 		# Get current IDs
 		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}wards", array (), array ('id'), true, $orderBy = 'id');
@@ -2166,19 +2167,22 @@ class elections
 				'id' => array ('current' => $currentIds, ),
 			),
 		));
-		if (!$result = $form->process ($html)) {
-			return $html;
+		if ($result = $form->process ($html)) {
+			
+			# Insert the ward
+			if (!$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}wards", $result)) {
+				$html = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> An error occurred adding the ward.</p>";
+				return $html;
+			}
+			
+			# Confirm success
+			$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The ward has been added.</p>";
+			$html .= "\n<p>Add another?</p>";
 		}
 		
-		# Insert the ward
-		if (!$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}wards", $result)) {
-			$html = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> An error occurred adding the ward.</p>";
-			return $html;
-		}
-		
-		# Confirm success
-		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The ward has been added.</p>";
-		$html .= "\n<p>Add another?</p>";
+		# Show existing wards
+		$html .= "\n<h3 id=\"existing\">Existing wards</h3>";
+		$html .= $this->showwards ();
 		
 		# Return the HTML
 		return $html;
