@@ -475,9 +475,9 @@ class elections
 			  `ward` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Ward name',
 			  `districtCouncil` enum('','Cambridge City Council','South Cambridgeshire District Council','East Cambridgeshire District Council','Fenland District Council','Huntingdonshire District Council') collate utf8_unicode_ci default NULL COMMENT 'District council',
 			  `countyCouncil` enum('','Cambridgeshire County Council') collate utf8_unicode_ci default NULL COMMENT 'County Council',
-			  `districtCouncillors` tinyint(1) default NULL COMMENT 'District councillors',
-			  `countyCouncillors` tinyint(1) default NULL COMMENT 'County councillors',
 			  `parishes` varchar(255) collate utf8_unicode_ci default NULL COMMENT 'Parishes incorporated',
+			  `districtCouncillors` tinyint(1) default NULL COMMENT 'How many district councillors',
+			  `countyCouncillors` tinyint(1) default NULL COMMENT 'How many County councillors',
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Wards';
 			
