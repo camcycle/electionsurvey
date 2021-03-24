@@ -591,7 +591,7 @@ class elections
 		$html  = $this->summaryTable ($election);
 		
 		# List wards
-		$html .= $this->showWards ($election);
+		$html .= $this->wardsListing ($election);
 		
 		# Show administrative options for this election
 		if ($this->userIsAdministrator) {
@@ -914,7 +914,7 @@ class elections
 	
 	
 	# Function to get wards being contested in an election
-	private function getWards ($elections)
+	private function getWards ($electionId)
 	{
 		# Get data
 		$query = "SELECT
@@ -924,7 +924,7 @@ class elections
 				COUNT({$this->settings['tablePrefix']}wards.id) as 'candidates'
 			FROM {$this->settings['tablePrefix']}candidates
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}wards ON {$this->settings['tablePrefix']}candidates.ward = {$this->settings['tablePrefix']}wards.id
-			WHERE election REGEXP '^({$elections})$'
+			WHERE election REGEXP '^({$electionId})$'
 			GROUP BY {$this->settings['tablePrefix']}wards.ward
 			ORDER BY {$this->settings['tablePrefix']}wards.ward
 		;";
@@ -1006,8 +1006,8 @@ class elections
 	
 	
 	
-	# Function to show wards
-	private function showWards ($election)
+	# Function to list wards
+	private function wardsListing ($election)
 	{
 		# Start the HTML
 		$html  = "\n\n" . '<h2><img src="/images/general/next.jpg" width="20" height="20" alt="&gt;" border="0" /> Candidates\' responses for each ' . $election['division'] . '</h2>';
