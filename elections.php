@@ -148,7 +148,7 @@ class elections
 				'election' => true,
 			),
 			'allocations'	=> array (
-				'description' => 'Convert an questions allocations spreadsheet into SQL',
+				'description' => 'Convert an questions allocations spreadsheet into SQL (shortcut for techies only)',
 				'url' => 'admin/allocations.html',
 				'administrator' => true,
 				'admingroup' => 'surveys',
