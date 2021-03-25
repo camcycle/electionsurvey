@@ -2137,7 +2137,7 @@ class elections
 			'attributes' => array (
 				'id' => array ('editable' => (!$data), 'current' => $currentIds, 'regexp' => '^[a-z0-9]+$', 'placeholder' => 'E.g. ' . date ('Y') . 'election', ),
 				'name' => array ('placeholder' => 'E.g. Elections to Placeford Council, ' . date ('Y')),
-				'startDate' => array ('description' => 'This is the date when candidates can start to enter their responses, assuming that questions, wards, etc., are all loaded.'),
+				'startDate' => array ('description' => 'This is the date when candidates can start to enter their responses, assuming that questions, wards, etc., are all loaded. This must not be before the start date of the election, to avoid accusations of unfairness from undeclared candidates.'),
 				'resultsDate' => array ('description' => 'This is the date when responses from candidates will become visible to the general public. Admins can log in and see responses before this date. Candidates can edit any existing response they have made until this date.'),
 				'endDate' => array ('description' => 'This is the date of the election, and candidates will not be able to edit their responses after this date.'),
 				'description' => array ('placeholder' => 'E.g. Elections to Placeford Council in May ' . date ('Y')),
