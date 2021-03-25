@@ -809,7 +809,7 @@ class elections
 	
 	
 	# Function to get list of elections, including whether they are active
-	private function getElections ($includeForthcoming = false)
+	private function getElections ($includeForthcoming = false, $excludeStarted = false)
 	{
 		# Get data
 		$query = "SELECT
@@ -823,7 +823,9 @@ class elections
 				CONCAT( LOWER( DATE_FORMAT(CONCAT(resultsDate,' ',resultsVisibleTime),'%l%p, ') ), DATE_FORMAT(CONCAT(resultsDate,' ',resultsVisibleTime),'%W %D %M %Y') ) AS visibilityDateTime,
 				IF(name LIKE '%county%',1,0) AS isCounty
 			FROM {$this->settings['tablePrefix']}elections
-			" . ($includeForthcoming ? '' : "WHERE startDate <= (CAST(NOW() AS DATE))") . "
+			WHERE 1=1
+			" . ($includeForthcoming ? '' : " AND startDate <= (CAST(NOW() AS DATE))") . "
+			" . ($excludeStarted ? " AND startDate > (CAST(NOW() AS DATE))" : '') . "
 			ORDER BY endDate DESC, isCounty DESC /* County before others if on same day */
 		;";
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}elections");
@@ -2331,10 +2333,15 @@ class elections
 		$html = '';
 		
 		# Add introduction
+		$html .= "\n<p>On this page you can mass-import the candidate data.</p>";
 		$html .= "\n<p>Note that this will replace the data for the selected election.</p>";
+		$html .= "\n<p>Only those surveys that have not already started can have candidate data added.</p>";
 		
-		# Get all elections, including forthcoming
-		$elections = $this->getElections (true);
+		# Get all elections that are forthcoming, but not including those that have started, to prevent answers becoming misconnected to candidates who would have new IDs
+		if (!$elections = $this->getElections ($includeForthcoming = true, $excludeStarted = true)) {
+			$html .= "<p><em>There are no forthcoming surveys.</em></p>";
+			return $html;
+		}
 		
 		# Define the required fields
 		$requiredFields = array ('forename', 'surname', 'ward', 'affiliation', 'address', 'email');
@@ -2407,7 +2414,7 @@ class elections
 		# Clear any existing data
 		$this->databaseConnection->delete ($this->settings['database'], "{$this->settings['tablePrefix']}candidates", array ('election' => $result['election']));
 		
-		# Insert the data
+		# Insert the data; note that this wil result in new candidate IDs
 		if (!$this->databaseConnection->insertMany ($this->settings['database'], "{$this->settings['tablePrefix']}candidates", $data)) {
 			$error = $this->databaseConnection->error ();
 			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured. The database server said:</p>";
