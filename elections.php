@@ -947,7 +947,7 @@ class elections
 		# In wards-only mode, if there is only one ward, just return its name - no point showing the jumplist
 		if ($wardsOnly) {
 			if (count ($this->wards) == 1) {
-				$ward = array_shift (array_values ($this->wards));
+				$ward = application::array_first_value ($this->wards);
 				$html = $this->wardName ($ward);
 				return $html;
 			}
