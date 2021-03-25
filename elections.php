@@ -1959,6 +1959,7 @@ class elections
 		
 		# Add introduction
 		$html .= "\n<p>To set up an election survey, work through the numbered sections below, adding the relevant information via the links provided.</p>";
+		$html .= "\n<p>This <a href=\"{$this->baseUrl}/admin/electionstemplate.xlsx\">elections survey template spreadsheet</a> will help you gather all the required data together, which you can then copy into the forms below.</p>";
 		$html .= "\n<p><em>This section is accessible only to Administrators.</em></p>";
 		
 		# Define the groups
