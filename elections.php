@@ -2694,10 +2694,10 @@ class elections
 	}
 	
 	
-	# Function to get a list of question IDs and texts
+	# Function to get a list of question IDs and texts, most recent first
 	private function getQuestionTexts ()
 	{
-		return $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}questions", array (), array ('id', "CONCAT(id, ': ', SUBSTRING(question, 1, 70), ' ...') AS text"), true, $orderBy = 'id');
+		return $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}questions", array (), array ('id', "CONCAT(id, ': ', SUBSTRING(question, 1, 70), ' ...') AS text"), true, $orderBy = 'id DESC');
 	}
 	
 	
