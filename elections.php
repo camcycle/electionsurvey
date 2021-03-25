@@ -1375,12 +1375,14 @@ class elections
 			} else {
 				
 				# Perform a match, taking care of any mirror website
+				#!# This has hard-coded names
 				if (preg_match ('@^https?://' . str_replace ('mirror.', 'www.', $_SERVER['SERVER_NAME']) . '(.*)@', $link, $matches)) {
 					$link = ($letterMode ? str_replace ('mirror.', 'www.', $_SERVER['SERVER_NAME']) : '') . $matches[1];
+					#!# This has hard-coded paths, and should be changed to be a fallback
 					if (preg_match ('@/newsletters/([0-9]+)/article([0-9]+).html$@', $link, $newsletterMatches)) {
 						$settingsFile = "newsletters/{$newsletterMatches[1]}/settings.html";
 						if (is_readable ($_SERVER['DOCUMENT_ROOT'] . '/' . $settingsFile)) {
-							include ($settingsFile);	// NOT include_once - as that would cache a previously-loaded settings file
+							include ($_SERVER['DOCUMENT_ROOT'] . '/' . $settingsFile);	// NOT include_once - as that would cache a previously-loaded settings file
 							$index = $newsletterMatches[2] - 1;
 							if (isSet ($newsletterSettings) && isSet ($newsletterSettings['articles']) && isSet ($newsletterSettings['articles'][$index])) {
 								$title = "Newsletter {$newsletterMatches[1]}: {$newsletterSettings['articles'][$index]}";
