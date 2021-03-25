@@ -2018,7 +2018,7 @@ class elections
 						$url = "{$this->baseUrl}/" . ((isSet ($action['election']) && $this->election) ? str_replace ('admin/', "{$this->election['id']}/", $action['url']) : $action['url']);
 						$html .= "\n\t\t<li><a href=\"{$url}\">" . htmlspecialchars ($action['description']) . '</a></li>';
 					} else {
-						$html .= "\n\t\t<li><span class=\"comment\">" . htmlspecialchars ($action['description']) . '</span> (not yet available)</li>';
+						$html .= "\n\t\t<li><span class=\"comment\">" . htmlspecialchars ($action['description']) . '</span> (screen not yet created)</li>';
 					}
 				}
 			}
