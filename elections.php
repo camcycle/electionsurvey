@@ -94,25 +94,25 @@ class elections
 				'description' => 'Show existing wards/divisions',
 				'url' => 'admin/showwards.html',
 				'administrator' => true,
-				'admingroup' => 'wardaffilations',
+				'admingroup' => 'wards',
 			),
 			'addward'		=> array (
 				'description' => 'Add a ward/division',
 				'url' => 'admin/addward.html',
 				'administrator' => true,
-				'admingroup' => 'wardaffilations',
+				'admingroup' => 'wards',
 			),
 			'showaffiliations'	=> array (
 				'description' => 'Show/edit existing political parties/groups',
 				'url' => 'admin/showaffiliations.html',
 				'administrator' => true,
-				'admingroup' => 'wardaffilations',
+				'admingroup' => 'affilations',
 			),
 			'addaffiliations'	=> array (
 				'description' => 'Add details of a political party/group',
 				'url' => 'admin/addaffiliations.html',
 				'administrator' => true,
-				'admingroup' => 'wardaffilations',
+				'admingroup' => 'affilations',
 			),
 			'addquestions'	=> array (
 				'description' => 'Add a question',
@@ -1973,29 +1973,34 @@ class elections
 				'icon' => 'application_view_list',
 				'introduction' => 'To run a survey for an election, you need to create settings for that election, defining its name, date, and other details.',
 			),
-			'wardaffilations' => array (
-				'title' => '2. Geographical areas and party details',
+			'wards' => array (
+				'title' => '2. Geographical areas',
 				'icon' => 'map',
-				'introduction' => 'In order to create a survey, you need to ensure that each geographical area and party name exists in the database. Once added, these are available for any survey you create for any election.',
+				'introduction' => 'In order to create a survey, you need to ensure that each geographical area exists in the database. Once added, these areas are then available for any survey you create for any election.',
+			),
+			'affilations' => array (
+				'title' => '3. Party details',
+				'icon' => 'medal_bronze_3',
+				'introduction' => 'The party affiliation of all the candidates needs to exist in the database. Once added, these party names are available for any survey you create for any election.',
 			),
 			'questions' => array (
-				'title' => '3. Questions available for surveys',
+				'title' => '4. Questions available for surveys',
 				'icon' => 'help',
 				'introduction' => 'In order to create surveys for each geographical area, you must add each available question to the database. Once added, a question can be used for any surveys, e.g. across multiple geographical areas or in future elections.',
 			),
 			'surveys' => array (
-				'title' => '4. Surveys for each area',
+				'title' => '5. Surveys for each area',
 				'icon' => 'script',
 				'introduction' => 'Having defined an election, ensured that the geographical areas and party names are in the database, and that the questions are available, you can now create the survey for each area.',
 			),
 			'candidates' => array (
-				'title' => '5. Candidates standing in each area',
+				'title' => '6. Candidates standing in each area',
 				'icon' => 'group',
 				'introduction' => 'At the start of the election, you can either e-mail or print out letters for each candidate, inviting them to contribute their answers. You can also send reminder e-mails, or reissue an e-mail. You can also check what a candidate sees when they visit the submission form. Candidates can submit responses at any time from the opening of the survey until the date of the election; they can also edit an existing response until the responses are made live.',
 			),
 			'postelection' => array (
 				'title' => 'After the election',
-				'icon' => 'medal_gold_2',
+				'icon' => 'award_star_gold_3',
 				'introduction' => 'After the election, you can specify the winning candidates, so that their answers are shown highlighted.',
 			),
 		);
