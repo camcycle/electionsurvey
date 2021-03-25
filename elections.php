@@ -862,7 +862,7 @@ class elections
 			$html .= "\n<br />";
 		} else {
 			// $html .= $currentElectionsHeading;
-			$html .= "\n<p>There are no election surveys at present. Have a look at previous surveys below.</p>";
+			$html .= "\n<p>There are no election surveys live at present. Have a look at previous surveys below.</p>";
 		}
 		
 		# Regroup by the election being recent or not
