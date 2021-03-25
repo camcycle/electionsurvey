@@ -970,7 +970,7 @@ class elections
 		# Add each ward
 		foreach ($this->wards as $key => $ward) {
 			$location = "{$this->baseUrl}/{$this->election['id']}/{$ward['id']}/";
-			$list[$location] = $this->wardName ($ward);
+			$list[$location] = $this->wardName ($ward, $convertEntities = false);
 		}
 		
 		# Set the current page as the selected item
@@ -1035,10 +1035,16 @@ class elections
 	
 	
 	# Function to construct a ward name
-	private function wardName ($ward)
+	private function wardName ($ward, $convertEntities = true)
 	{
+		# Convert entities if required
+		if ($convertEntities) {
+			$ward['prefix'] = htmlspecialchars ($ward['prefix']);
+			$ward['ward'] = htmlspecialchars ($ward['ward']);
+		}
+		
 		# Construct and return the ward name
-		return (!empty ($ward['prefix']) ? htmlspecialchars ($ward['prefix']) . ' ' : '') . htmlspecialchars ($ward['ward']);
+		return (!empty ($ward['prefix']) ? $ward['prefix'] . ' ' : '') . $ward['ward'];
 	}
 	
 	
