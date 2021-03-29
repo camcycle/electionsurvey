@@ -1747,7 +1747,13 @@ class elections
 		}
 		
 		# Title
-		$html  = "<h2>List of respondents" . ($this->election['active'] ? ' (so far)' : '') .  "</h2>";
+		$html  = "\n<h2>List of respondents" . ($this->election['active'] ? ' (so far)' : '') .  '</h2>';
+		
+		# Ensure there are candidates loaded
+		if (!$allCandidates = $this->getCandidates (true)) {
+			$html .= "\n<p>The candidate list has not yet been loaded for this election. Please check back later.</p>";
+			return $html;
+		}
 		
 		# Get the data
 		$query = "SELECT
@@ -1775,8 +1781,7 @@ class elections
 		# Regroup the data by ward
 		$wards = application::regroup ($respondents, 'wardId', false);
 		
-		# Get the total number of candidates standing
-		$allCandidates = $this->getCandidates (true);
+		# Determine the total number of candidates standing and the response rate
 		$totalCandidates = count ($allCandidates);
 		$percentageReplied = round (($total / $totalCandidates) * 100);
 		
