@@ -2227,7 +2227,7 @@ class elections
 		
 		# Render as HTML
 		$headings = $this->databaseConnection->getHeadings ($this->settings['database'], "{$this->settings['tablePrefix']}wards");
-		$html .= application::htmlTable ($wards, $headings, 'showwards lines compressed', $keyAsFirstColumn = false, false, false, false, $addCellClasses = true, false, $showFields);
+		$html .= application::htmlTable ($wards, $headings, 'showwards lines compressed', $keyAsFirstColumn = false, false, false, false, $addCellClasses = true);
 		
 		# Return the HTML
 		return $html;
