@@ -1215,9 +1215,14 @@ class elections
 		$question['question'] = htmlspecialchars ($question['question']);
 		$html .= $this->questionBox ($question);
 		
+		# Determine the number of wards in this election
+		$totalWardsExisting = count ($this->wards);
+		
 		# Add a link to all responses in other wards if required
 		if ($questionNumberPublic) {
-			$html .= "\n<p class=\"allresponseslink\"><a href=\"{$this->baseUrl}/{$this->election['id']}/questions/{$questionNumberPublic}/\">Responses to this question from all wards&hellip;</a></p>";
+			if ($totalWardsExisting > 1) {
+				$html .= "\n<p class=\"allresponseslink\"><a href=\"{$this->baseUrl}/{$this->election['id']}/questions/{$questionNumberPublic}/\">Responses to this question from all {$this->election['divisionPlural']}&hellip;</a></p>";
+			}
 		}
 		
 		# End if no candidates
@@ -1236,7 +1241,6 @@ class elections
 			}
 			sort ($wardNames);
 			$totalWardsAsked = count ($wardNames);
-			$totalWardsExisting = count ($this->wards);
 			if ($totalWardsExisting == 1) {
 				$html .= "\n<p>We asked this question:</p>";
 			} else {
