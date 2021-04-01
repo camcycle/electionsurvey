@@ -430,8 +430,8 @@ class elections
 			  `id` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Unique ID (used for the URL)',
 			  `name` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Name of election',
 			  `description` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Description of election',
-			  `division` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Type of division, e.g. ward / division / constituency / Combined Authority area / area',
-			  `divisionPlural` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Type of division - plural, e.g. wards / divisions / constituencies / Combined Authority areas / areas',
+			  `areaType` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Type of electoral area, e.g. ward / division / constituency / Combined Authority area / area',
+			  `areaTypePlural` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Type of electoral area - plural, e.g. wards / divisions / constituencies / Combined Authority areas / areas',
 			  `startDate` date NOT NULL default '0000-00-00' COMMENT 'Survey opening date (date of official Publication of Statement of Persons Nominated, or as soon as possible after - but never before)',
 			  `resultsDate` date NOT NULL default '0000-00-00' COMMENT 'Date when responses become visible (e.g. 2 weeks before election day)',
 			  `resultsVisibleTime` TIME NOT NULL DEFAULT '21:00:00' COMMENT 'Results visible time (hh:mm:ss)',
@@ -619,7 +619,7 @@ class elections
 		# Validate the area
 		if (!$this->area) {
 			header ('HTTP/1.0 404 Not Found');
-			$html = '<p>There is no such ' . $this->election['division'] . ' being contested in this election. Please check the URL and try again.</p>';
+			$html = '<p>There is no such ' . $this->election['areaType'] . ' being contested in this election. Please check the URL and try again.</p>';
 			return $html;
 		}
 		
@@ -725,7 +725,7 @@ class elections
 		
 		# Compile the HTML
 		$html  = "\n<h2>List of questions</h2>";
-		$html .= "\n<p>Here is a list of all the questions (across all {$this->election['divisionPlural']}) we have asked for this election:</p>";
+		$html .= "\n<p>Here is a list of all the questions (across all {$this->election['areaTypePlural']}) we have asked for this election:</p>";
 		$html .= application::htmlOl ($list, 0, 'spaced');
 		
 		# Return the HTML
@@ -784,7 +784,7 @@ class elections
 		$html  = "\n<h2>{$election['name']}" . ($this->area ? ': ' . $this->areaName ($this->area) : '') . "</h2>";
 		$table['Summary'] = (!$this->area ? $election['description'] : "<a href=\"{$this->baseUrl}/{$election['id']}/\">{$election['description']}</a>");
 		$table['Polling date'] = $election['polling date'];
-		if ($this->area) {$table[ ucfirst ($election['division']) ] = $this->droplistNavigation (true);}
+		if ($this->area) {$table[ ucfirst ($election['areaType']) ] = $this->droplistNavigation (true);}
 		
 		# List the candidates
 		if ($this->area) {
@@ -796,7 +796,7 @@ class elections
 			$table['Questions'] = "<a href=\"{$this->baseUrl}/{$election['id']}/questions/\">" . ($election['active'] ? '' : '<strong><img src="/images/icons/bullet_go.png" class="icon" /> ') . 'Index of all questions for this election' . ($election['active'] ? '' : '</strong>') .  '</a>';
 			$table['Respondents'] = "<a href=\"{$this->baseUrl}/{$election['id']}/respondents.html\">" . ($election['active'] ? '<strong><img src="/images/icons/bullet_go.png" class="icon" /> ' : '') . 'Index of all respondents' . ($election['active'] ? ' (so far)' : '') .  '</a>';
 			if ($this->cabinetRestanding) {
-				$table['Cabinet'] = "<a href=\"{$this->baseUrl}/{$election['id']}/cabinet.html\">Cabinet members in surveyed {$election['divisionPlural']} restanding in this election</a>";
+				$table['Cabinet'] = "<a href=\"{$this->baseUrl}/{$election['id']}/cabinet.html\">Cabinet members in surveyed {$election['areaTypePlural']} restanding in this election</a>";
 			}
 		}
 		
@@ -1010,15 +1010,15 @@ class elections
 	private function areasListing ($election)
 	{
 		# Start the HTML
-		$html  = "\n\n" . '<h2><img src="/images/general/next.jpg" width="20" height="20" alt="&gt;" border="0" /> Candidates\' responses for each ' . $election['division'] . '</h2>';
-		$html .= "\n<p>The following " . $election['divisionPlural'] . " being contested are those for which we have sent questions to candidates:</p>";
+		$html  = "\n\n" . '<h2><img src="/images/general/next.jpg" width="20" height="20" alt="&gt;" border="0" /> Candidates\' responses for each ' . $election['areaType'] . '</h2>';
+		$html .= "\n<p>The following " . $election['areaTypePlural'] . " being contested are those for which we have sent questions to candidates:</p>";
 		
 		# Get the areas for this election
 		$areas = $this->getAreasForElection ($election['id']);
 		
 		# Get the data
 		if (!$areas) {
-			return $html .= "\n<p>There are no " . $election['divisionPlural'] . " being contested.</p>";
+			return $html .= "\n<p>There are no " . $election['areaTypePlural'] . " being contested.</p>";
 		}
 		
 		# Construct the HTML
@@ -1096,7 +1096,7 @@ class elections
 	{
 		# Get the data
 		if (!$this->candidates) {
-			return $html = "\n<p>There are no candidates contesting this " . $election['division'] . '.</p>';
+			return $html = "\n<p>There are no candidates contesting this " . $election['areaType'] . '.</p>';
 		}
 		
 		# Construct the HTML
@@ -1109,8 +1109,8 @@ class elections
 		
 		# Construct the HTML
 		$html  = '';
-		// $html .= "<h3>Candidates standing for " . $this->areaName ($this->area) . ' ' . $election['division'] . '</h3>';
-		// $html .= "\n<p>The following candidates (listed in surname order) are standing for " . $this->areaName ($this->area) . ' ' . $election['division'] . '</p>';
+		// $html .= "<h3>Candidates standing for " . $this->areaName ($this->area) . ' ' . $election['areaType'] . '</h3>';
+		// $html .= "\n<p>The following candidates (listed in surname order) are standing for " . $this->areaName ($this->area) . ' ' . $election['areaType'] . '</p>';
 		$html .= application::htmlUl ($list, 0, 'nobullet' . ($this->settings['showAddresses'] ? ' spaced' : ''));
 		
 		# Return the HTML
@@ -1128,8 +1128,8 @@ class elections
 		$electionId = ($limitToArea ? $this->election['id'] : false);
 		if (!$data = $this->getQuestions ($limitToArea, $electionId)) {
 			$areaName = $this->areas[$limitToArea]['_name'];
-			$html .= "\n\n<h3 class=\"area\" id=\"{$areaName}\">Questions for {$areaName} {$this->election['division']} candidates</h3>";
-			return $html .= "\n<p>There are no questions assigned for this {$this->election['division']} at present.</p>";
+			$html .= "\n\n<h3 class=\"area\" id=\"{$areaName}\">Questions for {$areaName} {$this->election['areaType']} candidates</h3>";
+			return $html .= "\n<p>There are no questions assigned for this {$this->election['areaType']} at present.</p>";
 		}
 		
 		# Regroup by area
@@ -1161,8 +1161,8 @@ class elections
 			if ($this->election && $area != '_all') {
 				#!# Area may not exist if no candidates
 				$areaName = $this->areas[$area]['_name'];
-				$questionsHtml .= "\n\n<h3 class=\"area\" id=\"{$area}\">Questions for {$areaName} {$this->election['division']} candidates ({$totalQuestions} questions)</h3>";
-				$areasHtml[] = "<a href=\"#{$area}\">{$areaName} {$this->election['division']}</a> ({$totalQuestions} questions)";
+				$questionsHtml .= "\n\n<h3 class=\"area\" id=\"{$area}\">Questions for {$areaName} {$this->election['areaType']} candidates ({$totalQuestions} questions)</h3>";
+				$areasHtml[] = "<a href=\"#{$area}\">{$areaName} {$this->election['areaType']}</a> ({$totalQuestions} questions)";
 			}
 			
 			# Construct the HTML
@@ -1185,7 +1185,7 @@ class elections
 		
 		# Add the questions HTML
 		if (!$limitToArea) {
-			$html .= "\n<p>Below is a list of " . ($this->election ? 'the questions allocated to each ' . $this->election['division'] : 'all questions available in the database') . ":</p>";
+			$html .= "\n<p>Below is a list of " . ($this->election ? 'the questions allocated to each ' . $this->election['areaType'] : 'all questions available in the database') . ":</p>";
 			if ($this->election) {
 				$html .= application::htmlUl ($areasHtml);
 				if ($this->userIsAdministrator) {
@@ -1222,7 +1222,7 @@ class elections
 		# Add a link to all responses in other areas if required
 		if ($questionNumberPublic) {
 			if ($totalAreasExisting > 1) {
-				$html .= "\n<p class=\"allresponseslink\"><a href=\"{$this->baseUrl}/{$this->election['id']}/questions/{$questionNumberPublic}/\">Responses to this question from all {$this->election['divisionPlural']}&hellip;</a></p>";
+				$html .= "\n<p class=\"allresponseslink\"><a href=\"{$this->baseUrl}/{$this->election['id']}/questions/{$questionNumberPublic}/\">Responses to this question from all {$this->election['areaTypePlural']}&hellip;</a></p>";
 			}
 		}
 		
@@ -1246,7 +1246,7 @@ class elections
 				$html .= "\n<p>We asked this question:</p>";
 			} else {
 				$everyAreaAsked = ($totalAreasExisting == $totalAreasAsked);
-				$html .= "\n<p>We asked this question " . ($everyAreaAsked ? "in <strong>all {$totalAreasAsked} {$this->election['divisionPlural']}</strong>, namely: " : ($totalAreasAsked > 1 ? "in these <strong>{$totalAreasAsked} {$this->election['divisionPlural']}</strong>: " : 'only in ')) . implode (', ', $areaNames) . '.</p>';
+				$html .= "\n<p>We asked this question " . ($everyAreaAsked ? "in <strong>all {$totalAreasAsked} {$this->election['areaTypePlural']}</strong>, namely: " : ($totalAreasAsked > 1 ? "in these <strong>{$totalAreasAsked} {$this->election['areaTypePlural']}</strong>: " : 'only in ')) . implode (', ', $areaNames) . '.</p>';
 			}
 			$totalCandidates = count ($candidates);
 			$totalResponses = count ($responses);
@@ -1542,7 +1542,7 @@ class elections
 		$areaName = $areas[$candidate['areaId']];
 		
 		# Start the page with a new heading
-		$html  = "\n\n<h2 class=\"area\" id=\"{$areaName}\">Questions for {$areaName} {$this->election['division']} candidates</h2>";
+		$html  = "\n\n<h2 class=\"area\" id=\"{$areaName}\">Questions for {$areaName} {$this->election['areaType']} candidates</h2>";
 		
 		# End if election is over
 		if (!$this->election['active']) {
@@ -1552,14 +1552,14 @@ class elections
 		# Show the candidate's data
 		$table['Election'] = $this->election['name'];
 		$table['Election date'] = $this->election['polling date'];
-		$table[ ucfirst ($this->election['division']) ] = $areaName;
+		$table[ ucfirst ($this->election['areaType']) ] = $areaName;
 		$table['Name'] = $candidate['name'];
 		$table['Affiliation'] = "<span style=\"color: #{$candidate['colour']};\">" . htmlspecialchars ($candidate['affiliation']) . '</span>';
 		$html .= application::htmlTableKeyed ($table, array (), true, 'lines', $allowHtml = true);
 		
 		# Get the questions for this candidate's area
 		if (!$questions = $this->getQuestions ($candidate['areaId'], $candidate['electionId'])) {
-			return $html .= "\n<p>There are no questions assigned for this {$this->election['division']} at present.</p>";
+			return $html .= "\n<p>There are no questions assigned for this {$this->election['areaType']} at present.</p>";
 		}
 		
 		# Get the responses for this candidate's questions
@@ -1575,7 +1575,7 @@ class elections
 		# Build up the template
 		$total = count ($questions);
 		$i = 0;
-		$template  = '<p>There ' . ($total == 1 ? 'is 1 question' : "are {$total} questions") . " for this {$this->election['division']} on which we would invite your response.<br /><strong>Please kindly enter your responses in the boxes below and click the 'submit' button at the end.</strong></p>";
+		$template  = '<p>There ' . ($total == 1 ? 'is 1 question' : "are {$total} questions") . " for this {$this->election['areaType']} on which we would invite your response.<br /><strong>Please kindly enter your responses in the boxes below and click the 'submit' button at the end.</strong></p>";
 		if ($responses) {$template .= "<p>You are able to update your previous answers below, before they become visible online at {$this->election['visibilityDateTime']}.</p>";}
 		$template .= "<p>Your answers will not be visible on this website until {$this->election['visibilityDateTime']}.</p>";
 		$template .= '<p>{[[PROBLEMS]]}</p>';
@@ -1810,10 +1810,10 @@ class elections
 		$responseRatesByPartyTable = $this->responseRatesByAspectTable ($allCandidates, $respondents, 'affiliation', 'affiliation (party)', $colours, true);
 		
 		# Construct the HTML
-		$html .= "\n<p>The following is an index to all candidates " . ($responseRatesByDistrictTable ? '' : "({$total}, out of {$totalCandidates} standing, i.e. {$percentageReplied}%)") . " who have submitted public responses. Click on the {$this->election['division']} name to see them.</p>";
+		$html .= "\n<p>The following is an index to all candidates " . ($responseRatesByDistrictTable ? '' : "({$total}, out of {$totalCandidates} standing, i.e. {$percentageReplied}%)") . " who have submitted public responses. Click on the {$this->election['areaType']} name to see them.</p>";
 		$html .= $responseRatesByDistrictTable;
 		$html .= $responseRatesByPartyTable;
-		$html .= "\n<p><em>This list is ordered by {$this->election['division']} and then surname.</em></p>";
+		$html .= "\n<p><em>This list is ordered by {$this->election['areaType']} and then surname.</em></p>";
 		foreach ($this->areas as $area => $attributes) {
 			$html .= "<h4><a href=\"{$this->baseUrl}/{$this->election['id']}/{$area}/\">{$this->areas[$area]['_name']} <span>[view responses]</span></a>:</h4>";
 			if (!isSet ($areas[$area])) {
@@ -1850,7 +1850,7 @@ class elections
 		# End if no Cabinet members restanding in this election
 		if (!$this->cabinetRestanding) {
 			header ('HTTP/1.0 404 Not Found');
-			$html .= "\n<p>There are no Cabinet members in {$this->election['divisionPlural']} we are surveying restanding in this election. Please check the URL and try again.</p>";
+			$html .= "\n<p>There are no Cabinet members in {$this->election['areaTypePlural']} we are surveying restanding in this election. Please check the URL and try again.</p>";
 			return $html;
 		}
 		
@@ -1866,13 +1866,13 @@ class elections
 				'Candidate' => str_replace (' &nbsp;(', '<br />(', $candidate['_name']),
 				'Responded?' => (isSet ($responses[$candidateId]) ? "<a href=\"{$surveyLink}\"><strong>Yes - view responses</strong></a>" : '<span class="warning"><strong>No</strong>, the candidate ' . ($this->election['active'] ? 'has not (yet) responded' : 'did not respond') . '</span>'),
 				'Post' => $candidate['cabinetRestanding'],
-				ucfirst ($this->election['division']) => "<a href=\"{$surveyLink}\">" . $candidate['ward'] . '</a>',
+				ucfirst ($this->election['areaType']) => "<a href=\"{$surveyLink}\">" . $candidate['ward'] . '</a>',
 			);
 		}
 		
 		# Compile the HTML
 		$html .= "\n<p>The <strong>Cabinet</strong> is the Executive of the Council, formed of members of the political party in power. They implement and drive the Council's policy. As such, their views arguably have greater effect than any other Councillors.</p>";
-		$html .= "\n<p>The listing below shows all the Cabinet members in {$this->election['divisionPlural']} we are surveying who are restanding in this election, and whether they have responded to our survey or not.</p>";
+		$html .= "\n<p>The listing below shows all the Cabinet members in {$this->election['areaTypePlural']} we are surveying who are restanding in this election, and whether they have responded to our survey or not.</p>";
 		$html .= application::htmlTable ($cabinetMembers, array (), 'lines regulated', $keyAsFirstColumn = false, false, $allowHtml = true, $showColons = true);
 		
 		# Return the HTML
@@ -3073,7 +3073,7 @@ class elections
 			
 			# Miss out if no candidates in an area; a warning is shown if none, in case of trailing spaces, etc.
 			if (!isSet ($this->areas[$area])) {
-				$html .= "\n<p class=\"warning\">Warning: No candidates for <em>{$area}</em> {$this->election['division']}.</p>";
+				$html .= "\n<p class=\"warning\">Warning: No candidates for <em>{$area}</em> {$this->election['areaType']}.</p>";
 				continue;
 			}
 			
@@ -3171,7 +3171,7 @@ class elections
 					<td colspan=\"2\">
 						<p>&nbsp;</p>
 						<p>&nbsp;</p>
-						<p>Dear " . $areaName . ' ' . $this->election['division'] . " candidate,</p>
+						<p>Dear " . $areaName . ' ' . $this->election['areaType'] . " candidate,</p>
 						" . $this->election['organisationIntroductionHtml'] . "
 						<p>We ask candidates to submit their responses via the automated facility on our website. Just go to: <u>{$submissionUrl}</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
 						" . $screenshotHtml . "
@@ -3221,7 +3221,7 @@ class elections
 		if ($type == 'reminders') {
 			$text .= "\n" . 'Dear candidate - Just a reminder of this below - thanks in advance for your time.' . "\n\n--\n\n";
 		}
-		$text .= "\n" . 'Dear ' . $areaName . ' ' . $this->election['division'] . ' candidate,';
+		$text .= "\n" . 'Dear ' . $areaName . ' ' . $this->election['areaType'] . ' candidate,';
 		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' https://www', $this->election['organisationIntroductionHtml'])));
 		$text .= "\n";
 		$text .= "\n" . 'Please access the survey and submit your responses online, here:';
