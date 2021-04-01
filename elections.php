@@ -44,9 +44,9 @@ class elections
 				'url' => '',
 				'election' => true,
 			),
-			'ward'			=> array (
+			'area'			=> array (
 				'description' => false,
-				'url' => '%ward/',
+				'url' => '%area/',
 				'election' => true,
 			),
 			'questions'		=> array (
@@ -603,8 +603,8 @@ class elections
 	}
 	
 	
-	# Main page
-	public function ward ()
+	# Area page
+	public function area ()
 	{
 		# Start the HTML
 		$html = '';
