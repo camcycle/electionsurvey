@@ -589,7 +589,7 @@ class elections
 		$html  = $this->summaryTable ($election);
 		
 		# List wards
-		$html .= $this->wardsListing ($election);
+		$html .= $this->areasListing ($election);
 		
 		# Show administrative options for this election
 		if ($this->userIsAdministrator) {
@@ -781,7 +781,7 @@ class elections
 	private function summaryTable ($election)
 	{
 		# Compile the HTML
-		$html  = "\n<h2>{$election['name']}" . ($this->area ? ': ' . $this->wardName ($this->area) : '') . "</h2>";
+		$html  = "\n<h2>{$election['name']}" . ($this->area ? ': ' . $this->areaName ($this->area) : '') . "</h2>";
 		$table['Summary'] = (!$this->area ? $election['description'] : "<a href=\"{$this->baseUrl}/{$election['id']}/\">{$election['description']}</a>");
 		$table['Polling date'] = $election['polling date'];
 		if ($this->area) {$table[ ucfirst ($election['division']) ] = $this->droplistNavigation (true);}
@@ -932,7 +932,7 @@ class elections
 		
 		# Add in the constructed ward name
 		foreach ($data as $key => $ward) {
-			$data[$key]['_name'] = $this->wardName ($ward);
+			$data[$key]['_name'] = $this->areaName ($ward);
 		}
 		
 		# Return the data
@@ -950,7 +950,7 @@ class elections
 		if ($wardsOnly) {
 			if (count ($this->areas) == 1) {
 				$ward = application::array_first_value ($this->areas);
-				$html = $this->wardName ($ward);
+				$html = $this->areaName ($ward);
 				return $html;
 			}
 		}
@@ -972,7 +972,7 @@ class elections
 		# Add each ward
 		foreach ($this->areas as $key => $ward) {
 			$location = "{$this->baseUrl}/{$this->election['id']}/{$ward['id']}/";
-			$list[$location] = $this->wardName ($ward, $convertEntities = false);
+			$list[$location] = $this->areaName ($ward, $convertEntities = false);
 		}
 		
 		# Set the current page as the selected item
@@ -1006,8 +1006,8 @@ class elections
 	
 	
 	
-	# Function to list wards
-	private function wardsListing ($election)
+	# Function to list areas
+	private function areasListing ($election)
 	{
 		# Start the HTML
 		$html  = "\n\n" . '<h2><img src="/images/general/next.jpg" width="20" height="20" alt="&gt;" border="0" /> Candidates\' responses for each ' . $election['division'] . '</h2>';
@@ -1023,7 +1023,7 @@ class elections
 		
 		# Construct the HTML
 		foreach ($wards as $key => $ward) {
-			$wardName = $this->wardName ($ward);
+			$wardName = $this->areaName ($ward);
 			$candidates = "({$ward['candidates']} " . ($ward['candidates'] == 1 ? 'candidate' : 'candidates') . " standing)";
 			$list[$key] = "<a href=\"{$this->baseUrl}/{$election['id']}/{$ward['id']}/\">{$wardName}</a> {$candidates}";
 		}
@@ -1036,8 +1036,8 @@ class elections
 	}
 	
 	
-	# Function to construct a ward name
-	private function wardName ($ward, $convertEntities = true)
+	# Function to construct an area name
+	private function areaName ($ward, $convertEntities = true)
 	{
 		# Convert entities if required
 		if ($convertEntities) {
@@ -1109,8 +1109,8 @@ class elections
 		
 		# Construct the HTML
 		$html  = '';
-		// $html .= "<h3>Candidates standing for " . $this->wardName ($this->area) . ' ' . $election['division'] . '</h3>';
-		// $html .= "\n<p>The following candidates (listed in surname order) are standing for " . $this->wardName ($this->area) . ' ' . $election['division'] . '</p>';
+		// $html .= "<h3>Candidates standing for " . $this->areaName ($this->area) . ' ' . $election['division'] . '</h3>';
+		// $html .= "\n<p>The following candidates (listed in surname order) are standing for " . $this->areaName ($this->area) . ' ' . $election['division'] . '</p>';
 		$html .= application::htmlUl ($list, 0, 'nobullet' . ($this->settings['showAddresses'] ? ' spaced' : ''));
 		
 		# Return the HTML
@@ -1710,7 +1710,7 @@ class elections
 		# Rearrange as key=>value
 		$wards = array ();
 		foreach ($data as $key => $values) {
-			$wards[$values['wardId']] = $this->wardName ($values);
+			$wards[$values['wardId']] = $this->areaName ($values);
 		}
 		
 		# Return the data
@@ -3133,7 +3133,7 @@ class elections
 		$html = '';
 		
 		# Assemble the ward name
-		$wardName = $this->wardName ($candidate);
+		$wardName = $this->areaName ($candidate);
 		
 		# Avoid a house number appearing on its own
 		$candidate['address'] = preg_replace ('/^([0-9]+[a-zA-Z]?)\,/', '$1', $candidate['address']);
@@ -3205,7 +3205,7 @@ class elections
 	private function createEmail ($candidate, $type)
 	{
 		# Assemble the ward name
-		$wardName = $this->wardName ($candidate);
+		$wardName = $this->areaName ($candidate);
 		
 		# Define the submission URL
 		$submissionUrl = "https://{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/";
