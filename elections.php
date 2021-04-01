@@ -1236,8 +1236,13 @@ class elections
 			}
 			sort ($wardNames);
 			$totalWardsAsked = count ($wardNames);
-			$everyWardAsked = (count ($this->wards) == $totalWardsAsked);
-			$html .= "\n<p>We asked this question " . ($everyWardAsked ? "in <strong>all {$totalWardsAsked} wards</strong>, namely: " : ($totalWardsAsked > 1 ? "in these <strong>{$totalWardsAsked} wards</strong>: " : 'only in ')) . implode (', ', $wardNames) . '.</p>';
+			$totalWardsExisting = count ($this->wards);
+			if ($totalWardsExisting == 1) {
+				$html .= "\n<p>We asked this question:</p>";
+			} else {
+				$everyWardAsked = ($totalWardsExisting == $totalWardsAsked);
+				$html .= "\n<p>We asked this question " . ($everyWardAsked ? "in <strong>all {$totalWardsAsked} {$this->election['divisionPlural']}</strong>, namely: " : ($totalWardsAsked > 1 ? "in these <strong>{$totalWardsAsked} wards</strong>: " : 'only in ')) . implode (', ', $wardNames) . '.</p>';
+			}
 			$totalCandidates = count ($candidates);
 			$totalResponses = count ($responses);
 			$percentageReplied = round (($totalResponses / $totalCandidates) * 100);
