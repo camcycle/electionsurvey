@@ -432,7 +432,7 @@ class elections
 			  `description` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Description of election',
 			  `division` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Division type, e.g. ward/division/constituency',
 			  `divisionPlural` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Division type - plural, e.g. wards/divisions/constituencies',
-			  `startDate` date NOT NULL default '0000-00-00' COMMENT 'Survey opening date (e.g. as soon as all info loaded)',
+			  `startDate` date NOT NULL default '0000-00-00' COMMENT 'Survey opening date (date of official Publication of Statement of Persons Nominated, or as soon as possible after - but never before)',
 			  `resultsDate` date NOT NULL default '0000-00-00' COMMENT 'Date when responses become visible (e.g. 2 weeks before election day)',
 			  `resultsVisibleTime` TIME NOT NULL DEFAULT '21:00:00' COMMENT 'Results visible time (hh:mm:ss)',
 			  `endDate` date NOT NULL default '0000-00-00' COMMENT 'Date of election (and close of survey submissions)',
