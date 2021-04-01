@@ -389,7 +389,7 @@ class elections
 		
 		candidates:
 			election	Election / year (join to elections)
-			ward	Ward (join to wards)
+			areaId	Area (join to areas)
 			affiliation	Affiliation (join to affiliations)
 		
 		responses:
@@ -398,7 +398,7 @@ class elections
 		
 		surveys:
 			election	Election / year (join to elections)
-			ward	Ward (join to wards)
+			areaId	Area (join to areas)
 			question	Question (join to questions)
 	*/
 	private function databaseStructure ()
@@ -413,7 +413,7 @@ class elections
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}candidates` (
 			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
 			  `election` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Election / year (join to elections)',
-			  `ward` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Ward (join to wards)',
+			  `areaId` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Area (join to areas)',
 			  `forename` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Forename',
 			  `surname` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Surname',
 			  `address` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Address',
@@ -463,7 +463,7 @@ class elections
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}surveys` (
 			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
 			  `election` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Election / year (join to elections)',
-			  `ward` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Ward (join to wards)',
+			  `areaId` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Area (join to areas)',
 			  `question` int(11) NOT NULL default '0' COMMENT 'Question (join to questions)',
 			  `ordering` int(1) default NULL COMMENT 'Ordering',
 			  PRIMARY KEY  (`id`)
@@ -691,7 +691,7 @@ class elections
 		#!# This section is over-complex and involves multiple SQL lookups, for the sake of avoiding code duplication in responsesBlock (which has a certain datastructure) - ideally there would be a single OUTER JOIN that would list all candidates and show the responses where the candidate has answered, but this means duplicating lookups like candidate['_name']
 		
 		# Get the areas (and their associated survey IDs) where this question was asked
-		$areasQuery = "SELECT id,ward FROM {$this->settings['tablePrefix']}surveys WHERE question = {$question['questionId']} AND election = '{$this->election['id']}';";
+		$areasQuery = "SELECT id,areaId FROM {$this->settings['tablePrefix']}surveys WHERE question = {$question['questionId']} AND election = '{$this->election['id']}';";
 		$areas = $this->databaseConnection->getPairs ($areasQuery);
 		
 		# Get the candidates having this question
@@ -751,7 +751,7 @@ class elections
 		# Get all the questions for this election
 		$data = $this->getQuestions (false, $electionId, $groupByQuestionId = true);
 		
-		# Reindex from 1 (for the sake of nicer /question/<id>/ URLs) as the keys are effectively arbitrary, keeping only relevant fields (i.e. stripping bogus fields like ward that have become left behind from the GROUP BY operation)
+		# Reindex from 1 (for the sake of nicer /question/<id>/ URLs) as the keys are effectively arbitrary, keeping only relevant fields (i.e. stripping bogus fields like areaId that have become left behind from the GROUP BY operation)
 		$questions = array ();
 		$relevantFields = array ('questionId', 'question', 'links', 'highlight');
 		$i = 1;
@@ -918,12 +918,12 @@ class elections
 	{
 		# Get data
 		$query = "SELECT
-				{$this->settings['tablePrefix']}candidates.ward AS id,
+				{$this->settings['tablePrefix']}candidates.areaId AS id,
 				{$this->settings['tablePrefix']}areas.prefix,
 				{$this->settings['tablePrefix']}areas.areaName,
 				COUNT({$this->settings['tablePrefix']}areas.id) AS 'candidates'
 			FROM {$this->settings['tablePrefix']}candidates
-			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.ward = {$this->settings['tablePrefix']}areas.id
+			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.areaId = {$this->settings['tablePrefix']}areas.id
 			WHERE election REGEXP '^({$electionId})$'
 			GROUP BY {$this->settings['tablePrefix']}areas.areaName
 			ORDER BY {$this->settings['tablePrefix']}areas.areaName
@@ -1056,7 +1056,7 @@ class elections
 		# Get data
 		$query = "SELECT
 				{$this->settings['tablePrefix']}candidates.id as id,
-				{$this->settings['tablePrefix']}candidates.ward as areaId,
+				{$this->settings['tablePrefix']}candidates.areaId,
 				{$this->settings['tablePrefix']}candidates.elected,
 				{$this->settings['tablePrefix']}candidates.cabinetRestanding,
 				private, prefix,
@@ -1070,10 +1070,10 @@ class elections
 				{$this->settings['tablePrefix']}candidates.email
 			FROM {$this->settings['tablePrefix']}candidates
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}affiliations ON {$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['tablePrefix']}affiliations.id
-			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.ward = {$this->settings['tablePrefix']}areas.id
+			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.areaId = {$this->settings['tablePrefix']}areas.id
 			WHERE
 				election = '{$this->election['id']}'
-				" . ($inAreas ? " AND {$this->settings['tablePrefix']}candidates.ward IN('" . implode ("','", $inAreas) . "')" : ($onlyArea ? "AND {$this->settings['tablePrefix']}candidates.ward = '{$onlyArea['id']}'" : '')) . "
+				" . ($inAreas ? " AND {$this->settings['tablePrefix']}candidates.areaId IN('" . implode ("','", $inAreas) . "')" : ($onlyArea ? "AND {$this->settings['tablePrefix']}candidates.areaId = '{$onlyArea['id']}'" : '')) . "
 				" . ($cabinetRestanding ? " AND ({$this->settings['tablePrefix']}candidates.cabinetRestanding IS NOT NULL AND {$this->settings['tablePrefix']}candidates.cabinetRestanding != '')" : '') . "
 			ORDER BY " . ($inAreas ? 'affiliation,surname,forename' : ($all ? 'areaId,surname' : 'surname,forename')) . "
 		;";
@@ -1343,7 +1343,7 @@ class elections
 		} else {
 			$query = "SELECT
 					{$this->settings['tablePrefix']}surveys.id as id,
-					{$this->settings['tablePrefix']}surveys.ward as areaId,
+					{$this->settings['tablePrefix']}surveys.areaId,
 					{$this->settings['tablePrefix']}questions.id as questionId,
 					{$this->settings['tablePrefix']}questions.question,
 					{$this->settings['tablePrefix']}questions.links,
@@ -1351,12 +1351,12 @@ class elections
 					{$this->settings['tablePrefix']}areas.prefix,
 					{$this->settings['tablePrefix']}areas.areaName
 				FROM {$this->settings['tablePrefix']}surveys
-				LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}surveys.ward = {$this->settings['tablePrefix']}areas.id
+				LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}surveys.areaId = {$this->settings['tablePrefix']}areas.id
 				LEFT OUTER JOIN {$this->settings['tablePrefix']}questions ON {$this->settings['tablePrefix']}surveys.question = {$this->settings['tablePrefix']}questions.id
 				WHERE election = '{$election}'
-				" . ($area ? "AND {$this->settings['tablePrefix']}surveys.ward = '{$area}'" : '') . "
+				" . ($area ? "AND {$this->settings['tablePrefix']}surveys.areaId = '{$area}'" : '') . "
 				" . ($groupByQuestionId ? "GROUP BY questionId" : '') . "
-				ORDER BY " . ($groupByQuestionId ? 'questionId' : "{$this->settings['tablePrefix']}surveys.ward,ordering,{$this->settings['tablePrefix']}surveys.id") . "
+				ORDER BY " . ($groupByQuestionId ? 'questionId' : "{$this->settings['tablePrefix']}surveys.areaId,ordering,{$this->settings['tablePrefix']}surveys.id") . "
 			;";
 		}
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas");
@@ -1647,6 +1647,7 @@ class elections
 		}
 		
 		# Insert/update the data into the database
+		#!# Change to insertMany/updateMany
 		foreach ($data as $questionId => $insert) {
 			
 			# Update the data if previously submitted
@@ -1694,15 +1695,15 @@ class elections
 		# Get data
 		$query = "SELECT
 				{$this->settings['tablePrefix']}candidates.id,
-				{$this->settings['tablePrefix']}candidates.ward as areaId,
+				{$this->settings['tablePrefix']}candidates.areaId,
 				prefix, {$this->settings['tablePrefix']}areas.areaName
 			FROM {$this->settings['tablePrefix']}candidates
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}elections ON {$this->settings['tablePrefix']}candidates.election = {$this->settings['tablePrefix']}elections.id
-			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.ward = {$this->settings['tablePrefix']}areas.id
+			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.areaId = {$this->settings['tablePrefix']}areas.id
 			WHERE
 				{$this->settings['tablePrefix']}elections.endDate >= (CAST(NOW() AS DATE))
-			GROUP BY {$this->settings['tablePrefix']}candidates.ward
-			ORDER BY {$this->settings['tablePrefix']}candidates.ward
+			GROUP BY {$this->settings['tablePrefix']}candidates.areaId
+			ORDER BY {$this->settings['tablePrefix']}candidates.areaId
 		;";
 		if (!$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas")) {
 			return false;
@@ -1725,7 +1726,7 @@ class elections
 		# Get the data
 		$query = "SELECT
 				{$this->settings['tablePrefix']}candidates.*,
-				ward as areaId,
+				areaId,
 				{$this->settings['tablePrefix']}affiliations.id as affiliationId,
 				{$this->settings['tablePrefix']}affiliations.name as affiliation,
 				{$this->settings['tablePrefix']}affiliations.colour,
@@ -1735,11 +1736,11 @@ class elections
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}affiliations ON {$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['tablePrefix']}affiliations.id
 			WHERE
 				    verification = :verification
-				AND ward = :ward
+				AND areaId = :areaId
 		;";
 		$preparedStatementValues = array (
 			'verification'	=> $number,
-			'ward'		=> $area,
+			'areaId'	=> $area,
 		);
 		if (!$data = $this->databaseConnection->getOne ($query, false, true, $preparedStatementValues)) {
 			return false;
@@ -1781,11 +1782,11 @@ class elections
 				{$this->settings['tablePrefix']}affiliations.colour
 			FROM {$this->settings['tablePrefix']}responses
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}candidates ON {$this->settings['tablePrefix']}responses.candidate = {$this->settings['tablePrefix']}candidates.id
-			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.ward = {$this->settings['tablePrefix']}areas.id
+			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.areaId = {$this->settings['tablePrefix']}areas.id
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}affiliations ON {$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['tablePrefix']}affiliations.id
 			WHERE
 				election = '{$this->election['id']}'
-			ORDER BY ward,surname
+			ORDER BY areaId,surname
 		;";
 		$respondents = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}responses");
 		
@@ -2363,7 +2364,7 @@ class elections
 		}
 		
 		# Define the required fields
-		$requiredFields = array ('forename', 'surname', 'ward', 'affiliation', 'address', 'email');
+		$requiredFields = array ('forename', 'surname', 'areaId', 'affiliation', 'address', 'email');
 		
 		# Create a new form
 		require_once ('ultimateForm.php');
@@ -2650,7 +2651,7 @@ class elections
 			'required'		=> true,
 		));
 		$form->select (array (
-			'name'			=> 'ward',
+			'name'			=> 'areaId',
 			'title'			=> 'Which area',
 			'values'		=> $this->getAreaNames (),
 			'required'		=> true,
@@ -2678,7 +2679,7 @@ class elections
 		# Define standard data for each entry in the survey
 		$constraints = array (
 			'election'	=> $result['election'],
-			'ward'		=> $result['ward'],
+			'areaId'	=> $result['areaId'],
 		);
 		
 		# Construct the list of entries for the survey
@@ -2698,7 +2699,7 @@ class elections
 		}
 		
 		# Confirm success
-		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['election']}/{$result['ward']}/\">survey</a> has been added.</p>";
+		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['election']}/{$result['areaId']}/\">survey</a> has been added.</p>";
 		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
 		
 		# Return the HTML
@@ -2748,7 +2749,7 @@ class elections
 		));
 		$form->textarea (array (
 			'name'			=> 'allocations',
-			'title'			=> 'Enter the allocations, as areaname[tab]q1[tab]q2, etc., per line',
+			'title'			=> 'Enter the allocations, as areaId[tab]q1[tab]q2, etc., per line',
 			'required'		=> true,
 			'cols'			=> 80,
 			'rows'			=> 10,
@@ -2760,7 +2761,7 @@ class elections
 		}
 		
 		# Compile the SQL
-		$sql  = "INSERT INTO {$this->settings['tablePrefix']}surveys (election,ward,question) VALUES \n";
+		$sql  = "INSERT INTO {$this->settings['tablePrefix']}surveys (election,areaId,question) VALUES \n";
 		$areas = explode ("\n", trim ($result['allocations']));
 		$set = array ();
 		foreach ($areas as $area) {
