@@ -90,15 +90,15 @@ class elections
 				'admingroup' => 'election',
 				'election' => true,
 			),
-			'showwards'		=> array (
-				'description' => 'Show existing wards/divisions',
-				'url' => 'admin/showwards.html',
+			'showareas'		=> array (
+				'description' => 'Show existing areas',
+				'url' => 'admin/showareas.html',
 				'administrator' => true,
 				'admingroup' => 'wards',
 			),
-			'addward'		=> array (
-				'description' => 'Add a ward/division',
-				'url' => 'admin/addward.html',
+			'addarea'		=> array (
+				'description' => 'Add an area',
+				'url' => 'admin/addarea.html',
 				'administrator' => true,
 				'admingroup' => 'wards',
 			),
@@ -2175,8 +2175,8 @@ class elections
 	}
 	
 	
-	# Function to add a ward
-	public function addward ()
+	# Function to add an area
+	public function addarea ()
 	{
 		# Start the HTML
 		$html = '';
@@ -2215,17 +2215,17 @@ class elections
 			$html .= "\n<p>Add another?</p>";
 		}
 		
-		# Show existing wards
-		$html .= "\n<h3 id=\"existing\">Existing wards</h3>";
-		$html .= $this->showwards ();
+		# Show existing areas
+		$html .= "\n<h3 id=\"existing\">Existing areas</h3>";
+		$html .= $this->showareas ();
 		
 		# Return the HTML
 		return $html;
 	}
 	
 	
-	# Function to show exiting wards
-	public function showwards ()
+	# Function to show existing areas
+	public function showareas ()
 	{
 		# Get the data for all wards in the database
 		$wards = $this->getAllWards ();
@@ -2236,7 +2236,7 @@ class elections
 		
 		# Render as HTML
 		$headings = $this->databaseConnection->getHeadings ($this->settings['database'], "{$this->settings['tablePrefix']}wards");
-		$html .= application::htmlTable ($wards, $headings, 'showwards lines compressed', $keyAsFirstColumn = false, false, false, false, $addCellClasses = true);
+		$html .= application::htmlTable ($wards, $headings, 'showareas lines compressed', $keyAsFirstColumn = false, false, false, false, $addCellClasses = true);
 		
 		# Return the HTML
 		return $html;
@@ -2325,7 +2325,7 @@ class elections
 		
 		# Render as HTML
 		$headings = $this->databaseConnection->getHeadings ($this->settings['database'], "{$this->settings['tablePrefix']}affiliations");
-		$html .= application::htmlTable ($affiliations, $headings, 'showwards lines compressed', $keyAsFirstColumn = false, false, $allowHtml = array ('colour'));
+		$html .= application::htmlTable ($affiliations, $headings, 'lines compressed', $keyAsFirstColumn = false, false, $allowHtml = array ('colour'));
 		
 		# Return the HTML
 		return $html;

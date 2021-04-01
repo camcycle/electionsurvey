@@ -19,7 +19,7 @@
 #elections table.responserates td:first-child {width: 20em;}
 #elections p.allresponseslink {text-align: right; font-size: 0.83em; margin: 0; padding: 0; position: relative; top: -0.5em; opacity: 0.7;}
 #elections div.electionform table td:first-child {width: 350px;}
-#elections table.showwards .ward {background-color: #eee;}
+#elections table.showareas .ward {background-color: #eee;}
 @media print {
 	#elections {font-size: 10pt;}
 	#elections #location, #elections .navigation, #elections h1, #elections h2, #elections #footer {display: none;}
