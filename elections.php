@@ -784,7 +784,7 @@ class elections
 		$html  = "\n<h2>{$election['name']}" . ($this->ward ? ': ' . $this->wardName ($this->ward) : '') . "</h2>";
 		$table['Summary'] = (!$this->ward ? $election['description'] : "<a href=\"{$this->baseUrl}/{$election['id']}/\">{$election['description']}</a>");
 		$table['Polling date'] = $election['polling date'];
-		if ($this->ward) {$table['Ward'] = $this->droplistNavigation (true);}
+		if ($this->ward) {$table[ ucfirst ($election['division']) ] = $this->droplistNavigation (true);}
 		
 		# List the candidates
 		if ($this->ward) {
@@ -1551,7 +1551,7 @@ class elections
 		# Show the candidate's data
 		$table['Election'] = $this->election['name'];
 		$table['Election date'] = $this->election['polling date'];
-		$table['Ward'] = $wardName;
+		$table[ ucfirst ($this->election['division']) ] = $wardName;
 		$table['Name'] = $candidate['name'];
 		$table['Affiliation'] = "<span style=\"color: #{$candidate['colour']};\">" . htmlspecialchars ($candidate['affiliation']) . '</span>';
 		$html .= application::htmlTableKeyed ($table, array (), true, 'lines', $allowHtml = true);
@@ -1861,7 +1861,7 @@ class elections
 				'Candidate' => str_replace (' &nbsp;(', '<br />(', $candidate['_name']),
 				'Responded?' => (isSet ($responses[$candidateId]) ? "<a href=\"{$surveyLink}\"><strong>Yes - view responses</strong></a>" : '<span class="warning"><strong>No</strong>, the candidate ' . ($this->election['active'] ? 'has not (yet) responded' : 'did not respond') . '</span>'),
 				'Post' => $candidate['cabinetRestanding'],
-				'Ward' => "<a href=\"{$surveyLink}\">" . $candidate['ward'] . '</a>',
+				ucfirst ($this->election['division']) => "<a href=\"{$surveyLink}\">" . $candidate['ward'] . '</a>',
 			);
 		}
 		
