@@ -1056,7 +1056,7 @@ class elections
 		# Get data
 		$query = "SELECT
 				{$this->settings['tablePrefix']}candidates.id as id,
-				{$this->settings['tablePrefix']}candidates.ward as wardId,
+				{$this->settings['tablePrefix']}candidates.ward as areaId,
 				{$this->settings['tablePrefix']}candidates.elected,
 				{$this->settings['tablePrefix']}candidates.cabinetRestanding,
 				private, prefix,
@@ -1075,7 +1075,7 @@ class elections
 				election = '{$this->election['id']}'
 				" . ($inAreas ? " AND {$this->settings['tablePrefix']}candidates.ward IN('" . implode ("','", $inAreas) . "')" : ($onlyArea ? "AND {$this->settings['tablePrefix']}candidates.ward = '{$onlyArea['id']}'" : '')) . "
 				" . ($cabinetRestanding ? " AND ({$this->settings['tablePrefix']}candidates.cabinetRestanding IS NOT NULL AND {$this->settings['tablePrefix']}candidates.cabinetRestanding != '')" : '') . "
-			ORDER BY " . ($inAreas ? 'affiliation,surname,forename' : ($all ? 'wardId,surname' : 'surname,forename')) . "
+			ORDER BY " . ($inAreas ? 'affiliation,surname,forename' : ($all ? 'areaId,surname' : 'surname,forename')) . "
 		;";
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas");
 		
@@ -1133,7 +1133,7 @@ class elections
 		}
 		
 		# Regroup by area
-		$data = ((!$limitToArea && !$this->election) ? array ('_all' => $data) : application::regroup ($data, 'wardId', $removeGroupColumn = false));
+		$data = ((!$limitToArea && !$this->election) ? array ('_all' => $data) : application::regroup ($data, 'areaId', $removeGroupColumn = false));
 		
 		# Get responses from candidates if there are candidates
 		$responses = false;
@@ -1273,7 +1273,7 @@ class elections
 			}
 			
 			# Set a unique ID for use in the table, including the flag for whether the candidate is elected
-			$id = $candidate['wardId'] . '_' . $candidate['affiliationId'] . $multiPersonAreasIdSuffix . ($candidate['elected'] ? ' elected' : '');
+			$id = $candidate['areaId'] . '_' . $candidate['affiliationId'] . $multiPersonAreasIdSuffix . ($candidate['elected'] ? ' elected' : '');
 			if ($candidate['elected']) {$showsElected++;}
 			
 			# Assemble the name of the candidate
@@ -1343,7 +1343,7 @@ class elections
 		} else {
 			$query = "SELECT
 					{$this->settings['tablePrefix']}surveys.id as id,
-					{$this->settings['tablePrefix']}surveys.ward as wardId,
+					{$this->settings['tablePrefix']}surveys.ward as areaId,
 					{$this->settings['tablePrefix']}questions.id as questionId,
 					{$this->settings['tablePrefix']}questions.question,
 					{$this->settings['tablePrefix']}questions.links,
@@ -1539,7 +1539,7 @@ class elections
 		$this->election = $this->elections[$candidate['electionId']];
 		
 		# Create a shortcut to the area name
-		$areaName = $areas[$candidate['wardId']];
+		$areaName = $areas[$candidate['areaId']];
 		
 		# Start the page with a new heading
 		$html  = "\n\n<h2 class=\"area\" id=\"{$areaName}\">Questions for {$areaName} {$this->election['division']} candidates</h2>";
@@ -1558,7 +1558,7 @@ class elections
 		$html .= application::htmlTableKeyed ($table, array (), true, 'lines', $allowHtml = true);
 		
 		# Get the questions for this candidate's area
-		if (!$questions = $this->getQuestions ($candidate['wardId'], $candidate['electionId'])) {
+		if (!$questions = $this->getQuestions ($candidate['areaId'], $candidate['electionId'])) {
 			return $html .= "\n<p>There are no questions assigned for this {$this->election['division']} at present.</p>";
 		}
 		
@@ -1569,7 +1569,7 @@ class elections
 		
 		# Prevent updates after the results are visible
 		if ($responses && $this->election['resultsVisible']) {
-			return $html .= "<p>You have previously submitted a set of responses, which is now <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['wardId']}/\">shown online</a>, so submissions cannot be made any longer. Thank you for taking part.</p>";
+			return $html .= "<p>You have previously submitted a set of responses, which is now <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['areaId']}/\">shown online</a>, so submissions cannot be made any longer. Thank you for taking part.</p>";
 		}
 		
 		# Build up the template
@@ -1669,9 +1669,9 @@ class elections
 		$action = ($responses ? 'entering' : 'updating');
 		$html  = "\n<div class=\"graybox\">";
 		if ($this->election['resultsVisible']) {
-			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> <strong>Thank you for {$action} your responses.</strong> They are now <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['wardId']}/\">shown online</a>, along with those of other candidates.</p>";
+			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> <strong>Thank you for {$action} your responses.</strong> They are now <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['areaId']}/\">shown online</a>, along with those of other candidates.</p>";
 		} else {
-			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> <strong>Thank you for {$action} your responses.</strong> They will be <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['wardId']}/\">shown online</a>, along with those of other candidates, at {$this->election['visibilityDateTime']}.</p>";
+			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> <strong>Thank you for {$action} your responses.</strong> They will be <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['areaId']}/\">shown online</a>, along with those of other candidates, at {$this->election['visibilityDateTime']}.</p>";
 			$html .= "\n<p>You can <a href=\"{$this->baseUrl}/submit/\">update your submission</a> using the same webpage at any time before {$this->election['visibilityDateTime']}.</p>";
 		}
 		$html .= "\n</div>";
@@ -1694,7 +1694,7 @@ class elections
 		# Get data
 		$query = "SELECT
 				{$this->settings['tablePrefix']}candidates.id,
-				{$this->settings['tablePrefix']}candidates.ward as wardId,
+				{$this->settings['tablePrefix']}candidates.ward as areaId,
 				prefix, {$this->settings['tablePrefix']}areas.ward
 			FROM {$this->settings['tablePrefix']}candidates
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}elections ON {$this->settings['tablePrefix']}candidates.election = {$this->settings['tablePrefix']}elections.id
@@ -1711,7 +1711,7 @@ class elections
 		# Rearrange as key=>value
 		$areas = array ();
 		foreach ($data as $key => $values) {
-			$areas[$values['wardId']] = $this->areaName ($values);
+			$areas[$values['areaId']] = $this->areaName ($values);
 		}
 		
 		# Return the data
@@ -1725,7 +1725,7 @@ class elections
 		# Get the data
 		$query = "SELECT
 				{$this->settings['tablePrefix']}candidates.*,
-				ward as wardId,
+				ward as areaId,
 				{$this->settings['tablePrefix']}affiliations.id as affiliationId,
 				{$this->settings['tablePrefix']}affiliations.name as affiliation,
 				{$this->settings['tablePrefix']}affiliations.colour,
@@ -1773,7 +1773,7 @@ class elections
 		$query = "SELECT
 				{$this->settings['tablePrefix']}candidates.id,
 				CONCAT({$this->settings['tablePrefix']}candidates.forename,' ',UPPER({$this->settings['tablePrefix']}candidates.surname)) as name,
-				{$this->settings['tablePrefix']}areas.id as wardId,
+				{$this->settings['tablePrefix']}areas.id as areaId,
 				{$this->settings['tablePrefix']}areas.prefix,
 				{$this->settings['tablePrefix']}areas.ward,
 				{$this->settings['tablePrefix']}areas.districtCouncil,
@@ -1793,7 +1793,7 @@ class elections
 		$total = count ($respondents);
 		
 		# Regroup the data by area
-		$areas = application::regroup ($respondents, 'wardId', false);
+		$areas = application::regroup ($respondents, 'areaId', false);
 		
 		# Determine the total number of candidates standing and the response rate
 		$totalCandidates = count ($allCandidates);
@@ -1861,7 +1861,7 @@ class elections
 		# Create a table
 		$cabinetMembers = array ();
 		foreach ($this->cabinetRestanding as $candidateId => $candidate) {
-			$surveyLink = "{$this->baseUrl}/{$this->election['id']}/{$candidate['wardId']}/";
+			$surveyLink = "{$this->baseUrl}/{$this->election['id']}/{$candidate['areaId']}/";
 			$cabinetMembers[] = array (
 				'Candidate' => str_replace (' &nbsp;(', '<br />(', $candidate['_name']),
 				'Responded?' => (isSet ($responses[$candidateId]) ? "<a href=\"{$surveyLink}\"><strong>Yes - view responses</strong></a>" : '<span class="warning"><strong>No</strong>, the candidate ' . ($this->election['active'] ? 'has not (yet) responded' : 'did not respond') . '</span>'),
@@ -2859,7 +2859,7 @@ class elections
 		}
 		
 		# Regroup
-		$candidatesByArea = application::regroup ($candidates, 'wardId', $removeGroupColumn = false);
+		$candidatesByArea = application::regroup ($candidates, 'areaId', $removeGroupColumn = false);
 		
 		# Determine which candidates have responded
 		$candidateIdsResponded = $this->getCandidateIdsResponded ($this->election['id']);
@@ -3057,8 +3057,8 @@ class elections
 		ini_set ('max_execution_time', 3600);
 		
 		# Regroup
-		$surveys = application::regroup ($surveys, 'wardId', $removeGroupColumn = false);
-		$candidates = application::regroup ($candidates, 'wardId', $removeGroupColumn = false);
+		$surveys = application::regroup ($surveys, 'areaId', $removeGroupColumn = false);
+		$candidates = application::regroup ($candidates, 'areaId', $removeGroupColumn = false);
 		
 		# Start an HTML output and list of e-mails
 		$outputHtml = '';
