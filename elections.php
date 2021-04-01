@@ -320,23 +320,23 @@ class elections
 		$this->election = ((isSet ($_GET['election']) && isSet ($this->elections[$_GET['election']])) ? $this->elections[$_GET['election']] : false);
 		
 		# Get the wards available for this election (or false if no wards)
-		$this->ward = false;
-		$this->wards = array ();
+		$this->area = false;
+		$this->areas = array ();
 		if ($this->election) {
-			$this->wards = $this->getWardsForElection ($this->election['id']);
+			$this->areas = $this->getWardsForElection ($this->election['id']);
 			
 			# Determine which ward
-			$this->ward = ((isSet ($_GET['ward']) && isSet ($this->wards[$_GET['ward']])) ? $this->wards[$_GET['ward']] : false);
+			$this->area = ((isSet ($_GET['ward']) && isSet ($this->areas[$_GET['ward']])) ? $this->areas[$_GET['ward']] : false);
 		}
 		
 		# Get the candidates standing in this election for this ward (or false if no candidates)
 		$this->candidate = false;
 		$this->candidates = array ();
-		if ($this->ward) {
-			$this->candidates = $this->getCandidates (false, $this->ward);
+		if ($this->area) {
+			$this->candidates = $this->getCandidates (false, $this->area);
 			
 			# Determine which ward
-			$this->candidate = ((isSet ($_GET['candidate']) && isSet ($this->wards[$_GET['candidate']])) ? $this->candidates[$_GET['candidate']] : false);
+			$this->candidate = ((isSet ($_GET['candidate']) && isSet ($this->areas[$_GET['candidate']])) ? $this->candidates[$_GET['candidate']] : false);
 		}
 		
 		# Determine if there are any restanding Cabinet members in this election
@@ -617,7 +617,7 @@ class elections
 		}
 		
 		# Validate the ward
-		if (!$this->ward) {
+		if (!$this->area) {
 			header ('HTTP/1.0 404 Not Found');
 			$html = '<p>There is no such ' . $this->election['division'] . ' being contested in this election. Please check the URL and try again.</p>';
 			return $html;
@@ -632,7 +632,7 @@ class elections
 		$html .= $this->summaryTable ($this->election);
 		
 		# List the questions asked
-		$html .= $this->showQuestions ($this->ward['id']);
+		$html .= $this->showQuestions ($this->area['id']);
 		
 		# Return the HTML
 		return $html;
@@ -781,18 +781,18 @@ class elections
 	private function summaryTable ($election)
 	{
 		# Compile the HTML
-		$html  = "\n<h2>{$election['name']}" . ($this->ward ? ': ' . $this->wardName ($this->ward) : '') . "</h2>";
-		$table['Summary'] = (!$this->ward ? $election['description'] : "<a href=\"{$this->baseUrl}/{$election['id']}/\">{$election['description']}</a>");
+		$html  = "\n<h2>{$election['name']}" . ($this->area ? ': ' . $this->wardName ($this->area) : '') . "</h2>";
+		$table['Summary'] = (!$this->area ? $election['description'] : "<a href=\"{$this->baseUrl}/{$election['id']}/\">{$election['description']}</a>");
 		$table['Polling date'] = $election['polling date'];
-		if ($this->ward) {$table[ ucfirst ($election['division']) ] = $this->droplistNavigation (true);}
+		if ($this->area) {$table[ ucfirst ($election['division']) ] = $this->droplistNavigation (true);}
 		
 		# List the candidates
-		if ($this->ward) {
+		if ($this->area) {
 			$table['Candidates<br />(by surname)'] = $this->showCandidates ($election);
 		}
 		
 		# Show the respondents
-		if (!$this->ward) {
+		if (!$this->area) {
 			$table['Questions'] = "<a href=\"{$this->baseUrl}/{$election['id']}/questions/\">" . ($election['active'] ? '' : '<strong><img src="/images/icons/bullet_go.png" class="icon" /> ') . 'Index of all questions for this election' . ($election['active'] ? '' : '</strong>') .  '</a>';
 			$table['Respondents'] = "<a href=\"{$this->baseUrl}/{$election['id']}/respondents.html\">" . ($election['active'] ? '<strong><img src="/images/icons/bullet_go.png" class="icon" /> ' : '') . 'Index of all respondents' . ($election['active'] ? ' (so far)' : '') .  '</a>';
 			if ($this->cabinetRestanding) {
@@ -948,8 +948,8 @@ class elections
 		
 		# In wards-only mode, if there is only one ward, just return its name - no point showing the jumplist
 		if ($wardsOnly) {
-			if (count ($this->wards) == 1) {
-				$ward = application::array_first_value ($this->wards);
+			if (count ($this->areas) == 1) {
+				$ward = application::array_first_value ($this->areas);
 				$html = $this->wardName ($ward);
 				return $html;
 			}
@@ -970,7 +970,7 @@ class elections
 		}
 		
 		# Add each ward
-		foreach ($this->wards as $key => $ward) {
+		foreach ($this->areas as $key => $ward) {
 			$location = "{$this->baseUrl}/{$this->election['id']}/{$ward['id']}/";
 			$list[$location] = $this->wardName ($ward, $convertEntities = false);
 		}
@@ -1109,8 +1109,8 @@ class elections
 		
 		# Construct the HTML
 		$html  = '';
-		// $html .= "<h3>Candidates standing for " . $this->wardName ($this->ward) . ' ' . $election['division'] . '</h3>';
-		// $html .= "\n<p>The following candidates (listed in surname order) are standing for " . $this->wardName ($this->ward) . ' ' . $election['division'] . '</p>';
+		// $html .= "<h3>Candidates standing for " . $this->wardName ($this->area) . ' ' . $election['division'] . '</h3>';
+		// $html .= "\n<p>The following candidates (listed in surname order) are standing for " . $this->wardName ($this->area) . ' ' . $election['division'] . '</p>';
 		$html .= application::htmlUl ($list, 0, 'nobullet' . ($this->settings['showAddresses'] ? ' spaced' : ''));
 		
 		# Return the HTML
@@ -1127,7 +1127,7 @@ class elections
 		# Get the data
 		$electionId = ($limitToWard ? $this->election['id'] : false);
 		if (!$data = $this->getQuestions ($limitToWard, $electionId)) {
-			$wardName = $this->wards[$limitToWard]['_name'];
+			$wardName = $this->areas[$limitToWard]['_name'];
 			$html .= "\n\n<h3 class=\"ward\" id=\"{$wardName}\">Questions for {$wardName} {$this->election['division']} candidates</h3>";
 			return $html .= "\n<p>There are no questions assigned for this {$this->election['division']} at present.</p>";
 		}
@@ -1151,7 +1151,7 @@ class elections
 			
 			# Miss out if no candidates in a ward
 			#!# Need to fix for /elections/%election/questions.html where ward has no candidates, e.g. 2007may:girton
-			// if ($limitToWard && !isSet ($this->wards[$ward])) {continue;}
+			// if ($limitToWard && !isSet ($this->areas[$ward])) {continue;}
 			
 			# Count the questions
 			$totalQuestions = count ($questions);
@@ -1159,7 +1159,7 @@ class elections
 			# Show the ward heading
 			if ($this->election && $ward != '_all') {
 				#!# Ward may not exist if no candidates
-				$wardName = $this->wards[$ward]['_name'];
+				$wardName = $this->areas[$ward]['_name'];
 				$questionsHtml .= "\n\n<h3 class=\"ward\" id=\"{$ward}\">Questions for {$wardName} {$this->election['division']} candidates ({$totalQuestions} questions)</h3>";
 				$wardsHtml[] = "<a href=\"#{$ward}\">{$wardName} {$this->election['division']}</a> ({$totalQuestions} questions)";
 			}
@@ -1216,7 +1216,7 @@ class elections
 		$html .= $this->questionBox ($question);
 		
 		# Determine the number of wards in this election
-		$totalWardsExisting = count ($this->wards);
+		$totalWardsExisting = count ($this->areas);
 		
 		# Add a link to all responses in other wards if required
 		if ($questionNumberPublic) {
@@ -1237,7 +1237,7 @@ class elections
 		if ($crossWardMode) {
 			$wardNames = array ();
 			foreach ($crossWardMode as $ward) {
-				$wardNames[] = $this->wards[$ward]['_name'];
+				$wardNames[] = $this->areas[$ward]['_name'];
 			}
 			sort ($wardNames);
 			$totalWardsAsked = count ($wardNames);
@@ -1809,10 +1809,10 @@ class elections
 		$html .= $responseRatesByDistrictTable;
 		$html .= $responseRatesByPartyTable;
 		$html .= "\n<p><em>This list is ordered by {$this->election['division']} and then surname.</em></p>";
-		foreach ($this->wards as $ward => $attributes) {
-			$html .= "<h4><a href=\"{$this->baseUrl}/{$this->election['id']}/{$ward}/\">{$this->wards[$ward]['_name']} <span>[view responses]</span></a>:</h4>";
+		foreach ($this->areas as $ward => $attributes) {
+			$html .= "<h4><a href=\"{$this->baseUrl}/{$this->election['id']}/{$ward}/\">{$this->areas[$ward]['_name']} <span>[view responses]</span></a>:</h4>";
 			if (!isSet ($wards[$ward])) {
-				$html .= "\n<p class=\"noresponse faded\"><em>No candidate for {$this->wards[$ward]['_name']} has yet submitted a response.</em></p>";
+				$html .= "\n<p class=\"noresponse faded\"><em>No candidate for {$this->areas[$ward]['_name']} has yet submitted a response.</em></p>";
 			} else {
 				$candidates = $wards[$ward];
 				$candidateList = array ();
@@ -3067,7 +3067,7 @@ class elections
 		foreach ($surveys as $ward => $questionnaire) {
 			
 			# Miss out if no candidates in a ward; a warning is shown if none, in case of trailing spaces, etc.
-			if (!isSet ($this->wards[$ward])) {
+			if (!isSet ($this->areas[$ward])) {
 				$html .= "\n<p class=\"warning\">Warning: No candidates for <em>{$ward}</em> ward.</p>";
 				continue;
 			}
