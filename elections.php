@@ -94,13 +94,13 @@ class elections
 				'description' => 'Show existing areas',
 				'url' => 'admin/showareas.html',
 				'administrator' => true,
-				'admingroup' => 'wards',
+				'admingroup' => 'areas',
 			),
 			'addarea'		=> array (
 				'description' => 'Add an area',
 				'url' => 'admin/addarea.html',
 				'administrator' => true,
-				'admingroup' => 'wards',
+				'admingroup' => 'areas',
 			),
 			'showaffiliations'	=> array (
 				'description' => 'Show/edit existing political parties/groups',
@@ -1998,7 +1998,7 @@ class elections
 				'icon' => 'application_view_list',
 				'introduction' => 'To run a survey for an election, you need to create settings for that election, defining its name, date, and other details.',
 			),
-			'wards' => array (
+			'areas' => array (
 				'title' => '2. Geographical areas',
 				'icon' => 'map',
 				'introduction' => 'In order to create a survey, you need to ensure that each geographical area exists in the database. Once added, these areas are then available for any survey you create for any election.',
