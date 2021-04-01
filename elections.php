@@ -319,11 +319,11 @@ class elections
 		# Determine which election
 		$this->election = ((isSet ($_GET['election']) && isSet ($this->elections[$_GET['election']])) ? $this->elections[$_GET['election']] : false);
 		
-		# Get the wards available for this election (or false if no wards)
+		# Get the areas available for this election (or false if no areas)
 		$this->area = false;
 		$this->areas = array ();
 		if ($this->election) {
-			$this->areas = $this->getWardsForElection ($this->election['id']);
+			$this->areas = $this->getAreasForElection ($this->election['id']);
 			
 			# Determine which ward
 			$this->area = ((isSet ($_GET['ward']) && isSet ($this->areas[$_GET['ward']])) ? $this->areas[$_GET['ward']] : false);
@@ -913,8 +913,8 @@ class elections
 	
 	
 	
-	# Function to get wards being contested in an election
-	private function getWardsForElection ($electionId)
+	# Function to get areas being contested in an election
+	private function getAreasForElection ($electionId)
 	{
 		# Get data
 		$query = "SELECT
@@ -1013,8 +1013,8 @@ class elections
 		$html  = "\n\n" . '<h2><img src="/images/general/next.jpg" width="20" height="20" alt="&gt;" border="0" /> Candidates\' responses for each ' . $election['division'] . '</h2>';
 		$html .= "\n<p>The following " . $election['divisionPlural'] . " being contested are those for which we have sent questions to candidates:</p>";
 		
-		# Get the wards for this election
-		$wards = $this->getWardsForElection ($election['id']);
+		# Get the areas for this election
+		$wards = $this->getAreasForElection ($election['id']);
 		
 		# Get the data
 		if (!$wards) {
@@ -1476,8 +1476,8 @@ class elections
 		# Start the HTML
 		$html = '';
 		
-		# Get the list of all wards currently being surveyed
-		if (!$wards = $this->getActiveWards ()) {
+		# Get the list of all areas currently being surveyed
+		if (!$wards = $this->getActiveAreas ()) {
 			$html .= "\n<p>No areas are currently being surveyed.</p>";
 			return $html;
 		}
@@ -1687,8 +1687,8 @@ class elections
 	}
 	
 	
-	# Function to get active wards across all current elections
-	private function getActiveWards ()
+	# Function to get active areas across all current elections
+	private function getActiveAreas ()
 	{
 		# Get data
 		$query = "SELECT
@@ -2227,8 +2227,8 @@ class elections
 	# Function to show existing areas
 	public function showareas ()
 	{
-		# Get the data for all wards in the database
-		$wards = $this->getAllWards ();
+		# Get the data for all areas in the database
+		$wards = $this->getAllAreas ();
 		
 		# Start the HTML with the total
 		$totalWards = count ($wards);
@@ -2243,8 +2243,8 @@ class elections
 	}
 	
 	
-	# Function to get all wards in the database
-	private function getAllWards ()
+	# Function to get all areas in the database
+	private function getAllAreas ()
 	{
 		# Get and return the data
 		$showFields = array ('id', 'prefix', 'ward', 'districtCouncil', 'countyCouncil', 'parishes', 'districtCouncillors', 'countyCouncillors');
@@ -2386,8 +2386,8 @@ class elections
 					$form->registerProblem ('tsvinvalid', $errorMessage);
 				}
 				
-				# Verify ward names
-				$wards = $this->getWardNames ();
+				# Verify area names
+				$wards = $this->getAreaNames ();
 				$unknownWards = array ();
 				foreach ($data as $candidate) {
 					if (!array_key_exists ($candidate['ward'], $wards)) {
@@ -2647,7 +2647,7 @@ class elections
 		$form->select (array (
 			'name'			=> 'ward',
 			'title'			=> 'Which ward',
-			'values'		=> $this->getWardNames (),
+			'values'		=> $this->getAreaNames (),
 			'required'		=> true,
 		));
 		$form->select (array (
@@ -2701,8 +2701,8 @@ class elections
 	}
 	
 	
-	# Function to get a list of ward IDs and names
-	private function getWardNames ()
+	# Function to get a list of area IDs and names
+	private function getAreaNames ()
 	{
 		return $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}wards", array (), array ('id', "CONCAT_WS(' ', prefix, ward) AS name"), true, $orderBy = 'name');
 	}
