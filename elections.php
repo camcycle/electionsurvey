@@ -471,8 +471,8 @@ class elections
 			
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}areas` (
 			  `id` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Unique key',
-			  `prefix` varchar(255) collate utf8_unicode_ci default NULL COMMENT 'Ward name prefix',
-			  `ward` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Ward name',
+			  `prefix` varchar(255) collate utf8_unicode_ci default NULL COMMENT 'Area name prefix',
+			  `areaName` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Area name',
 			  `districtCouncil` enum('','Cambridge City Council','South Cambridgeshire District Council','East Cambridgeshire District Council','Fenland District Council','Huntingdonshire District Council') collate utf8_unicode_ci default NULL COMMENT 'District council',
 			  `countyCouncil` enum('','Cambridgeshire County Council') collate utf8_unicode_ci default NULL COMMENT 'County Council',
 			  `parishes` varchar(255) collate utf8_unicode_ci default NULL COMMENT 'Parishes incorporated',
@@ -920,13 +920,13 @@ class elections
 		$query = "SELECT
 				{$this->settings['tablePrefix']}candidates.ward AS id,
 				{$this->settings['tablePrefix']}areas.prefix,
-				{$this->settings['tablePrefix']}areas.ward,
+				{$this->settings['tablePrefix']}areas.areaName,
 				COUNT({$this->settings['tablePrefix']}areas.id) AS 'candidates'
 			FROM {$this->settings['tablePrefix']}candidates
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.ward = {$this->settings['tablePrefix']}areas.id
 			WHERE election REGEXP '^({$electionId})$'
-			GROUP BY {$this->settings['tablePrefix']}areas.ward
-			ORDER BY {$this->settings['tablePrefix']}areas.ward
+			GROUP BY {$this->settings['tablePrefix']}areas.areaName
+			ORDER BY {$this->settings['tablePrefix']}areas.areaName
 		;";
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas");
 		
@@ -1042,11 +1042,11 @@ class elections
 		# Convert entities if required
 		if ($convertEntities) {
 			$area['prefix'] = htmlspecialchars ($area['prefix']);
-			$area['ward'] = htmlspecialchars ($area['ward']);
+			$area['areaName'] = htmlspecialchars ($area['areaName']);
 		}
 		
 		# Construct and return the area name
-		return (!empty ($area['prefix']) ? $area['prefix'] . ' ' : '') . $area['ward'];
+		return (!empty ($area['prefix']) ? $area['prefix'] . ' ' : '') . $area['areaName'];
 	}
 	
 	
@@ -1060,7 +1060,7 @@ class elections
 				{$this->settings['tablePrefix']}candidates.elected,
 				{$this->settings['tablePrefix']}candidates.cabinetRestanding,
 				private, prefix,
-				{$this->settings['tablePrefix']}areas.ward,
+				{$this->settings['tablePrefix']}areas.areaName,
 				{$this->settings['tablePrefix']}areas.districtCouncil,
 				forename, surname, verification, address,
 				{$this->settings['tablePrefix']}affiliations.id AS affiliationId,
@@ -1349,7 +1349,7 @@ class elections
 					{$this->settings['tablePrefix']}questions.links,
 					{$this->settings['tablePrefix']}questions.highlight,
 					{$this->settings['tablePrefix']}areas.prefix,
-					{$this->settings['tablePrefix']}areas.ward
+					{$this->settings['tablePrefix']}areas.areaName
 				FROM {$this->settings['tablePrefix']}surveys
 				LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}surveys.ward = {$this->settings['tablePrefix']}areas.id
 				LEFT OUTER JOIN {$this->settings['tablePrefix']}questions ON {$this->settings['tablePrefix']}surveys.question = {$this->settings['tablePrefix']}questions.id
@@ -1695,7 +1695,7 @@ class elections
 		$query = "SELECT
 				{$this->settings['tablePrefix']}candidates.id,
 				{$this->settings['tablePrefix']}candidates.ward as areaId,
-				prefix, {$this->settings['tablePrefix']}areas.ward
+				prefix, {$this->settings['tablePrefix']}areas.areaName
 			FROM {$this->settings['tablePrefix']}candidates
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}elections ON {$this->settings['tablePrefix']}candidates.election = {$this->settings['tablePrefix']}elections.id
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.ward = {$this->settings['tablePrefix']}areas.id
@@ -1775,7 +1775,7 @@ class elections
 				CONCAT({$this->settings['tablePrefix']}candidates.forename,' ',UPPER({$this->settings['tablePrefix']}candidates.surname)) as name,
 				{$this->settings['tablePrefix']}areas.id as areaId,
 				{$this->settings['tablePrefix']}areas.prefix,
-				{$this->settings['tablePrefix']}areas.ward,
+				{$this->settings['tablePrefix']}areas.areaName,
 				{$this->settings['tablePrefix']}areas.districtCouncil,
 				{$this->settings['tablePrefix']}affiliations.name as affiliation,
 				{$this->settings['tablePrefix']}affiliations.colour
@@ -1866,7 +1866,7 @@ class elections
 				'Candidate' => str_replace (' &nbsp;(', '<br />(', $candidate['_name']),
 				'Responded?' => (isSet ($responses[$candidateId]) ? "<a href=\"{$surveyLink}\"><strong>Yes - view responses</strong></a>" : '<span class="warning"><strong>No</strong>, the candidate ' . ($this->election['active'] ? 'has not (yet) responded' : 'did not respond') . '</span>'),
 				'Post' => $candidate['cabinetRestanding'],
-				ucfirst ($this->election['areaType']) => "<a href=\"{$surveyLink}\">" . $candidate['ward'] . '</a>',
+				ucfirst ($this->election['areaType']) => "<a href=\"{$surveyLink}\">" . $candidate['areaName'] . '</a>',
 			);
 		}
 		
@@ -2252,8 +2252,8 @@ class elections
 	private function getAllAreas ()
 	{
 		# Get and return the data
-		$showFields = array ('id', 'prefix', 'ward', 'districtCouncil', 'countyCouncil', 'parishes', 'districtCouncillors', 'countyCouncillors');
-		return $this->databaseConnection->select ($this->settings['database'], "{$this->settings['tablePrefix']}areas", array (), $showFields, true, $orderBy = 'ward');
+		$showFields = array ('id', 'prefix', 'areaName', 'districtCouncil', 'countyCouncil', 'parishes', 'districtCouncillors', 'countyCouncillors');
+		return $this->databaseConnection->select ($this->settings['database'], "{$this->settings['tablePrefix']}areas", array (), $showFields, true, $orderBy = 'areaName');
 	}
 	
 	
@@ -2395,8 +2395,8 @@ class elections
 				$areas = $this->getAreaNames ();
 				$unknownAreas = array ();
 				foreach ($data as $candidate) {
-					if (!array_key_exists ($candidate['ward'], $areas)) {
-						$unknownAreas[] = $candidate['ward'];
+					if (!array_key_exists ($candidate['areaName'], $areas)) {
+						$unknownAreas[] = $candidate['areaName'];
 					}
 				}
 				if ($unknownAreas) {
@@ -2709,7 +2709,7 @@ class elections
 	# Function to get a list of area IDs and names
 	private function getAreaNames ()
 	{
-		return $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}areas", array (), array ('id', "CONCAT_WS(' ', prefix, ward) AS name"), true, $orderBy = 'name');
+		return $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}areas", array (), array ('id', "CONCAT_WS(' ', prefix, areaName) AS name"), true, $orderBy = 'name');
 	}
 	
 	
@@ -2869,7 +2869,7 @@ class elections
 		foreach ($candidatesByArea as $areaId => $candidatesThisArea) {
 			foreach ($candidatesThisArea as $candidateId => $candidate) {
 				if (in_array ($candidateId, $candidateIdsResponded)) {continue;}
-				$areaName = $candidate['ward'] . ':';
+				$areaName = $candidate['areaName'] . ':';
 				$areaCandidates[$areaName][$candidateId] = $candidate['name'] . '  (' . $candidate['affiliation'] . ')';
 			}
 		}
@@ -3276,8 +3276,8 @@ class elections
 			return $html .= '<p>There are no candidates at present.</p>';
 		}
 		
-		# Arrange the candidates by area
-		$candidates = application::regroup ($candidates, 'ward', false);
+		# Arrange the candidates by area name
+		$candidates = application::regroup ($candidates, 'areaName', false);
 		
 		# Arrange to be added to a multi-select
 		$candidatesByArea = array ();
