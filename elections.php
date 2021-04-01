@@ -718,7 +718,7 @@ class elections
 		# Loop through each question
 		$list = array ();
 		foreach ($questions as $questionNumber => $question) {
-			$questionHtml = htmlspecialchars ($question['question']);
+			$questionHtml = nl2br (htmlspecialchars ($question['question']));
 			$questionHtml = $this->applyHighlighting ($questionHtml, $question['highlight']);
 			$list[] = $questionHtml . "<br /><a href=\"{$this->baseUrl}/{$this->election['id']}/questions/{$questionNumber}/\">Read all answers&hellip;</a>";
 		}
@@ -1212,7 +1212,7 @@ class elections
 		*/
 		
 		# Add the question box at the top
-		$question['question'] = htmlspecialchars ($question['question']);
+		$question['question'] = nl2br (htmlspecialchars ($question['question']));
 		$html .= $this->questionBox ($question);
 		
 		# Determine the number of wards in this election
@@ -1581,7 +1581,7 @@ class elections
 		foreach ($questions as $key => $question) {
 			$i++;
 			$template .= "\n\n<h4 class=\"question\"> Question {$i}" . ($showIds ? " &nbsp;[survey-id#{$key}]" : '') . '</h4>';
-			$question['question'] = htmlspecialchars ($question['question']);
+			$question['question'] = nl2br (htmlspecialchars ($question['question']));
 			$template .= $this->questionBox ($question);
 			$template .= "\n<p>Your response:</p>";
 			$template .= "{question{$key}}";
@@ -1605,7 +1605,7 @@ class elections
 			$i++;
 			$fieldname = "question{$key}";
 			$fields[] = $fieldname;
-			$question['question'] = htmlspecialchars ($question['question']);
+			$question['question'] = nl2br (htmlspecialchars ($question['question']));
 			$form->textarea (array (
 				'name'			=> $fieldname,
 				'title'			=> "Question {$i} - {$question['question']}",
@@ -2601,7 +2601,7 @@ class elections
 		# Assemble as a list
 		$list = array ();
 		foreach ($recentQuestions as $id => $question) {
-			$list[$id] = '<span class="comment">#' . $id . ': </span>' . $this->applyHighlighting (htmlspecialchars ($question['question']), $question['highlight']);
+			$list[$id] = '<span class="comment">#' . $id . ': </span>' . $this->applyHighlighting (nl2br (htmlspecialchars ($question['question'])), $question['highlight']);
 		}
 		
 		# Compile the HTML
@@ -3184,7 +3184,7 @@ class elections
 		foreach ($questionnaire as $question) {
 			$i++;
 			$html .= '<hr />';
-			$question['question'] = htmlspecialchars ($question['question']);
+			$question['question'] = nl2br (htmlspecialchars ($question['question']));
 			$html .= "\n<p><strong>Question {$i}</strong>: {$question['question']}</p>";
 			$html .= "\n" . $this->formatLinks ($question['links'], true);
 			$html .= "\n<p>Your response (ideally, please submit this online - see above) :</p>";
