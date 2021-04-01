@@ -326,7 +326,7 @@ class elections
 			$this->areas = $this->getAreasForElection ($this->election['id']);
 			
 			# Determine which area
-			$this->area = ((isSet ($_GET['ward']) && isSet ($this->areas[$_GET['ward']])) ? $this->areas[$_GET['ward']] : false);
+			$this->area = ((isSet ($_GET['area']) && isSet ($this->areas[$_GET['area']])) ? $this->areas[$_GET['area']] : false);
 		}
 		
 		# Get the candidates standing in this election for this area (or false if no candidates)

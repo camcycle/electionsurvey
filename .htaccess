@@ -42,6 +42,6 @@ RewriteRule ^([a-z0-9]+)/(questions)/([0-9]{1,2})/$ index.php?election=$1&action
 RewriteRule ^([a-z0-9]+)/(questions)/([0-9]{1,2})$ $1/$2/$3/ [R=301,L]
 
 # Overview page for an area in an election
-RewriteRule ^([a-z0-9]+)/([a-z0-9]+)/$ index.php?election=$1&ward=$2&action=area [L]
+RewriteRule ^([a-z0-9]+)/([a-z0-9]+)/$ index.php?election=$1&area=$2&action=area [L]
 RewriteRule ^([a-z0-9]+)/([a-z0-9]+)$ $1/$2/ [R=301,L]
 
