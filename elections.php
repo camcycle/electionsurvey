@@ -725,7 +725,7 @@ class elections
 		
 		# Compile the HTML
 		$html  = "\n<h2>List of questions</h2>";
-		$html .= "\n<p>Here is a list of all the questions (across all wards) we have asked for this election:</p>";
+		$html .= "\n<p>Here is a list of all the questions (across all {$this->election['divisionPlural']}) we have asked for this election:</p>";
 		$html .= application::htmlOl ($list, 0, 'spaced');
 		
 		# Return the HTML
@@ -796,7 +796,7 @@ class elections
 			$table['Questions'] = "<a href=\"{$this->baseUrl}/{$election['id']}/questions/\">" . ($election['active'] ? '' : '<strong><img src="/images/icons/bullet_go.png" class="icon" /> ') . 'Index of all questions for this election' . ($election['active'] ? '' : '</strong>') .  '</a>';
 			$table['Respondents'] = "<a href=\"{$this->baseUrl}/{$election['id']}/respondents.html\">" . ($election['active'] ? '<strong><img src="/images/icons/bullet_go.png" class="icon" /> ' : '') . 'Index of all respondents' . ($election['active'] ? ' (so far)' : '') .  '</a>';
 			if ($this->cabinetRestanding) {
-				$table['Cabinet'] = "<a href=\"{$this->baseUrl}/{$election['id']}/cabinet.html\">Cabinet members in surveyed wards restanding in this election</a>";
+				$table['Cabinet'] = "<a href=\"{$this->baseUrl}/{$election['id']}/cabinet.html\">Cabinet members in surveyed {$election['divisionPlural']} restanding in this election</a>";
 			}
 		}
 		
@@ -1246,7 +1246,7 @@ class elections
 				$html .= "\n<p>We asked this question:</p>";
 			} else {
 				$everyAreaAsked = ($totalAreasExisting == $totalAreasAsked);
-				$html .= "\n<p>We asked this question " . ($everyAreaAsked ? "in <strong>all {$totalAreasAsked} {$this->election['divisionPlural']}</strong>, namely: " : ($totalAreasAsked > 1 ? "in these <strong>{$totalAreasAsked} wards</strong>: " : 'only in ')) . implode (', ', $areaNames) . '.</p>';
+				$html .= "\n<p>We asked this question " . ($everyAreaAsked ? "in <strong>all {$totalAreasAsked} {$this->election['divisionPlural']}</strong>, namely: " : ($totalAreasAsked > 1 ? "in these <strong>{$totalAreasAsked} {$this->election['divisionPlural']}</strong>: " : 'only in ')) . implode (', ', $areaNames) . '.</p>';
 			}
 			$totalCandidates = count ($candidates);
 			$totalResponses = count ($responses);
@@ -2167,7 +2167,7 @@ class elections
 			'attributes' => array (
 				'id' => array ('editable' => (!$data), 'current' => $currentIds, 'regexp' => '^[a-z0-9]+$', 'placeholder' => 'E.g. ' . date ('Y') . 'election', ),
 				'name' => array ('placeholder' => 'E.g. Elections to Placeford Council, ' . date ('Y')),
-				'startDate' => array ('description' => 'This is the date when candidates can start to enter their responses, assuming that questions, wards, etc., are all loaded. This must not be before the start date of the election, to avoid accusations of unfairness from undeclared candidates.'),
+				'startDate' => array ('description' => 'This is the date when candidates can start to enter their responses, assuming that questions, areas, etc., are all loaded. This must not be before the start date of the election, to avoid accusations of unfairness from undeclared candidates.'),
 				'resultsDate' => array ('description' => 'This is the date when responses from candidates will become visible to the general public. Admins can log in and see responses before this date. Candidates can edit any existing response they have made until this date.'),
 				'endDate' => array ('description' => 'This is the date of the election, and candidates will not be able to edit their responses after this date.'),
 				'description' => array ('placeholder' => 'E.g. Elections to Placeford Council in May ' . date ('Y')),
@@ -2748,7 +2748,7 @@ class elections
 		));
 		$form->textarea (array (
 			'name'			=> 'allocations',
-			'title'			=> 'Enter the allocations, as wardname[tab]q1[tab]q2, etc., per line',
+			'title'			=> 'Enter the allocations, as areaname[tab]q1[tab]q2, etc., per line',
 			'required'		=> true,
 			'cols'			=> 80,
 			'rows'			=> 10,
@@ -3073,7 +3073,7 @@ class elections
 			
 			# Miss out if no candidates in an area; a warning is shown if none, in case of trailing spaces, etc.
 			if (!isSet ($this->areas[$area])) {
-				$html .= "\n<p class=\"warning\">Warning: No candidates for <em>{$area}</em> ward.</p>";
+				$html .= "\n<p class=\"warning\">Warning: No candidates for <em>{$area}</em> {$this->election['division']}.</p>";
 				continue;
 			}
 			
@@ -3304,7 +3304,7 @@ class elections
 		$i = 0;
 		foreach ($candidatesByArea as $areaName => $candidates) {
 			$form->select (array (
-				'name'			=> 'ward' . $i++,
+				'name'			=> 'area' . $i++,
 				'title'			=> $areaName,
 				'values'		=> $candidates,
 				'default'		=> $elected[$areaName],
