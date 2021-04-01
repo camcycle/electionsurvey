@@ -60,7 +60,7 @@ class elections
 				'election' => true,
 			),
 			'cabinet'		=> array (
-				'description' => 'Cabinet members in surveyed wards restanding in this election',
+				'description' => 'Cabinet members in surveyed areas restanding in this election',
 				'url' => 'cabinet.html',
 				'election' => true,
 			),
@@ -1850,7 +1850,7 @@ class elections
 		# End if no Cabinet members restanding in this election
 		if (!$this->cabinetRestanding) {
 			header ('HTTP/1.0 404 Not Found');
-			$html .= '<p>There are no Cabinet members in wards we are surveying restanding in this election. Please check the URL and try again.</p>';
+			$html .= "\n<p>There are no Cabinet members in {$this->election['divisionPlural']} we are surveying restanding in this election. Please check the URL and try again.</p>";
 			return $html;
 		}
 		
@@ -1872,7 +1872,7 @@ class elections
 		
 		# Compile the HTML
 		$html .= "\n<p>The <strong>Cabinet</strong> is the Executive of the Council, formed of members of the political party in power. They implement and drive the Council's policy. As such, their views arguably have greater effect than any other Councillors.</p>";
-		$html .= "\n<p>The listing below shows all the Cabinet members in wards we are surveying who are restanding in this election, and whether they have responded to our survey or not.</p>";
+		$html .= "\n<p>The listing below shows all the Cabinet members in {$this->election['divisionPlural']} we are surveying who are restanding in this election, and whether they have responded to our survey or not.</p>";
 		$html .= application::htmlTable ($cabinetMembers, array (), 'lines regulated', $keyAsFirstColumn = false, false, $allowHtml = true, $showColons = true);
 		
 		# Return the HTML
