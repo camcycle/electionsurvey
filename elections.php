@@ -1734,10 +1734,14 @@ class elections
 			FROM {$this->settings['tablePrefix']}candidates
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}affiliations ON {$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['tablePrefix']}affiliations.id
 			WHERE
-				verification = '" . addslashes ($number) . "'
-				AND ward = '" . addslashes ($area) . "'
+				    verification = :verification
+				AND ward = :ward
 		;";
-		if (!$data = $this->databaseConnection->getOne ($query)) {
+		$preparedStatementValues = array (
+			'verification'	=> $number,
+			'ward'		=> $area,
+		);
+		if (!$data = $this->databaseConnection->getOne ($query, false, true, $preparedStatementValues)) {
 			return false;
 		}
 		
