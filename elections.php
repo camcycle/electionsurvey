@@ -1484,7 +1484,7 @@ class elections
 		}
 		
 		# Determine whether a (validly-structured) second-stage submission has been made
-		$secondStagePosted = (isSet ($_POST['questions']) && is_array ($_POST['questions']) && isSet ($_POST['questions']['verification']) && is_array ($_POST['questions']['verification']) && isSet ($_POST['questions']['verification']['number']) && isSet ($_POST['questions']['verification']['ward']));
+		$secondStagePosted = (isSet ($_POST['questions']) && is_array ($_POST['questions']) && isSet ($_POST['questions']['verification']) && is_array ($_POST['questions']['verification']) && isSet ($_POST['questions']['verification']['number']) && isSet ($_POST['questions']['verification']['area']));
 		
 		# Load the form
 		require_once ('ultimateForm.php');
@@ -1511,7 +1511,7 @@ class elections
 				'regexp'		=> '^([0-9]{6})$',
 			));
 			$form->select (array (
-				'name'			=> 'ward',
+				'name'			=> 'area',
 				'title'			=> 'Area',
 				'required'		=> 1,
 				#!# Remove this hack
@@ -1526,7 +1526,7 @@ class elections
 		
 		# Determine the number and area to be checked
 		$number = ($secondStagePosted ? $_POST['questions']['verification']['number'] : $result['number']);
-		$area = ($secondStagePosted ? $_POST['questions']['verification']['ward'] : $result['ward']);
+		$area = ($secondStagePosted ? $_POST['questions']['verification']['area'] : $result['area']);
 		
 		# Confirm the details
 		#!# Use getUnfinalised to improve the UI here
@@ -1624,7 +1624,7 @@ class elections
 			'name' => 'verification',
 			'values' => array (
 				'number' => ($secondStagePosted ? htmlspecialchars ($_POST['questions']['verification']['number']) : $result['number']),
-				'ward' => ($secondStagePosted ? htmlspecialchars ($_POST['questions']['verification']['ward']) : $result['ward']),
+				'area' => ($secondStagePosted ? htmlspecialchars ($_POST['questions']['verification']['area']) : $result['area']),
 			),
 		));
 		
