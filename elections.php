@@ -325,17 +325,17 @@ class elections
 		if ($this->election) {
 			$this->areas = $this->getAreasForElection ($this->election['id']);
 			
-			# Determine which ward
+			# Determine which area
 			$this->area = ((isSet ($_GET['ward']) && isSet ($this->areas[$_GET['ward']])) ? $this->areas[$_GET['ward']] : false);
 		}
 		
-		# Get the candidates standing in this election for this ward (or false if no candidates)
+		# Get the candidates standing in this election for this area (or false if no candidates)
 		$this->candidate = false;
 		$this->candidates = array ();
 		if ($this->area) {
 			$this->candidates = $this->getCandidates (false, $this->area);
 			
-			# Determine which ward
+			# Determine which candidate
 			$this->candidate = ((isSet ($_GET['candidate']) && isSet ($this->areas[$_GET['candidate']])) ? $this->candidates[$_GET['candidate']] : false);
 		}
 		
@@ -573,7 +573,7 @@ class elections
 		# Add introduction
 		$html  = $this->settings['introductoryTextHtml'];
 		
-		# Add the summary table and wards
+		# Add the summary table and areas
 		$html .= "<p class=\"graphic\"><img src=\"/elections/pollingstations.jpg\" width=\"89\" height=\"121\" alt=\"Ballot box\" /></p>";
 		$html .= $this->showOverviewDetails ($this->election);
 		
@@ -582,13 +582,13 @@ class elections
 	}
 	
 	
-	# Function to show the summary table and wards
+	# Function to show the summary table and areas
 	private function showOverviewDetails ($election)
 	{
 		# Table of data about the election
 		$html  = $this->summaryTable ($election);
 		
-		# List wards
+		# List areas
 		$html .= $this->areasListing ($election);
 		
 		# Show administrative options for this election
@@ -609,14 +609,14 @@ class elections
 		# Start the HTML
 		$html = '';
 		
-		# Validate the ward
+		# Validate the election
 		if (!$this->election) {
 			header ('HTTP/1.0 404 Not Found');
 			$html = '<p>There is no such election. Please check the URL and try again.</p>';
 			return $html;
 		}
 		
-		# Validate the ward
+		# Validate the area
 		if (!$this->area) {
 			header ('HTTP/1.0 404 Not Found');
 			$html = '<p>There is no such ' . $this->election['division'] . ' being contested in this election. Please check the URL and try again.</p>';
@@ -690,22 +690,22 @@ class elections
 		
 		#!# This section is over-complex and involves multiple SQL lookups, for the sake of avoiding code duplication in responsesBlock (which has a certain datastructure) - ideally there would be a single OUTER JOIN that would list all candidates and show the responses where the candidate has answered, but this means duplicating lookups like candidate['_name']
 		
-		# Get the wards (and their associated survey IDs) where this question was asked
-		$wardsQuery = "SELECT id,ward FROM {$this->settings['tablePrefix']}surveys WHERE question = {$question['questionId']} AND election = '{$this->election['id']}';";
-		$wards = $this->databaseConnection->getPairs ($wardsQuery);
+		# Get the areas (and their associated survey IDs) where this question was asked
+		$areasQuery = "SELECT id,ward FROM {$this->settings['tablePrefix']}surveys WHERE question = {$question['questionId']} AND election = '{$this->election['id']}';";
+		$areas = $this->databaseConnection->getPairs ($areasQuery);
 		
 		# Get the candidates having this question
-		$candidates = $this->getCandidates (false, false, $wards);
+		$candidates = $this->getCandidates (false, false, $areas);
 		
 		# Get the responses
-		$surveyIds = array_keys ($wards);
+		$surveyIds = array_keys ($areas);
 		$candidateIds = array_keys ($candidates);
 		$responses = $this->getResponses ($surveyIds, $candidateIds);
 		
 		# Start the HTML with the question
 		$html .= "\n<p><em>&laquo; Back to <a href=\"{$this->baseUrl}/{$this->election['id']}/questions/\">list of all {$total} questions</a> for this election</em></p>";
 		$html .= "\n<h2>Question {$questionNumber} - we asked:</h2>";
-		$html .= $this->responsesBlock ($question, $candidates, $responses, $wards);
+		$html .= $this->responsesBlock ($question, $candidates, $responses, $areas);
 		
 		# Return the HTML
 		return $html;
@@ -777,7 +777,7 @@ class elections
 	}
 	
 	
-	# Function to create a ward summary
+	# Function to create an area summary
 	private function summaryTable ($election)
 	{
 		# Compile the HTML
@@ -930,9 +930,9 @@ class elections
 		;";
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas");
 		
-		# Add in the constructed ward name
-		foreach ($data as $key => $ward) {
-			$data[$key]['_name'] = $this->areaName ($ward);
+		# Add in the constructed area name
+		foreach ($data as $key => $area) {
+			$data[$key]['_name'] = $this->areaName ($area);
 		}
 		
 		# Return the data
@@ -941,23 +941,23 @@ class elections
 	
 	
 	# Function to add a droplist navigation
-	private function droplistNavigation ($wardsOnly = false)
+	private function droplistNavigation ($areasOnly = false)
 	{
 		# Start the HTML
 		$html = '';
 		
-		# In wards-only mode, if there is only one ward, just return its name - no point showing the jumplist
-		if ($wardsOnly) {
+		# In areas-only mode, if there is only one area, just return its name - no point showing the jumplist
+		if ($areasOnly) {
 			if (count ($this->areas) == 1) {
-				$ward = application::array_first_value ($this->areas);
-				$html = $this->areaName ($ward);
+				$area = application::array_first_value ($this->areas);
+				$html = $this->areaName ($area);
 				return $html;
 			}
 		}
 		
 		# Start the list
 		$list = array ();
-		if (!$wardsOnly) {
+		if (!$areasOnly) {
 			$list["{$this->baseUrl}/{$this->election['id']}/"] = 'Overview page';
 			$list["{$this->baseUrl}/{$this->election['id']}/questions/"] = 'Questions index';
 			$list["{$this->baseUrl}/{$this->election['id']}/respondents.html"] = 'Respondents';
@@ -969,10 +969,10 @@ class elections
 			}
 		}
 		
-		# Add each ward
-		foreach ($this->areas as $key => $ward) {
-			$location = "{$this->baseUrl}/{$this->election['id']}/{$ward['id']}/";
-			$list[$location] = $this->areaName ($ward, $convertEntities = false);
+		# Add each area
+		foreach ($this->areas as $key => $area) {
+			$location = "{$this->baseUrl}/{$this->election['id']}/{$area['id']}/";
+			$list[$location] = $this->areaName ($area, $convertEntities = false);
 		}
 		
 		# Set the current page as the selected item
@@ -986,17 +986,17 @@ class elections
 		# Convert to a droplist
 		#!# NB This doesn't work in IE7, probably because the window.location.href presumably needs a full URL rather than a location; fix needed upstream in pureContent library
 		$submitTo = "{$this->baseUrl}/{$this->election['id']}/";
-		$html = application::htmlJumplist ($list, $selected, $submitTo, 'jumplist', $parentTabLevel = 3, ($wardsOnly ? '' : 'jumplist'), ($wardsOnly ? '' : 'Jump to:'));
+		$html = application::htmlJumplist ($list, $selected, $submitTo, 'jumplist', $parentTabLevel = 3, ($areasOnly ? '' : 'jumplist'), ($areasOnly ? '' : 'Jump to:'));
 		
 		# Show directions to polling stations if required under the main jumplist
 		if ($this->election['votingToday']) {
-			if (!$wardsOnly) {
+			if (!$areasOnly) {
 				$html .= "<p class=\"directionsbutton\"><a class=\"actions right\" href=\"{$this->election['directionsUrl']}\">" . '<img src="/images/icons/map.png" class="icon" /> Cycle to your polling station - get directions</a></p>';
 			}
 		}
 		
 		# Surround with a div
-		if (!$wardsOnly) {
+		if (!$areasOnly) {
 			$html = "\n<div class=\"navigation\">\n" . $html . "\n</div>";
 		}
 		
@@ -1014,18 +1014,18 @@ class elections
 		$html .= "\n<p>The following " . $election['divisionPlural'] . " being contested are those for which we have sent questions to candidates:</p>";
 		
 		# Get the areas for this election
-		$wards = $this->getAreasForElection ($election['id']);
+		$areas = $this->getAreasForElection ($election['id']);
 		
 		# Get the data
-		if (!$wards) {
+		if (!$areas) {
 			return $html .= "\n<p>There are no " . $election['divisionPlural'] . " being contested.</p>";
 		}
 		
 		# Construct the HTML
-		foreach ($wards as $key => $ward) {
-			$wardName = $this->areaName ($ward);
-			$candidates = "({$ward['candidates']} " . ($ward['candidates'] == 1 ? 'candidate' : 'candidates') . " standing)";
-			$list[$key] = "<a href=\"{$this->baseUrl}/{$election['id']}/{$ward['id']}/\">{$wardName}</a> {$candidates}";
+		foreach ($areas as $key => $area) {
+			$areaName = $this->areaName ($area);
+			$candidates = "({$area['candidates']} " . ($area['candidates'] == 1 ? 'candidate' : 'candidates') . " standing)";
+			$list[$key] = "<a href=\"{$this->baseUrl}/{$election['id']}/{$area['id']}/\">{$areaName}</a> {$candidates}";
 		}
 		
 		# Construct the HTML
@@ -1037,21 +1037,21 @@ class elections
 	
 	
 	# Function to construct an area name
-	private function areaName ($ward, $convertEntities = true)
+	private function areaName ($area, $convertEntities = true)
 	{
 		# Convert entities if required
 		if ($convertEntities) {
-			$ward['prefix'] = htmlspecialchars ($ward['prefix']);
-			$ward['ward'] = htmlspecialchars ($ward['ward']);
+			$area['prefix'] = htmlspecialchars ($area['prefix']);
+			$area['ward'] = htmlspecialchars ($area['ward']);
 		}
 		
-		# Construct and return the ward name
-		return (!empty ($ward['prefix']) ? $ward['prefix'] . ' ' : '') . $ward['ward'];
+		# Construct and return the area name
+		return (!empty ($area['prefix']) ? $area['prefix'] . ' ' : '') . $area['ward'];
 	}
 	
 	
 	# Function to get candidates in an election
-	private function getCandidates ($all = false, $onlyWard = false, $inWards = false, $cabinetRestanding = false)
+	private function getCandidates ($all = false, $onlyArea = false, $inAreas = false, $cabinetRestanding = false)
 	{
 		# Get data
 		$query = "SELECT
@@ -1062,7 +1062,7 @@ class elections
 				private, prefix,
 				{$this->settings['tablePrefix']}areas.ward,
 				{$this->settings['tablePrefix']}areas.districtCouncil,
-				forename, surname, verification, address, 
+				forename, surname, verification, address,
 				{$this->settings['tablePrefix']}affiliations.id AS affiliationId,
 				{$this->settings['tablePrefix']}affiliations.name as affiliation,
 				{$this->settings['tablePrefix']}affiliations.colour,
@@ -1073,9 +1073,9 @@ class elections
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.ward = {$this->settings['tablePrefix']}areas.id
 			WHERE
 				election = '{$this->election['id']}'
-				" . ($inWards ? " AND {$this->settings['tablePrefix']}candidates.ward IN('" . implode ("','", $inWards) . "')" : ($onlyWard ? "AND {$this->settings['tablePrefix']}candidates.ward = '{$onlyWard['id']}'" : '')) . "
+				" . ($inAreas ? " AND {$this->settings['tablePrefix']}candidates.ward IN('" . implode ("','", $inAreas) . "')" : ($onlyArea ? "AND {$this->settings['tablePrefix']}candidates.ward = '{$onlyArea['id']}'" : '')) . "
 				" . ($cabinetRestanding ? " AND ({$this->settings['tablePrefix']}candidates.cabinetRestanding IS NOT NULL AND {$this->settings['tablePrefix']}candidates.cabinetRestanding != '')" : '') . "
-			ORDER BY " . ($inWards ? 'affiliation,surname,forename' : ($all ? 'wardId,surname' : 'surname,forename')) . "
+			ORDER BY " . ($inAreas ? 'affiliation,surname,forename' : ($all ? 'wardId,surname' : 'surname,forename')) . "
 		;";
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas");
 		
@@ -1091,7 +1091,7 @@ class elections
 	}
 	
 	
-	# Function to show candidates in a ward
+	# Function to show candidates in an area
 	private function showCandidates ($election)
 	{
 		# Get the data
@@ -1119,27 +1119,27 @@ class elections
 	
 	
 	# Function to show questions
-	private function showQuestions ($limitToWard = false /* will be false if listing all questions across all elections */)
+	private function showQuestions ($limitToArea = false /* will be false if listing all questions across all elections */)
 	{
 		# Start the HTML
 		$html = '';
 		
 		# Get the data
-		$electionId = ($limitToWard ? $this->election['id'] : false);
-		if (!$data = $this->getQuestions ($limitToWard, $electionId)) {
-			$wardName = $this->areas[$limitToWard]['_name'];
-			$html .= "\n\n<h3 class=\"ward\" id=\"{$wardName}\">Questions for {$wardName} {$this->election['division']} candidates</h3>";
+		$electionId = ($limitToArea ? $this->election['id'] : false);
+		if (!$data = $this->getQuestions ($limitToArea, $electionId)) {
+			$areaName = $this->areas[$limitToArea]['_name'];
+			$html .= "\n\n<h3 class=\"area\" id=\"{$areaName}\">Questions for {$areaName} {$this->election['division']} candidates</h3>";
 			return $html .= "\n<p>There are no questions assigned for this {$this->election['division']} at present.</p>";
 		}
 		
-		# Regroup by ward
-		$data = ((!$limitToWard && !$this->election) ? array ('_all' => $data) : application::regroup ($data, 'wardId', $removeGroupColumn = false));
+		# Regroup by area
+		$data = ((!$limitToArea && !$this->election) ? array ('_all' => $data) : application::regroup ($data, 'wardId', $removeGroupColumn = false));
 		
 		# Get responses from candidates if there are candidates
 		$responses = false;
 		if ($this->candidates) {
-			$wardSurveyIds = array_keys ($data[$limitToWard]);
-			$responses = $this->getResponses ($wardSurveyIds);
+			$areaSurveyIds = array_keys ($data[$limitToArea]);
+			$responses = $this->getResponses ($areaSurveyIds);
 		}
 		
 		# Get all the question index numbers in use in this election - i.e. the public numbers 1,2,3.. (as shown on the question index page) rather than the internal IDs
@@ -1147,21 +1147,22 @@ class elections
 		
 		# Loop through each grouping
 		$questionsHtml = '';
-		foreach ($data as $ward => $questions) {
+		$areasHtml = array ();
+		foreach ($data as $area => $questions) {
 			
-			# Miss out if no candidates in a ward
-			#!# Need to fix for /elections/%election/questions.html where ward has no candidates, e.g. 2007may:girton
-			// if ($limitToWard && !isSet ($this->areas[$ward])) {continue;}
+			# Miss out if no candidates in an area
+			#!# Need to fix for /elections/%election/questions.html where area has no candidates, e.g. 2007may:girton
+			// if ($limitToArea && !isSet ($this->areas[$area])) {continue;}
 			
 			# Count the questions
 			$totalQuestions = count ($questions);
 			
-			# Show the ward heading
-			if ($this->election && $ward != '_all') {
-				#!# Ward may not exist if no candidates
-				$wardName = $this->areas[$ward]['_name'];
-				$questionsHtml .= "\n\n<h3 class=\"ward\" id=\"{$ward}\">Questions for {$wardName} {$this->election['division']} candidates ({$totalQuestions} questions)</h3>";
-				$wardsHtml[] = "<a href=\"#{$ward}\">{$wardName} {$this->election['division']}</a> ({$totalQuestions} questions)";
+			# Show the area heading
+			if ($this->election && $area != '_all') {
+				#!# Area may not exist if no candidates
+				$areaName = $this->areas[$area]['_name'];
+				$questionsHtml .= "\n\n<h3 class=\"area\" id=\"{$area}\">Questions for {$areaName} {$this->election['division']} candidates ({$totalQuestions} questions)</h3>";
+				$areasHtml[] = "<a href=\"#{$area}\">{$areaName} {$this->election['division']}</a> ({$totalQuestions} questions)";
 			}
 			
 			# Construct the HTML
@@ -1170,10 +1171,10 @@ class elections
 			$list = array ();
 			foreach ($questions as $surveyId => $question) {
 				$i++;
-				$link = "question{$i}" . (!$limitToWard && $this->election ? $ward : '');
+				$link = "question{$i}" . (!$limitToArea && $this->election ? $area : '');
 				$questionsJumplist[] = "<strong><a href=\"#{$link}\">&nbsp;{$i}&nbsp;</a></strong>";
 				$questionNumberPublic = $questionNumbersPublic[$question['questionId']];
-				$list[$surveyId]  = "\n\n<h4 class=\"question\" id=\"{$link}\"><a href=\"#{$link}\">#</a> Question {$i}" . ($limitToWard ? '' : " &nbsp;[survey-id#{$surveyId}]") . '</h4>';	// In all-listing mode (i.e. admins-only), show the IDs
+				$list[$surveyId]  = "\n\n<h4 class=\"question\" id=\"{$link}\"><a href=\"#{$link}\">#</a> Question {$i}" . ($limitToArea ? '' : " &nbsp;[survey-id#{$surveyId}]") . '</h4>';	// In all-listing mode (i.e. admins-only), show the IDs
 				$list[$surveyId] .= $this->responsesBlock ($question, $this->candidates, $responses, false, $questionNumberPublic);
 			}
 			
@@ -1183,10 +1184,10 @@ class elections
 		}
 		
 		# Add the questions HTML
-		if (!$limitToWard) {
+		if (!$limitToArea) {
 			$html .= "\n<p>Below is a list of " . ($this->election ? 'the questions allocated to each ' . $this->election['division'] : 'all questions available in the database') . ":</p>";
 			if ($this->election) {
-				$html .= application::htmlUl ($wardsHtml);
+				$html .= application::htmlUl ($areasHtml);
 				if ($this->userIsAdministrator) {
 					$html .= "\n<p>As an administrator you can also return to the <a href=\"{$this->baseUrl}/admin/allquestions.html\">list of all questions available in the database</a>.</p>";
 				}
@@ -1200,7 +1201,7 @@ class elections
 	
 	
 	# Function to create the block of candidate responses to a question
-	private function responsesBlock ($question, $candidates, $responses, $crossWardMode = false, $questionNumberPublic = false)
+	private function responsesBlock ($question, $candidates, $responses, $crossAreaMode = false, $questionNumberPublic = false)
 	{
 		# Start the HTML
 		$html = '';
@@ -1215,12 +1216,12 @@ class elections
 		$question['question'] = nl2br (htmlspecialchars ($question['question']));
 		$html .= $this->questionBox ($question);
 		
-		# Determine the number of wards in this election
-		$totalWardsExisting = count ($this->areas);
+		# Determine the number of areas in this election
+		$totalAreasExisting = count ($this->areas);
 		
-		# Add a link to all responses in other wards if required
+		# Add a link to all responses in other areas if required
 		if ($questionNumberPublic) {
-			if ($totalWardsExisting > 1) {
+			if ($totalAreasExisting > 1) {
 				$html .= "\n<p class=\"allresponseslink\"><a href=\"{$this->baseUrl}/{$this->election['id']}/questions/{$questionNumberPublic}/\">Responses to this question from all {$this->election['divisionPlural']}&hellip;</a></p>";
 			}
 		}
@@ -1233,19 +1234,19 @@ class elections
 			return $html .= "\n<p><em>Candidates' responses are not yet visible. Please check back here from {$this->election['visibilityDateTime']}.</em></p>";
 		}
 		
-		# State the wards and the number of responses, if in cross-ward mode
-		if ($crossWardMode) {
-			$wardNames = array ();
-			foreach ($crossWardMode as $ward) {
-				$wardNames[] = $this->areas[$ward]['_name'];
+		# State the areas and the number of responses, if in cross-area mode
+		if ($crossAreaMode) {
+			$areaNames = array ();
+			foreach ($crossAreaMode as $area) {
+				$areaNames[] = $this->areas[$area]['_name'];
 			}
-			sort ($wardNames);
-			$totalWardsAsked = count ($wardNames);
-			if ($totalWardsExisting == 1) {
+			sort ($areaNames);
+			$totalAreasAsked = count ($areaNames);
+			if ($totalAreasExisting == 1) {
 				$html .= "\n<p>We asked this question:</p>";
 			} else {
-				$everyWardAsked = ($totalWardsExisting == $totalWardsAsked);
-				$html .= "\n<p>We asked this question " . ($everyWardAsked ? "in <strong>all {$totalWardsAsked} {$this->election['divisionPlural']}</strong>, namely: " : ($totalWardsAsked > 1 ? "in these <strong>{$totalWardsAsked} wards</strong>: " : 'only in ')) . implode (', ', $wardNames) . '.</p>';
+				$everyAreaAsked = ($totalAreasExisting == $totalAreasAsked);
+				$html .= "\n<p>We asked this question " . ($everyAreaAsked ? "in <strong>all {$totalAreasAsked} {$this->election['divisionPlural']}</strong>, namely: " : ($totalAreasAsked > 1 ? "in these <strong>{$totalAreasAsked} wards</strong>: " : 'only in ')) . implode (', ', $areaNames) . '.</p>';
 			}
 			$totalCandidates = count ($candidates);
 			$totalResponses = count ($responses);
@@ -1254,9 +1255,9 @@ class elections
 		}
 		
 		# Determine if this is a election with more than one person standing per party
-		$multiPersonWards = false;
+		$multiPersonAreas = false;
 		foreach ($candidates as $candidateKey => $candidate) {
-			if (isSet ($affiliations[$candidate['affiliationId']])) {$multiPersonWards = true;}
+			if (isSet ($affiliations[$candidate['affiliationId']])) {$multiPersonAreas = true;}
 			$affiliations[$candidate['affiliationId']][$candidateKey] = 1 + (isSet ($affiliations[$candidate['affiliationId']]) ? 1 : 0);
 		}
 		
@@ -1265,14 +1266,14 @@ class elections
 		$showsElected = 0;
 		foreach ($candidates as $candidateKey => $candidate) {
 			
-			# If this is a multi-person ward election, determine the suffix to add to the unique ID below
-			$multiPersonWardsIdSuffix = '';
-			if ($multiPersonWards) {
-				$multiPersonWardsIdSuffix = '_' . $affiliations[$candidate['affiliationId']][$candidateKey];
+			# If this is a multi-person area election, determine the suffix to add to the unique ID below
+			$multiPersonAreasIdSuffix = '';
+			if ($multiPersonAreas) {
+				$multiPersonAreasIdSuffix = '_' . $affiliations[$candidate['affiliationId']][$candidateKey];
 			}
 			
 			# Set a unique ID for use in the table, including the flag for whether the candidate is elected
-			$id = $candidate['wardId'] . '_' . $candidate['affiliationId'] . $multiPersonWardsIdSuffix . ($candidate['elected'] ? ' elected' : '');
+			$id = $candidate['wardId'] . '_' . $candidate['affiliationId'] . $multiPersonAreasIdSuffix . ($candidate['elected'] ? ' elected' : '');
 			if ($candidate['elected']) {$showsElected++;}
 			
 			# Assemble the name of the candidate
@@ -1286,7 +1287,7 @@ class elections
 			
 			# If the candidate has not yet responded, state this
 			$notRespondedText = '<span class="comment">The candidate has not' . ($this->election['active'] ? ' (yet)' : '') . ' responded to the survey.</span>';
-			if ($crossWardMode) {	// Here we don't know the survey ID, but there is always one entry if it exists at all; so we check for existence then retrieve the surveyId
+			if ($crossAreaMode) {	// Here we don't know the survey ID, but there is always one entry if it exists at all; so we check for existence then retrieve the surveyId
 				if (!isSet ($responses[$candidateKey])) {
 					if ($this->election['active']) {	// Omit the not-responded text after the election - all we care about from that point is what people said, not who didn't give a response
 						$responsesList[$id] = array ('name' => $name, 'answer' => $notRespondedText);
@@ -1313,7 +1314,7 @@ class elections
 		}
 		
 		# Compile the HTML as a keyed table
-		if ($crossWardMode && $showsElected) {
+		if ($crossAreaMode && $showsElected) {
 			$html .= "\n<p>Those candidate(s) which were elected are <span class=\"elected\">highlighted</span>.</p>";
 		}
 		$html .= application::htmlTable ($responsesList, array (), 'lines questions', false, false, $allowHtml = true, false, false, $addRowKeyClasses = true, array (), false, $showHeadings = false);
@@ -1332,13 +1333,13 @@ class elections
 	
 	
 	# Function to get all questions being asked
-	private function getQuestions ($ward = false, $election = false, $groupByQuestionId = false)
+	private function getQuestions ($area = false, $election = false, $groupByQuestionId = false)
 	{
 		# If there is not an election specified, i.e. top-level listing of all questions, retrieve all available questions
 		if (!$election) {
 			$query = "SELECT *, id AS questionId FROM {$this->settings['tablePrefix']}questions;";
 			
-		# Otherwise get surveys by ward
+		# Otherwise get surveys by area
 		} else {
 			$query = "SELECT
 					{$this->settings['tablePrefix']}surveys.id as id,
@@ -1353,7 +1354,7 @@ class elections
 				LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}surveys.ward = {$this->settings['tablePrefix']}areas.id
 				LEFT OUTER JOIN {$this->settings['tablePrefix']}questions ON {$this->settings['tablePrefix']}surveys.question = {$this->settings['tablePrefix']}questions.id
 				WHERE election = '{$election}'
-				" . ($ward ? "AND {$this->settings['tablePrefix']}surveys.ward = '{$ward}'" : '') . "
+				" . ($area ? "AND {$this->settings['tablePrefix']}surveys.ward = '{$area}'" : '') . "
 				" . ($groupByQuestionId ? "GROUP BY questionId" : '') . "
 				ORDER BY " . ($groupByQuestionId ? 'questionId' : "{$this->settings['tablePrefix']}surveys.ward,ordering,{$this->settings['tablePrefix']}surveys.id") . "
 			;";
@@ -1477,7 +1478,7 @@ class elections
 		$html = '';
 		
 		# Get the list of all areas currently being surveyed
-		if (!$wards = $this->getActiveAreas ()) {
+		if (!$areas = $this->getActiveAreas ()) {
 			$html .= "\n<p>No areas are currently being surveyed.</p>";
 			return $html;
 		}
@@ -1514,7 +1515,7 @@ class elections
 				'title'			=> 'Area',
 				'required'		=> 1,
 				#!# Remove this hack
-				'values'		=> str_replace ('&amp;', '&', $wards),
+				'values'		=> str_replace ('&amp;', '&', $areas),
 			));
 			
 			# Process the form or end
@@ -1523,25 +1524,25 @@ class elections
 			}
 		}
 		
-		# Determine the number and ward to be checked
+		# Determine the number and area to be checked
 		$number = ($secondStagePosted ? $_POST['questions']['verification']['number'] : $result['number']);
-		$ward = ($secondStagePosted ? $_POST['questions']['verification']['ward'] : $result['ward']);
+		$area = ($secondStagePosted ? $_POST['questions']['verification']['ward'] : $result['ward']);
 		
 		# Confirm the details
 		#!# Use getUnfinalised to improve the UI here
-		if (!$candidate = $this->verifyCandidate ($number, $ward)) {
-			$html .= "\n<p>The verification/area pair you submitted does not seem to be correct. Please check the letter/e-mail we sent you and <a href=\"{$this->baseUrl}/submit/\">try again</a>.</p>";
+		if (!$candidate = $this->verifyCandidate ($number, $area)) {
+			$html .= "\n<p>The verification/area pair you submitted does not seem to be correct. Please check the e-mail/letter we sent you and <a href=\"{$this->baseUrl}/submit/\">try again</a>.</p>";
 			return $html;
 		}
 		
 		# Retrieve and cache the election data
 		$this->election = $this->elections[$candidate['electionId']];
 		
-		# Create a shortcut to the ward name
-		$wardName = $wards[$candidate['wardId']];
+		# Create a shortcut to the area name
+		$areaName = $areas[$candidate['wardId']];
 		
 		# Start the page with a new heading
-		$html  = "\n\n<h2 class=\"ward\" id=\"{$wardName}\">Questions for {$wardName} {$this->election['division']} candidates</h2>";
+		$html  = "\n\n<h2 class=\"area\" id=\"{$areaName}\">Questions for {$areaName} {$this->election['division']} candidates</h2>";
 		
 		# End if election is over
 		if (!$this->election['active']) {
@@ -1551,12 +1552,12 @@ class elections
 		# Show the candidate's data
 		$table['Election'] = $this->election['name'];
 		$table['Election date'] = $this->election['polling date'];
-		$table[ ucfirst ($this->election['division']) ] = $wardName;
+		$table[ ucfirst ($this->election['division']) ] = $areaName;
 		$table['Name'] = $candidate['name'];
 		$table['Affiliation'] = "<span style=\"color: #{$candidate['colour']};\">" . htmlspecialchars ($candidate['affiliation']) . '</span>';
 		$html .= application::htmlTableKeyed ($table, array (), true, 'lines', $allowHtml = true);
 		
-		# Get the questions for this candidate's ward
+		# Get the questions for this candidate's area
 		if (!$questions = $this->getQuestions ($candidate['wardId'], $candidate['electionId'])) {
 			return $html .= "\n<p>There are no questions assigned for this {$this->election['division']} at present.</p>";
 		}
@@ -1628,7 +1629,7 @@ class elections
 		));
 		
 		# Set an e-mail backup record
-		$form->setOutputEmail ($this->settings['recipient'], $this->settings['webmaster'], $subjectTitle = str_replace ('&amp;', '&', "Election submission - {$wardName} - {$candidate['name']} - {$candidate['affiliation']}") . ($responses ? ' (update)' : ''), $chosenElementSuffix = NULL, $replyToField = NULL, $displayUnsubmitted = true);
+		$form->setOutputEmail ($this->settings['recipient'], $this->settings['webmaster'], $subjectTitle = str_replace ('&amp;', '&', "Election submission - {$areaName} - {$candidate['name']} - {$candidate['affiliation']}") . ($responses ? ' (update)' : ''), $chosenElementSuffix = NULL, $replyToField = NULL, $displayUnsubmitted = true);
 		
 		# Process the form or end
 		if (!$result = $form->process ($html)) {
@@ -1708,18 +1709,18 @@ class elections
 		}
 		
 		# Rearrange as key=>value
-		$wards = array ();
+		$areas = array ();
 		foreach ($data as $key => $values) {
-			$wards[$values['wardId']] = $this->areaName ($values);
+			$areas[$values['wardId']] = $this->areaName ($values);
 		}
 		
 		# Return the data
-		return $wards;
+		return $areas;
 	}
 	
 	
 	# Function to verify the candidate and return their details
-	private function verifyCandidate ($number, $ward)
+	private function verifyCandidate ($number, $area)
 	{
 		# Get the data
 		$query = "SELECT
@@ -1734,7 +1735,7 @@ class elections
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}affiliations ON {$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['tablePrefix']}affiliations.id
 			WHERE
 				verification = '" . addslashes ($number) . "'
-				AND ward = '" . addslashes ($ward) . "'
+				AND ward = '" . addslashes ($area) . "'
 		;";
 		if (!$data = $this->databaseConnection->getOne ($query)) {
 			return false;
@@ -1787,8 +1788,8 @@ class elections
 		# Count the responses
 		$total = count ($respondents);
 		
-		# Regroup the data by ward
-		$wards = application::regroup ($respondents, 'wardId', false);
+		# Regroup the data by area
+		$areas = application::regroup ($respondents, 'wardId', false);
 		
 		# Determine the total number of candidates standing and the response rate
 		$totalCandidates = count ($allCandidates);
@@ -1809,12 +1810,12 @@ class elections
 		$html .= $responseRatesByDistrictTable;
 		$html .= $responseRatesByPartyTable;
 		$html .= "\n<p><em>This list is ordered by {$this->election['division']} and then surname.</em></p>";
-		foreach ($this->areas as $ward => $attributes) {
-			$html .= "<h4><a href=\"{$this->baseUrl}/{$this->election['id']}/{$ward}/\">{$this->areas[$ward]['_name']} <span>[view responses]</span></a>:</h4>";
-			if (!isSet ($wards[$ward])) {
-				$html .= "\n<p class=\"noresponse faded\"><em>No candidate for {$this->areas[$ward]['_name']} has yet submitted a response.</em></p>";
+		foreach ($this->areas as $area => $attributes) {
+			$html .= "<h4><a href=\"{$this->baseUrl}/{$this->election['id']}/{$area}/\">{$this->areas[$area]['_name']} <span>[view responses]</span></a>:</h4>";
+			if (!isSet ($areas[$area])) {
+				$html .= "\n<p class=\"noresponse faded\"><em>No candidate for {$this->areas[$area]['_name']} has yet submitted a response.</em></p>";
 			} else {
-				$candidates = $wards[$ward];
+				$candidates = $areas[$area];
 				$candidateList = array ();
 				foreach ($candidates as $candidate) {
 					$affilation = "<span style=\"color: #{$candidate['colour']};\">" . htmlspecialchars ($candidate['affiliation']) . '</span>';
@@ -2182,8 +2183,8 @@ class elections
 		$html = '';
 		
 		# Add introduction
-		$html .= "\n<p>Here you can add a ward/division to the database.</p>";
-		$html .= "\n<p>You should <strong>only</strong> add a new ward/division if it is not already listed <a href=\"#existing\">below</a>.</p>";
+		$html .= "\n<p>Here you can add an area to the database.</p>";
+		$html .= "\n<p>You should <strong>only</strong> add a new area if it is not already listed <a href=\"#existing\">below</a>.</p>";
 		
 		# Get current IDs
 		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}areas", array (), array ('id'), true, $orderBy = 'id');
@@ -2204,14 +2205,14 @@ class elections
 		));
 		if ($result = $form->process ($html)) {
 			
-			# Insert the ward
+			# Insert the area
 			if (!$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}areas", $result)) {
-				$html = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> An error occurred adding the ward.</p>";
+				$html = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> An error occurred adding the area.</p>";
 				return $html;
 			}
 			
 			# Confirm success
-			$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The ward has been added.</p>";
+			$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The area has been added.</p>";
 			$html .= "\n<p>Add another?</p>";
 		}
 		
@@ -2228,15 +2229,15 @@ class elections
 	public function showareas ()
 	{
 		# Get the data for all areas in the database
-		$wards = $this->getAllAreas ();
+		$areas = $this->getAllAreas ();
 		
 		# Start the HTML with the total
-		$totalWards = count ($wards);
-		$html = "\n<p>There are {$totalWards} areas in the database:</p>";
+		$totalAreas = count ($areas);
+		$html = "\n<p>There are {$totalAreas} areas in the database:</p>";
 		
 		# Render as HTML
 		$headings = $this->databaseConnection->getHeadings ($this->settings['database'], "{$this->settings['tablePrefix']}areas");
-		$html .= application::htmlTable ($wards, $headings, 'showareas lines compressed', $keyAsFirstColumn = false, false, false, false, $addCellClasses = true);
+		$html .= application::htmlTable ($areas, $headings, 'showareas lines compressed', $keyAsFirstColumn = false, false, false, false, $addCellClasses = true);
 		
 		# Return the HTML
 		return $html;
@@ -2298,7 +2299,7 @@ class elections
 			$html .= "\n<p><a href=\"{$this->baseUrl}/admin/addaffiliations.html\">Add another?</a></p>";
 		}
 		
-		# Show existing wards
+		# Show existing parties/groups
 		$html .= "\n<h3 id=\"existing\">Existing parties/groups</h3>";
 		$html .= $this->showaffiliations ();
 		
@@ -2387,15 +2388,15 @@ class elections
 				}
 				
 				# Verify area names
-				$wards = $this->getAreaNames ();
-				$unknownWards = array ();
+				$areas = $this->getAreaNames ();
+				$unknownAreas = array ();
 				foreach ($data as $candidate) {
-					if (!array_key_exists ($candidate['ward'], $wards)) {
-						$unknownWards[] = $candidate['ward'];
+					if (!array_key_exists ($candidate['ward'], $areas)) {
+						$unknownAreas[] = $candidate['ward'];
 					}
 				}
-				if ($unknownWards) {
-					$form->registerProblem ('unknownwards', 'Not all wards were recognised: ' . htmlspecialchars (implode (', ' , array_unique ($unknownWards))) . '; please register missing wards if correct.');
+				if ($unknownAreas) {
+					$form->registerProblem ('unknownareas', 'Not all areas were recognised: ' . htmlspecialchars (implode (', ' , array_unique ($unknownAreas))) . '; please register missing areas on the areas page if correct.');
 				}
 				
 				# Verify affiliations
@@ -2646,7 +2647,7 @@ class elections
 		));
 		$form->select (array (
 			'name'			=> 'ward',
-			'title'			=> 'Which ward',
+			'title'			=> 'Which area',
 			'values'		=> $this->getAreaNames (),
 			'required'		=> true,
 		));
@@ -2756,13 +2757,13 @@ class elections
 		
 		# Compile the SQL
 		$sql  = "INSERT INTO {$this->settings['tablePrefix']}surveys (election,ward,question) VALUES \n";
-		$wards = explode ("\n", trim ($result['allocations']));
+		$areas = explode ("\n", trim ($result['allocations']));
 		$set = array ();
-		foreach ($wards as $ward) {
-			list ($wardId, $questions) = preg_split ("/\s+/", trim ($ward), 2);
+		foreach ($areas as $area) {
+			list ($areaId, $questions) = preg_split ("/\s+/", trim ($area), 2);
 			$allocations = preg_split ("/\s+/", trim ($questions));
 			foreach ($allocations as $allocation) {
-				$set[] .= "\t('{$result['election']}', '{$wardId}', {$allocation})";
+				$set[] .= "\t('{$result['election']}', '{$areaId}', {$allocation})";
 			}
 		}
 		$sql .= implode ($set, ",\n");
@@ -2854,18 +2855,18 @@ class elections
 		}
 		
 		# Regroup
-		$candidatesByWard = application::regroup ($candidates, 'wardId', $removeGroupColumn = false);
+		$candidatesByArea = application::regroup ($candidates, 'wardId', $removeGroupColumn = false);
 		
 		# Determine which candidates have responded
 		$candidateIdsResponded = $this->getCandidateIdsResponded ($this->election['id']);
 		
-		# Compile a droplist of candidates, grouped by ward, skipping those that have already responded
-		$wardCandidates = array ();
-		foreach ($candidatesByWard as $wardId => $candidatesThisWard) {
-			foreach ($candidatesThisWard as $candidateId => $candidate) {
+		# Compile a droplist of candidates, grouped by area, skipping those that have already responded
+		$areaCandidates = array ();
+		foreach ($candidatesByArea as $areaId => $candidatesThisArea) {
+			foreach ($candidatesThisArea as $candidateId => $candidate) {
 				if (in_array ($candidateId, $candidateIdsResponded)) {continue;}
-				$wardName = $candidate['ward'] . ':';
-				$wardCandidates[$wardName][$candidateId] = $candidate['name'] . '  (' . $candidate['affiliation'] . ')';
+				$areaName = $candidate['ward'] . ':';
+				$areaCandidates[$areaName][$candidateId] = $candidate['name'] . '  (' . $candidate['affiliation'] . ')';
 			}
 		}
 		
@@ -2880,7 +2881,7 @@ class elections
 		$form->select (array (
 			'name'			=> 'candidate',
 			'title'			=> 'Candidate',
-			'values'		=> $wardCandidates,
+			'values'		=> $areaCandidates,
 			'required'		=> true,
 		));
 		$form->email (array (
@@ -3063,17 +3064,17 @@ class elections
 		$emailsPreviewHtml .= "\n<h3>Preview of each e-mail</h3>";
 		$emailsPreviewHtml .= "\n<hr />";
 		
-		# Loop through by ward having surveys
-		foreach ($surveys as $ward => $questionnaire) {
+		# Loop through by area having surveys
+		foreach ($surveys as $area => $questionnaire) {
 			
-			# Miss out if no candidates in a ward; a warning is shown if none, in case of trailing spaces, etc.
-			if (!isSet ($this->areas[$ward])) {
-				$html .= "\n<p class=\"warning\">Warning: No candidates for <em>{$ward}</em> ward.</p>";
+			# Miss out if no candidates in an area; a warning is shown if none, in case of trailing spaces, etc.
+			if (!isSet ($this->areas[$area])) {
+				$html .= "\n<p class=\"warning\">Warning: No candidates for <em>{$area}</em> ward.</p>";
 				continue;
 			}
 			
-			# Loop through each candidate for this ward
-			foreach ($candidates[$ward] as $candidateId => $candidate) {
+			# Loop through each candidate for this area
+			foreach ($candidates[$area] as $candidateId => $candidate) {
 				
 				# For reminders, skip if the candidate has responded
 				if ($type == 'reminders') {
@@ -3132,8 +3133,8 @@ class elections
 		# Start the HTML for this survey
 		$html = '';
 		
-		# Assemble the ward name
-		$wardName = $this->areaName ($candidate);
+		# Assemble the area name
+		$areaName = $this->areaName ($candidate);
 		
 		# Avoid a house number appearing on its own
 		$candidate['address'] = preg_replace ('/^([0-9]+[a-zA-Z]?)\,/', '$1', $candidate['address']);
@@ -3166,7 +3167,7 @@ class elections
 					<td colspan=\"2\">
 						<p>&nbsp;</p>
 						<p>&nbsp;</p>
-						<p>Dear " . $wardName . ' ' . $this->election['division'] . " candidate,</p>
+						<p>Dear " . $areaName . ' ' . $this->election['division'] . " candidate,</p>
 						" . $this->election['organisationIntroductionHtml'] . "
 						<p>We ask candidates to submit their responses via the automated facility on our website. Just go to: <u>{$submissionUrl}</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
 						" . $screenshotHtml . "
@@ -3204,19 +3205,19 @@ class elections
 	# Function to create an individual e-mail to a candidate
 	private function createEmail ($candidate, $type)
 	{
-		# Assemble the ward name
-		$wardName = $this->areaName ($candidate);
+		# Assemble the area name
+		$areaName = $this->areaName ($candidate);
 		
 		# Define the submission URL
 		$submissionUrl = "https://{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/";
 		
 		# Assemble the text
-		#!# Entities being shown in ward name, e.g. "Dear Sawston &amp; Shelford Division candidate,"
+		#!# Entities being shown in area name, e.g. "Dear Sawston &amp; Shelford Division candidate,"
 		$text  = "\n";
 		if ($type == 'reminders') {
 			$text .= "\n" . 'Dear candidate - Just a reminder of this below - thanks in advance for your time.' . "\n\n--\n\n";
 		}
-		$text .= "\n" . 'Dear ' . $wardName . ' ' . $this->election['division'] . ' candidate,';
+		$text .= "\n" . 'Dear ' . $areaName . ' ' . $this->election['division'] . ' candidate,';
 		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' https://www', $this->election['organisationIntroductionHtml'])));
 		$text .= "\n";
 		$text .= "\n" . 'Please access the survey and submit your responses online, here:';
@@ -3271,18 +3272,18 @@ class elections
 			return $html .= '<p>There are no candidates at present.</p>';
 		}
 		
-		# Arrange the candidates by ward
+		# Arrange the candidates by area
 		$candidates = application::regroup ($candidates, 'ward', false);
 		
 		# Arrange to be added to a multi-select
-		$candidatesByWard = array ();
-		$elected = array ();	// From a previous import - helpful to maintain this to avoid re-entry of every ward if there was a mistake
-		foreach ($candidates as $wardName => $candidatesThisWard) {
-			$elected[$wardName] = array ();
-			foreach ($candidatesThisWard as $candidateId => $candidate) {
-				$candidatesByWard[$wardName][$candidateId] = str_replace ('&nbsp;', '', $candidate['_nameUncoloured']);
+		$candidatesByArea = array ();
+		$elected = array ();	// From a previous import - helpful to maintain this to avoid re-entry of every area if there was a mistake
+		foreach ($candidates as $areaName => $candidatesThisArea) {
+			$elected[$areaName] = array ();
+			foreach ($candidatesThisArea as $candidateId => $candidate) {
+				$candidatesByArea[$areaName][$candidateId] = str_replace ('&nbsp;', '', $candidate['_nameUncoloured']);
 				if ($candidate['elected']) {
-					$elected[$wardName][] = $candidateId;
+					$elected[$areaName][] = $candidateId;
 				}
 			}
 		}
@@ -3292,17 +3293,17 @@ class elections
 		$form = new form (array (
 			'displayRestrictions'	=> false,
 			'nullText' => false,
-			'formCompleteText' => 'The results have been saved. These are now visible on the Ward and question pages.',
+			'formCompleteText' => 'The results have been saved. These are now visible on the area and question pages.',
 			'unsavedDataProtection' => true,
 		));
 		$form->heading ('p', 'Use this form to specify the elected candidates, which will be marked in the listings as having been elected.');
 		$i = 0;
-		foreach ($candidatesByWard as $wardName => $candidates) {
+		foreach ($candidatesByArea as $areaName => $candidates) {
 			$form->select (array (
 				'name'			=> 'ward' . $i++,
-				'title'			=> $wardName,
+				'title'			=> $areaName,
 				'values'		=> $candidates,
-				'default'		=> $elected[$wardName],
+				'default'		=> $elected[$areaName],
 				// 'required'		=> true,
 				'multiple'		=> true,
 				'expandable'	=> true,
@@ -3314,7 +3315,7 @@ class elections
 			
 			# Compile into a list
 			$electedCandidates = array ();
-			foreach ($result as $ward => $candidates) {
+			foreach ($result as $area => $candidates) {
 				foreach ($candidates as $candidateId => $isElected) {
 					if ($isElected) {
 						$electedCandidates[] = $candidateId;
