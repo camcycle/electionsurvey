@@ -489,7 +489,7 @@ class elections
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Areas';
 			
 			CREATE TABLE `{$this->settings['tablePrefix']}settings` (
-			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Automatic key (ignored),
+			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Automatic key (ignored)',
 			  `welcomeTextHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Welcome text on front page',
 			  `introductoryTextHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Introductory text for ballots (also on main page)',
 			  `imprint` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Imprint',
