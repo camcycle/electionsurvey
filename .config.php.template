@@ -12,7 +12,6 @@ $settings = array (
 	'database'	=> 'YOUR_DATABASE_NAME_HERE',
 	'username'	=> 'YOUR_DATABASE_USERNAME_HERE',
 	'password'	=> 'YOUR_DATABASE_PASSWORD_HERE',
-	'tablePrefix'	=> 'elections_',	// If any
 );
 
 ?>
