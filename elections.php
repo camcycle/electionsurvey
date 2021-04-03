@@ -6,25 +6,29 @@
 class elections
 {
 	# Defaults; NULL indicates a required argument
-	private $defaults = array (
-		
-		# Application
-		'applicationName' => 'Elections',
-		
-		# GUI header/footer, if required
-		'headerHtml' => false,
-		'footerHtml' => false,
-		
-		# Database
-		'hostname'	=> 'localhost',
-		'database'	=> NULL,
-		'username'	=> NULL,
-		'password'	=> NULL,
-		'tablePrefix'	=> 'elections_',
-		
-		# Temporary override of admin privileges
-		'overrideAdmin' => false,
-	);
+	public function defaults ()
+	{
+		# Define and return the defaults
+		return $defaults = array (
+			
+			# Application
+			'applicationName' => 'Elections',
+			
+			# GUI header/footer, if required
+			'headerHtml' => false,
+			'footerHtml' => false,
+			
+			# Database
+			'hostname'	=> 'localhost',
+			'database'	=> NULL,
+			'username'	=> NULL,
+			'password'	=> NULL,
+			'tablePrefix'	=> 'elections_',
+			
+			# Temporary override of admin privileges
+			'overrideAdmin' => false,
+		);
+	}
 	
 	
 	# Actions (pages) registry
@@ -250,6 +254,9 @@ class elections
 		require_once ('application.php');
 		require_once ('database.php');
 		require_once ('pureContent.php');
+		
+		# Load defaults
+		$this->defaults = $this->defaults ();
 		
 		# Start the HTML
 		$html = '';
