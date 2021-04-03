@@ -25,6 +25,9 @@ class elections
 			'password'	=> NULL,
 			'tablePrefix'	=> 'elections_',
 			
+			# Webmaster e-mail (overriden by settings, once loaded)
+			'webmaster' => (isSet ($_SERVER['SERVER_ADMIN']) ? $_SERVER['SERVER_ADMIN'] : NULL),
+			
 			# Temporary override of admin privileges
 			'overrideAdmin' => false,
 		);
