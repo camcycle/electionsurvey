@@ -22,9 +22,6 @@ class elections
 		'password'	=> NULL,
 		'tablePrefix'	=> 'elections_',
 		
-		# 404 page
-		'page404' => 'sitetech/404.html',
-		
 		# Temporary override of admin privileges
 		'overrideAdmin' => false,
 	);
@@ -290,9 +287,9 @@ class elections
 		
 		# Set the action, checking that a valid page has been supplied
 		if (!isSet ($_GET['action']) || !array_key_exists ($_GET['action'], $this->actions)) {
+			$html = $this->pageNotFound ();
 			$html = $this->settings['headerHtml'] . $html . $this->settings['footerHtml'];
 			echo $html;
-			$html .= $this->pageNotFound ();
 			return false;
 		}
 		$this->action = $_GET['action'];
@@ -537,10 +534,20 @@ class elections
 	# Page not found wrapper
 	private function pageNotFound ()
 	{
-		# Create a 404 page
-		#!# Needs to return HTML instead of echo
+		# Send the header
 		header ('HTTP/1.0 404 Not Found');
-		include ($this->settings['page404']);
+		
+		# Create the 404 page
+		$html = "
+		<h1>Page not found</h1>
+		<p>The page you requested cannot be found. You may wish to:</p>
+		<ul>
+			<li>Go to the <a href=\"{$this->baseUrl}/\">front page</a> of this section, or</li>
+			<li>Use the navigation menu to navigate to the information you're after.</li>
+		</ul>";
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	
