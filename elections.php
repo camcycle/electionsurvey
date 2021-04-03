@@ -6,7 +6,7 @@
 class elections
 {
 	# Defaults; NULL indicates a required argument
-	var $defaults = array (
+	private $defaults = array (
 		
 		# Application
 		'applicationName' => 'Elections',
