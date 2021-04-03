@@ -20,6 +20,11 @@ The aims are to:
 * To enable a non-partisan organisation to be able to publish comments from politicians in a neutral way, such that voters can make up their own minds
 
 
+## Installation
+
+Please see [INSTALL.md](INSTALL.md).
+
+
 ## Funding
 
 This system has so far been created in the spare time of the authors, but there is much scope to improve it.
@@ -36,6 +41,6 @@ Pull requests welcome.
 
 ## Authors
 
-Martin Lucas-Smith, Camcycle and CycleStreets, 2007-21
+Martin Lucas-Smith, Camcycle and CycleStreets, 2007-21.
 
 
