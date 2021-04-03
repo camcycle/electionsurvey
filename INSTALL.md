@@ -13,12 +13,7 @@
 1. Create the .htaccess file, and change the RewriteBase if necessary.
 1. Create a database in MySQL and a user with SELECT,INSERT,UPDATE rights.
 1. Create the database structure defined in databaseStructure (). You will need to substitute the prefix variable shown. (Shortly, this step will be removed, and the system will prompt for a password to create the structure itself.)
-1. Create the stub launching file, index.html containing your settings; that file then just loads elections.php and runs the program with the specified settings.
-
-
-## Libraries
-
-Some discrete third-parties libraries are supplied as part of the repository.
+1. Create the config file, as noted below, containing the system settings.
 
 
 ## Config file
@@ -36,6 +31,11 @@ The settings noted in the class at $defaults are available, with NULL representi
 
 Use the .htaccess file supplied.
 	
+
+## Libraries
+
+Some discrete third-parties libraries are supplied as part of the repository.
+
 
 ## PHP information
 
