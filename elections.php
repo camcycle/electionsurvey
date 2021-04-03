@@ -404,82 +404,82 @@ class elections
 		# The user only needs SELECT,INSERT,UPDATE rights at a minimum
 		return $sql = "
 			
-			CREATE DATABASE {$this->settings['database']} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+			CREATE DATABASE {$this->settings['database']} CHARACTER SET utf8mb4;
 			USE {$this->settings['database']};
 			
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}affiliations` (
-			  `id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Unique key',
-			  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Party / affiliation name',
-			  `colour` varchar(6) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Colour',
+			  `id` varchar(255) NOT NULL COMMENT 'Unique key',
+			  `name` varchar(255) NOT NULL COMMENT 'Party / affiliation name',
+			  `colour` varchar(6) NOT NULL COMMENT 'Colour',
 			  PRIMARY KEY (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Affiliations (political parties)';
 			
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}candidates` (
 			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
-			  `election` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Election / year (join to elections)',
-			  `areaId` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Area (join to areas)',
-			  `forename` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Forename',
-			  `surname` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Surname',
-			  `address` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Address',
-			  `email` varchar(255) collate utf8mb4_unicode_ci NULL COMMENT 'E-mail address',
-			  `verification` varchar(6) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Verification number',
-			  `affiliation` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Affiliation (join to affiliations)',
-			  `cabinetRestanding` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Whether the candidate is a restanding Cabinet member, and if so, their current Cabinet post',
+			  `election` varchar(255) NOT NULL COMMENT 'Election / year (join to elections)',
+			  `areaId` varchar(255) NOT NULL COMMENT 'Area (join to areas)',
+			  `forename` varchar(255) NOT NULL COMMENT 'Forename',
+			  `surname` varchar(255) NOT NULL COMMENT 'Surname',
+			  `address` varchar(255) NOT NULL COMMENT 'Address',
+			  `email` varchar(255) NULL COMMENT 'E-mail address',
+			  `verification` varchar(6) NOT NULL COMMENT 'Verification number',
+			  `affiliation` varchar(255) NOT NULL COMMENT 'Affiliation (join to affiliations)',
+			  `cabinetRestanding` varchar(255) DEFAULT NULL COMMENT 'Whether the candidate is a restanding Cabinet member, and if so, their current Cabinet post',
 			  `private` int(1) default NULL,
 			  PRIMARY KEY  (`id`),
 			  UNIQUE KEY `verification` (`verification`)
-			) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Candidates';
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Candidates';
 			
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}elections` (
-			  `id` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Unique ID (used for the URL)',
-			  `name` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Name of election',
-			  `description` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Description of election',
-			  `areaType` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Type of electoral area, e.g. ward / division / constituency / Combined Authority area / area',
-			  `areaTypePlural` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Type of electoral area - plural, e.g. wards / divisions / constituencies / Combined Authority areas / areas',
+			  `id` varchar(255) NOT NULL COMMENT 'Unique ID (used for the URL)',
+			  `name` varchar(255) NOT NULL COMMENT 'Name of election',
+			  `description` varchar(255) NOT NULL COMMENT 'Description of election',
+			  `areaType` varchar(255) NOT NULL COMMENT 'Type of electoral area, e.g. ward / division / constituency / Combined Authority area / area',
+			  `areaTypePlural` varchar(255) NOT NULL COMMENT 'Type of electoral area - plural, e.g. wards / divisions / constituencies / Combined Authority areas / areas',
 			  `startDate` date NOT NULL COMMENT 'Survey opening date (date of official Publication of Statement of Persons Nominated, or as soon as possible after - but never before)',
 			  `resultsDate` date NOT NULL COMMENT 'Date when responses become visible (e.g. 2 weeks before election day)',
 			  `resultsVisibleTime` TIME NOT NULL DEFAULT '21:00:00' COMMENT 'Results visible time (hh:mm:ss)',
 			  `endDate` date NOT NULL COMMENT 'Date of election (and close of survey submissions)',
 			  `letterheadHtml` TEXT NOT NULL COMMENT  'Letterhead address (top-right)',
 			  `organisationIntroductionHtml` TEXT NOT NULL COMMENT 'Survey letter/e-mail introduction',
-			  `letterSignatureName` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Signature name',
-			  `letterSignaturePosition` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Signature position',
-			  `directionsUrl` varchar(255) collate utf8mb4_unicode_ci NOT NULL default 'https://www.cyclestreets.net/' COMMENT 'Directions to cycle to polling stations',
+			  `letterSignatureName` varchar(255) NOT NULL COMMENT 'Signature name',
+			  `letterSignaturePosition` varchar(255) NOT NULL COMMENT 'Signature position',
+			  `directionsUrl` varchar(255) NOT NULL default 'https://www.cyclestreets.net/' COMMENT 'Directions to cycle to polling stations',
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Election overview';
 			
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}questions` (
 			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
-			  `question` text collate utf8mb4_unicode_ci NOT NULL COMMENT 'Text of question',
-			  `links` text collate utf8mb4_unicode_ci COMMENT 'Background links (as URL then text)',
+			  `question` text NOT NULL COMMENT 'Text of question',
+			  `links` text COMMENT 'Background links (as URL then text)',
 			  PRIMARY KEY  (`id`)
-			) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Available questions';
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Available questions';
 			
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}responses` (
 			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
 			  `candidate` int(11) NOT NULL default '0' COMMENT 'Candidates (join to candidates)',
 			  `survey` int(11) NOT NULL default '0' COMMENT 'Survey (join to surveys)',
-			  `response` text collate utf8mb4_unicode_ci COMMENT 'Response',
+			  `response` text COMMENT 'Response',
 			  `timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP COMMENT 'Timestamp',
 			  PRIMARY KEY  (`id`)
-			) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Responses';
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Responses';
 			
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}surveys` (
 			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
-			  `election` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Election / year (join to elections)',
-			  `areaId` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Area (join to areas)',
+			  `election` varchar(255) NOT NULL COMMENT 'Election / year (join to elections)',
+			  `areaId` varchar(255) NOT NULL COMMENT 'Area (join to areas)',
 			  `question` int(11) NOT NULL default '0' COMMENT 'Question (join to questions)',
 			  `ordering` int(1) default NULL COMMENT 'Ordering',
 			  PRIMARY KEY  (`id`)
-			) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Surveys';
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Surveys';
 			
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}areas` (
-			  `id` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Unique key',
-			  `prefix` varchar(255) collate utf8mb4_unicode_ci default NULL COMMENT 'Area name prefix',
-			  `areaName` varchar(255) collate utf8mb4_unicode_ci NOT NULL COMMENT 'Area name',
-			  `districtCouncil` enum('','Cambridge City Council','South Cambridgeshire District Council','East Cambridgeshire District Council','Fenland District Council','Huntingdonshire District Council') collate utf8mb4_unicode_ci default NULL COMMENT 'District council',
-			  `countyCouncil` enum('','Cambridgeshire County Council') collate utf8mb4_unicode_ci default NULL COMMENT 'County Council',
-			  `parishes` varchar(255) collate utf8mb4_unicode_ci default NULL COMMENT 'Parishes incorporated',
+			  `id` varchar(255) NOT NULL COMMENT 'Unique key',
+			  `prefix` varchar(255) default NULL COMMENT 'Area name prefix',
+			  `areaName` varchar(255) NOT NULL COMMENT 'Area name',
+			  `districtCouncil` enum('','Cambridge City Council','South Cambridgeshire District Council','East Cambridgeshire District Council','Fenland District Council','Huntingdonshire District Council') default NULL COMMENT 'District council',
+			  `countyCouncil` enum('','Cambridgeshire County Council') default NULL COMMENT 'County Council',
+			  `parishes` varchar(255) default NULL COMMENT 'Parishes incorporated',
 			  `districtCouncillors` tinyint(1) default NULL COMMENT 'How many district councillors',
 			  `countyCouncillors` tinyint(1) default NULL COMMENT 'How many County councillors',
 			  PRIMARY KEY  (`id`)
@@ -487,22 +487,22 @@ class elections
 			
 			CREATE TABLE `{$this->settings['tablePrefix']}settings` (
 			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Automatic key (ignored)',
-			  `welcomeTextHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Welcome text on front page',
-			  `introductoryTextHtml` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Introductory text for ballots (also on main page)',
-			  `imprint` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Imprint',
-			  `emailSubject` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'E-mail subject',
-			  `emailFrom` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'E-mail ''From'' address',
-			  `emailCc` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'E-mail Cc address',
-			  `organisationConstituentsType` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Organisation people type (e.g. members / supporters)',
-			  `letterSignatureOrganisationName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'E-mails/letters signature - organisation name',
-			  `postSubmissionHtmlLetters` text COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'E-mails/letters P.S.',
-			  `postSubmissionHtml` text COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Post-submission message (webpage)',
-			  `recipient` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Survey submission receipts e-mail address',
+			  `welcomeTextHtml` text NOT NULL COMMENT 'Welcome text on front page',
+			  `introductoryTextHtml` text NOT NULL COMMENT 'Introductory text for ballots (also on main page)',
+			  `imprint` text NOT NULL COMMENT 'Imprint',
+			  `emailSubject` varchar(255) NOT NULL COMMENT 'E-mail subject',
+			  `emailFrom` varchar(255) NOT NULL COMMENT 'E-mail ''From'' address',
+			  `emailCc` varchar(255) NOT NULL COMMENT 'E-mail Cc address',
+			  `organisationConstituentsType` varchar(255) NOT NULL COMMENT 'Organisation people type (e.g. members / supporters)',
+			  `letterSignatureOrganisationName` varchar(255) NOT NULL COMMENT 'E-mails/letters signature - organisation name',
+			  `postSubmissionHtmlLetters` text DEFAULT NULL COMMENT 'E-mails/letters P.S.',
+			  `postSubmissionHtml` text DEFAULT NULL COMMENT 'Post-submission message (webpage)',
+			  `recipient` varchar(255) NOT NULL COMMENT 'Survey submission receipts e-mail address',
 			  `showAddresses` TINYINT(1) NULL COMMENT 'Show candidate postal addresses?',
-			  `webmaster` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'System administrator (webmaster) e-mail address',
+			  `webmaster` varchar(255) NOT NULL COMMENT 'System administrator (webmaster) e-mail address',
 			  `listArchived` tinyint(1) DEFAULT 1 COMMENT 'List archived elections?',
 			  PRIMARY KEY (`id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Settings';
+			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Settings';
 			
 			-- Users
 			-- {$this->settings['tablePrefix']}users defined in libraries/userAccount.php databaseStructure ()
