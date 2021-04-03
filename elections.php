@@ -410,6 +410,13 @@ class elections
 			CREATE DATABASE {$this->settings['database']};
 			USE {$this->settings['database']};
 			
+			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}affiliations` (
+			  `id` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Unique key',
+			  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Party / affiliation name',
+			  `colour` varchar(6) COLLATE utf8_unicode_ci NOT NULL COMMENT 'Colour',
+			  PRIMARY KEY (`id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='Affiliations (political parties)';
+			
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}candidates` (
 			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
 			  `election` varchar(255) collate utf8_unicode_ci NOT NULL COMMENT 'Election / year (join to elections)',
