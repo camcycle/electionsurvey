@@ -821,8 +821,8 @@ class elections
 		
 		# Show the respondents
 		if (!$this->area) {
-			$table['Questions'] = "<a href=\"{$this->baseUrl}/{$election['id']}/questions/\">" . ($election['active'] ? '' : '<strong><img src="/images/icons/bullet_go.png" class="icon" /> ') . 'Index of all questions for this election' . ($election['active'] ? '' : '</strong>') .  '</a>';
-			$table['Respondents'] = "<a href=\"{$this->baseUrl}/{$election['id']}/respondents.html\">" . ($election['active'] ? '<strong><img src="/images/icons/bullet_go.png" class="icon" /> ' : '') . 'Index of all respondents' . ($election['active'] ? ' (so far)' : '') .  '</a>';
+			$table['Questions'] = "<a href=\"{$this->baseUrl}/{$election['id']}/questions/\">" . ($election['active'] ? '' : '<strong><img src="' . $this->baseUrl . '/images/icons/bullet_go.png" class="icon" /> ') . 'Index of all questions for this election' . ($election['active'] ? '' : '</strong>') .  '</a>';
+			$table['Respondents'] = "<a href=\"{$this->baseUrl}/{$election['id']}/respondents.html\">" . ($election['active'] ? '<strong><img src="' . $this->baseUrl . '/images/icons/bullet_go.png" class="icon" /> ' : '') . 'Index of all respondents' . ($election['active'] ? ' (so far)' : '') .  '</a>';
 			if ($this->cabinetRestanding) {
 				$table['Cabinet'] = "<a href=\"{$this->baseUrl}/{$election['id']}/cabinet.html\">Cabinet members in surveyed {$election['areaTypePlural']} restanding in this election</a>";
 			}
@@ -1019,7 +1019,7 @@ class elections
 		# Show directions to polling stations if required under the main jumplist
 		if ($this->election['votingToday']) {
 			if (!$areasOnly) {
-				$html .= "<p class=\"directionsbutton\"><a class=\"actions right\" href=\"{$this->election['directionsUrl']}\">" . '<img src="/images/icons/map.png" class="icon" /> Cycle to your polling station - get directions</a></p>';
+				$html .= "<p class=\"directionsbutton\"><a class=\"actions right\" href=\"{$this->election['directionsUrl']}\">" . '<img src="' . $this->baseUrl . '/images/icons/map.png" class="icon" /> Cycle to your polling station - get directions</a></p>';
 			}
 		}
 		
@@ -1698,9 +1698,9 @@ class elections
 		$action = ($responses ? 'entering' : 'updating');
 		$html  = "\n<div class=\"graybox\">";
 		if ($this->election['resultsVisible']) {
-			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> <strong>Thank you for {$action} your responses.</strong> They are now <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['areaId']}/\">shown online</a>, along with those of other candidates.</p>";
+			$html .= "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> <strong>Thank you for {$action} your responses.</strong> They are now <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['areaId']}/\">shown online</a>, along with those of other candidates.</p>";
 		} else {
-			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> <strong>Thank you for {$action} your responses.</strong> They will be <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['areaId']}/\">shown online</a>, along with those of other candidates, at {$this->election['visibilityDateTime']}.</p>";
+			$html .= "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> <strong>Thank you for {$action} your responses.</strong> They will be <a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['areaId']}/\">shown online</a>, along with those of other candidates, at {$this->election['visibilityDateTime']}.</p>";
 			$html .= "\n<p>You can <a href=\"{$this->baseUrl}/submit/\">update your submission</a> using the same webpage at any time before {$this->election['visibilityDateTime']}.</p>";
 		}
 		$html .= "\n</div>";
@@ -2072,7 +2072,7 @@ class elections
 		# Construct the page
 		foreach ($groups as $groupId => $group) {
 			$html .= "\n<div class=\"graybox\">";
-			$html .= "\n<h3><img src=\"/images/icons/{$group['icon']}.png\" class=\"icon\" /> " . htmlspecialchars ($group['title']) . '</h3>';
+			$html .= "\n<h3><img src=\"{$this->baseUrl}/images/icons/{$group['icon']}.png\" class=\"icon\" /> " . htmlspecialchars ($group['title']) . '</h3>';
 			$html .= "\n\t<p>" . htmlspecialchars ($group['introduction']) . '</p>';
 			$html .= "\n\t<ul>";
 			foreach ($this->actions as $actionId => $action) {
@@ -2131,7 +2131,7 @@ class elections
 			$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}elections", $result);
 			
 			# Confirm success
-			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['id']}/\">election</a> has been added.</p>";
+			$html .= "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['id']}/\">election</a> has been added.</p>";
 			$html .= "\n<p>You may wish to <a href=\"{$this->baseUrl}/admin/\">add data</a> for it.</p>";
 		}
 		
@@ -2164,7 +2164,7 @@ class elections
 			$this->databaseConnection->update ($this->settings['database'], "{$this->settings['tablePrefix']}elections", $result, array ('id' => $this->election['id']));
 			
 			# Confirm success
-			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['id']}/editelection.html\">settings</a> for this <a href=\"{$this->baseUrl}/{$result['id']}/\">election</a> have been updated.</p>";
+			$html .= "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['id']}/editelection.html\">settings</a> for this <a href=\"{$this->baseUrl}/{$result['id']}/\">election</a> have been updated.</p>";
 		}
 		
 		# Return the HTML
@@ -2240,12 +2240,12 @@ class elections
 			
 			# Insert the area
 			if (!$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}areas", $result)) {
-				$html = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> An error occurred adding the area.</p>";
+				$html = "\n<p><img src=\"{$this->baseUrl}/images/icons/cross.png\" class=\"icon\" /> An error occurred adding the area.</p>";
 				return $html;
 			}
 			
 			# Confirm success
-			$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The area has been added.</p>";
+			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The area has been added.</p>";
 			$html .= "\n<p>Add another?</p>";
 		}
 		
@@ -2323,12 +2323,12 @@ class elections
 			
 			# Insert the new entry
 			if (!$this->databaseConnection->insert ($this->settings['database'], $table, $result)) {
-				$html = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> An error occurred adding the affiliation.</p>";
+				$html = "\n<p><img src=\"{$this->baseUrl}/images/icons/cross.png\" class=\"icon\" /> An error occurred adding the affiliation.</p>";
 				return $html;
 			}
 			
 			# Confirm success
-			$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The affiliation has been added.</p>";
+			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The affiliation has been added.</p>";
 			$html .= "\n<p><a href=\"{$this->baseUrl}/admin/addaffiliations.html\">Add another?</a></p>";
 		}
 		
@@ -2465,7 +2465,7 @@ class elections
 		# Insert the data; note that this wil result in new candidate IDs
 		if (!$this->databaseConnection->insertMany ($this->settings['database'], "{$this->settings['tablePrefix']}candidates", $data)) {
 			$error = $this->databaseConnection->error ();
-			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured. The database server said:</p>";
+			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured. The database server said:</p>";
 			$html .= "\n<p><tt>" . $error[2] . '</tt></p>';
 			return $html;
 		}
@@ -2473,7 +2473,7 @@ class elections
 		# Confirm success
 		$total = count ($data);
 		#!# Ideally the message should make clear if this was entirely new or a replacement
-		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The candidate data (total: {$total}) for this <a href=\"{$this->baseUrl}/{$result['election']}/\">election</a> has been entered.</p>";
+		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The candidate data (total: {$total}) for this <a href=\"{$this->baseUrl}/{$result['election']}/\">election</a> has been entered.</p>";
 		
 		# Return the HTML
 		return $html;
@@ -2561,13 +2561,13 @@ class elections
 		
 		# Insert the question
 		if (!$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}questions", $result)) {
-			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
+			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
 			return $html;
 		}
 		$questionId = $this->databaseConnection->getLatestId ();
 		
 		# Confirm success
-		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The question has been added, as shown below.</p>";
+		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The question has been added, as shown below.</p>";
 		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
 		$html .= $this->recentlyAddedQuestions ($mostRecent);
 		
@@ -2617,7 +2617,7 @@ class elections
 			$this->databaseConnection->delete ($this->settings['database'], "{$this->settings['tablePrefix']}questions", array ('id' => $result['question']));
 			
 			# Confirm success
-			$html .= "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The question has been deleted.</p>";
+			$html .= "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The question has been deleted.</p>";
 			$html .= "\n<p><a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">Delete another?</a></p>";
 		}
 		
@@ -2722,12 +2722,12 @@ class elections
 		
 		# Insert the data
 		if (!$this->databaseConnection->insertMany ($this->settings['database'], "{$this->settings['tablePrefix']}surveys", $data)) {
-			$html  = "\n<p><img src=\"/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
+			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
 			return $html;
 		}
 		
 		# Confirm success
-		$html  = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['election']}/{$result['areaId']}/\">survey</a> has been added.</p>";
+		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['election']}/{$result['areaId']}/\">survey</a> has been added.</p>";
 		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
 		
 		# Return the HTML
@@ -3520,7 +3520,7 @@ class elections
 			$this->databaseConnection->insert ($this->settings['database'], $this->settings['settingsTable'], $result, $onDuplicateKeyUpdate = true);
 			
 			# Confirm success
-			$html = "\n<p><img src=\"/images/icons/tick.png\" class=\"icon\" alt=\"\" /> The settings have been updated.</p>" . $html;
+			$html = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" alt=\"\" /> The settings have been updated.</p>" . $html;
 		}
 		
 		# Return the HTML
