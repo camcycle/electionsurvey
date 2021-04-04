@@ -548,6 +548,9 @@ class elections
 			  PRIMARY KEY (`id`)
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Settings';
 			
+			-- Create the settings row
+			INSERT INTO {$this->settings['tablePrefix']}settings (id, welcomeTextHtml, introductoryTextHtml, imprint, emailSubject, emailFrom, emailCc, organisationConstituentsType, letterSignatureOrganisationName, recipient, webmaster) VALUES (1, '', '', '', '', '', '', '', '', '', '');
+			
 			-- Users
 		";
 		
