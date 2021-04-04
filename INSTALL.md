@@ -12,8 +12,8 @@
 1. Clone this repo to a folder called elections, e.g. `git clone https://github.com/camcycle/electionsurvey/ elections`
 1. Create the .htaccess file, and change the RewriteBase if your installation is not in a folder called /elections/.
 1. Create a database in MySQL and a user with SELECT,INSERT,UPDATE,DELETE rights, which will be the runtime user.
-1. Create the database structure defined in databaseStructure (). This will need a user with CREATE,INDEX rights. You will need to substitute the prefix variable shown. (Shortly, this step will be removed, and the system will prompt for a password to create the structure itself.)
 1. Create the config file, as noted below, containing the system settings.
+1. Access the main page within the site, e.g. /elections/ . On first run, the system will attempt to install the database structure automatically. This will need a user with CREATE rights.
 
 
 ## Config file

@@ -270,7 +270,7 @@ class elections
 		# Load the local stylesheet
 		$html .= "\n<style type=\"text/css\" media=\"all\">@import \"{$this->baseUrl}/css/elections.css\";</style>";
 		
-		# Function to merge the arguments; note that $errors returns the errors by reference and not as a result from the method
+		# Function to merge the config-supplied arguments; note that $errors returns the errors by reference and not as a result from the method; database-supplied settings will be merged in below
 		$this->errors = array ();
 		if (!$this->settings = $this->mergeConfiguration ($this->defaults, $settings)) {
 			$html .= "<p>The following setup error was found. The administrator needs to correct the setup before this system will run.</p>\n" . application::htmlUl ($this->errors);
@@ -291,8 +291,13 @@ class elections
 			return false;
 		};
 		
-		# Get the settings from the settings table
-		$this->addSettingsTableConfig ();
+		# Ensure the tables are present, and if not, install them
+		if (!$this->databaseConnection->tableExists ($this->settings['database'], "{$this->settings['tablePrefix']}settings")) {	// Test for settings table
+			$html .= $this->databaseSetup ();
+			$html = $this->settings['headerHtml'] . $html . $this->settings['footerHtml'];
+			echo $html;
+			return;
+		}
 		
 		# Obtain the actions
 		$this->actions = $this->actions ();
@@ -306,11 +311,14 @@ class elections
 		}
 		$this->action = $_GET['action'];
 
-		# Deal with internal auth (often not used)
+		# Obtain the user
 		$this->loadInternalAuth ();
 		$this->user = $this->internalAuthClass->getUserId ();
 		$this->userIsAdministrator = $this->internalAuthClass->hasPrivilege ('administrator');
 		$html .= $this->internalAuthClass->getHtml ();
+		
+		# Get the settings from the settings table
+		$this->addSettingsTableConfig ();
 		
 		# On pages requiring administrative credentials, ensure the user is an administrator
 		if (isSet ($this->actions[$this->action]['administrator']) && $this->actions[$this->action]['administrator']) {
@@ -393,6 +401,31 @@ class elections
 	}
 	
 	
+	# Function to set up the database
+	private function databaseSetup ()
+	{
+			# Load the database structure, including the user table
+			$this->actions = $this->actions ();		// Pre-requisite for loadInternalAuth
+			$this->loadInternalAuth ();
+			$databaseStructure = $this->databaseStructure ();
+			
+			# Run the queries
+			$this->databaseConnection->connection->setAttribute (PDO::ATTR_EMULATE_PREPARES, 1);	// Allow multiple queries per statement
+			if (!$result = $this->databaseConnection->query ($databaseStructure)) {
+				$html  = "\n<p>The database setup process did not complete. You will probably need to set this up manually. The database error was:</p>";
+				$databaseError = $this->databaseConnection->error ();
+				$html .= "\n<p><pre>" . htmlspecialchars ($databaseError[2]) . '</pre></p>';
+				$html .= "\n<p><pre>" . htmlspecialchars ($databaseStructure) . '</pre></p>';
+				return $html;
+			}
+			
+			# Confirm success
+			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The database structure has been successfully installed.</p>";
+			$html .= "\n<p><a href=\"{$this->baseUrl}/admin/settings.html\">Continue to the settings page.</a></p>";
+			return $html;
+	}
+	
+	
 	# Function to define the database structure
 	#!# Not currently auto-executed on first run
 	/*
@@ -414,12 +447,9 @@ class elections
 	*/
 	private function databaseStructure ()
 	{
-		# The database structure should be as follows, with modifications to be made in the elections_areas table for areas
-		# The user only needs SELECT,INSERT,UPDATE rights at a minimum
-		return $sql = "
-			
-			CREATE DATABASE {$this->settings['database']} CHARACTER SET utf8mb4;
-			USE {$this->settings['database']};
+		#!# Modifications currently have to be made to be made in the elections_areas table for areas - these should be moved to settings
+		# This setup requires CREATE rights
+		$sql = "
 			
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}affiliations` (
 			  `id` varchar(255) NOT NULL COMMENT 'Unique key',
@@ -519,8 +549,13 @@ class elections
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Settings';
 			
 			-- Users
-			-- {$this->settings['tablePrefix']}users defined in libraries/userAccount.php databaseStructure ()
 		";
+		
+		# Add users
+		$sql .= $this->internalAuthClass->databaseStructure ();
+		
+		# Return the SQL
+		return $sql;
 	}
 	
 	
