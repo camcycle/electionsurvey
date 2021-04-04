@@ -349,7 +349,9 @@ class elections
 		}
 		
 		# Determine if there are any restanding Cabinet members in this election
-		$this->cabinetRestanding = $this->getCandidates (false, false, false, $cabinetRestanding = true);
+		if ($this->election) {
+			$this->cabinetRestanding = $this->getCandidates (false, false, false, $cabinetRestanding = true);
+		}
 		
 		# Open the div surrounding the application
 		$html .= "\n<div id=\"elections\">";
