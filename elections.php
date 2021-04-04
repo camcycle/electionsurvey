@@ -421,7 +421,7 @@ class elections
 			
 			# Confirm success
 			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The database structure has been successfully installed.</p>";
-			$html .= "\n<p><a href=\"{$this->baseUrl}/admin/settings.html\">Continue to the settings page.</a></p>";
+			$html .= "\n<p><a href=\"{$this->baseUrl}/{$this->actions['register']['url']}\">Now create the first user account.</a></p>";
 			return $html;
 	}
 	
