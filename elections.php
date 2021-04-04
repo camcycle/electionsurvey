@@ -282,7 +282,9 @@ class elections
 		# Connect to the database or end
 		$this->databaseConnection = new database ($this->settings['hostname'], $this->settings['username'], $this->settings['password'], $this->settings['database']);
 		if (!$this->databaseConnection->connection) {
- 			mail ($this->settings['webmaster'], 'Problem with election system on ' . $_SERVER['SERVER_NAME'], wordwrap ('There was a problem with initalising the election facility at the database connection stage. The database server said: ' . mysql_error () . '.'));
+			$errorInfo = $this->databaseConnection->error ();
+			$message = 'There was a problem with initalising the election facility at the database connection stage. The database server said: ' . $errorInfo['error'] . '.';
+			mail ($this->settings['webmaster'], 'Problem with election system on ' . $_SERVER['SERVER_NAME'], wordwrap ($message));
 			$html .= "<p class=\"warning\">Apologies - this facility is currently unavailable, as a technical error occured. The Webmaster has been informed and will investigate.</p>";
 			$html = $this->settings['headerHtml'] . $html . $this->settings['footerHtml'];
 			echo $html;
