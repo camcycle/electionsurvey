@@ -571,7 +571,7 @@ class elections
 	{
 		# Introductory text
 		$html  = $this->settings['welcomeTextHtml'];
-		$html .= "<p class=\"graphic\"><img src=\"/elections/pollingstations.jpg\" width=\"89\" height=\"121\" alt=\"Ballot box\" /></p>";
+		$html .= "<p class=\"graphic\"><img src=\"{$this->baseUrl}/images/pollingstations.jpg\" width=\"89\" height=\"121\" alt=\"Ballot box\" /></p>";
 		$html .= $this->settings['introductoryTextHtml'];
 		
 		# Show current elections
@@ -602,7 +602,7 @@ class elections
 		$html  = $this->settings['introductoryTextHtml'];
 		
 		# Add the summary table and areas
-		$html .= "<p class=\"graphic\"><img src=\"/elections/pollingstations.jpg\" width=\"89\" height=\"121\" alt=\"Ballot box\" /></p>";
+		$html .= "<p class=\"graphic\"><img src=\"{$this->baseUrl}/images/pollingstations.jpg\" width=\"89\" height=\"121\" alt=\"Ballot box\" /></p>";
 		$html .= $this->showOverviewDetails ($this->election);
 		
 		# Return the HTML
