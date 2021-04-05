@@ -2465,12 +2465,12 @@ class elections
 				$areas = $this->getAreaNames ();
 				$unknownAreas = array ();
 				foreach ($data as $candidate) {
-					if (!array_key_exists ($candidate['areaName'], $areas)) {
-						$unknownAreas[] = $candidate['areaName'];
+					if (!array_key_exists ($candidate['areaId'], $areas)) {
+						$unknownAreas[] = $candidate['areaId'];
 					}
 				}
 				if ($unknownAreas) {
-					$form->registerProblem ('unknownareas', 'Not all areas were recognised: ' . htmlspecialchars (implode (', ' , array_unique ($unknownAreas))) . '; please register missing areas on the areas page if correct.');
+					$form->registerProblem ('unknownareas', 'Not all areas were recognised: <em>' . htmlspecialchars (implode (', ' , array_unique ($unknownAreas))) . '</em>; please register missing areas on the areas page if correct.');
 				}
 				
 				# Verify affiliations
