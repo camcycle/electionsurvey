@@ -2890,11 +2890,18 @@ class elections
 	}
 	
 	
-	# Function to send reminder e-mails to candidates who have not yet responded to the sur
+	# Function to send reminder e-mails to candidates who have not yet responded to the survey
 	public function reminders ()
 	{
 		# Start the HTML
 		$html = '';
+		
+		# Ensure there is an election supplied
+		if (!$this->election) {
+			$html .= "\n<p>Please select which election:</p>";
+			$html .= $this->listElections ($this->elections, true, false, __FUNCTION__ . '.html');
+			return $html;
+		}
 		
 		# Run the mailout routine
 		$html .= $this->emailMailoutRoutine (__FUNCTION__, 'reminder e-mails');
