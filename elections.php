@@ -2952,6 +2952,7 @@ class elections
 			'formCompleteText' => false,
 		));
 		$form->heading ('p', 'Use this form to reissue an e-mail to a candidate. Only those candidates that have not yet responded are shown.');
+		$form->heading ('p', 'Note: If you update the e-mail address in the form, this will be saved in the database and will replace any address previously recorded for this candidate.');
 		$form->select (array (
 			'name'			=> 'candidate',
 			'title'			=> 'Candidate',
