@@ -1240,7 +1240,7 @@ class elections
 				$link = "question{$i}" . (!$limitToArea && $this->election ? $area : '');
 				$questionsJumplist[] = "<strong><a href=\"#{$link}\">&nbsp;{$i}&nbsp;</a></strong>";
 				$questionNumberPublic = $questionNumbersPublic[$question['questionId']];
-				$list[$surveyId]  = "\n\n<h4 class=\"question\" id=\"{$link}\"><a href=\"#{$link}\">#</a> Question {$i}" . ($limitToArea ? '' : " &nbsp;[survey-id#{$surveyId}]") . '</h4>';	// In all-listing mode (i.e. admins-only), show the IDs
+				$list[$surveyId]  = "\n\n<h4 class=\"question\" id=\"{$link}\"><a href=\"#{$link}\">#</a> " . ($limitToArea ? "Question {$i}" : "Question ID #{$surveyId}") . '</h4>';	// In all-listing mode (i.e. admins-only), show the IDs
 				$list[$surveyId] .= $this->responsesBlock ($question, $this->candidates, $responses, false, $questionNumberPublic);
 			}
 			
