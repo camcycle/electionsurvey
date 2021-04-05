@@ -493,11 +493,13 @@ class elections
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Election overview';
 			
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}questions` (
-			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
+			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Unique key',
 			  `question` text NOT NULL COMMENT 'Text of question',
-			  `links` text COMMENT 'Background links (as URL then text)',
-			  PRIMARY KEY  (`id`)
+			  `links` text DEFAULT NULL COMMENT 'Background links (as URL then text)',
+			  `highlight` varchar(255) DEFAULT NULL COMMENT 'Optional highlighted text',
+			  PRIMARY KEY (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Available questions';
+
 			
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}responses` (
 			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
