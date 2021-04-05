@@ -2606,7 +2606,7 @@ class elections
 		$questionId = $this->databaseConnection->getLatestId ();
 		
 		# Confirm success
-		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The question has been added, as shown below.</p>";
+		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The question has been added, as ID <strong>#{$questionId}</strong>, as shown below. It is now available to use whe constructing surveys.</p>";
 		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
 		$html .= $this->recentlyAddedQuestions ($mostRecent);
 		
