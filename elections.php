@@ -2194,7 +2194,7 @@ class elections
 		# Ensure there is an election supplied
 		if (!$this->election) {
 			$html .= "\n<p>Please select which election:</p>";
-			$html .= $this->listElections ($this->elections, true, false, 'editelection.html');
+			$html .= $this->listElections ($this->elections, true, false, __FUNCTION__ . '.html');
 			return $html;
 		}
 		
@@ -2878,7 +2878,7 @@ class elections
 		# Ensure there is an election supplied
 		if (!$this->election) {
 			$html .= "\n<p>Please select which election:</p>";
-			$html .= $this->listElections ($this->elections, true, false, 'mailout.html');
+			$html .= $this->listElections ($this->elections, true, false, __FUNCTION__ . '.html');
 			return $html;
 		}
 		
@@ -2913,7 +2913,7 @@ class elections
 		# Ensure there is an election supplied
 		if (!$this->election) {
 			$html .= "\n<p>Please select which election:</p>";
-			$html .= $this->listElections ($this->elections, true, false, 'reissue.html');
+			$html .= $this->listElections ($this->elections, true, false, __FUNCTION__ . '.html');
 			return $html;
 		}
 		
@@ -3333,7 +3333,7 @@ class elections
 		# Ensure there is an election supplied
 		if (!$this->election) {
 			$html .= "\n<p>Please select which election:</p>";
-			$html .= $this->listElections ($this->elections, true, false, 'elected.html');
+			$html .= $this->listElections ($this->elections, true, false, __FUNCTION__ . '.html');
 			return $html;
 		}
 		
