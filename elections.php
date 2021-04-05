@@ -291,8 +291,9 @@ class elections
 			return false;
 		};
 		
-		# Ensure the tables are present, and if not, install them
-		if (!$this->databaseConnection->tableExists ($this->settings['database'], "{$this->settings['tablePrefix']}settings")) {	// Test for settings table
+		# Ensure the structure is present, by testing for the settings row, and if not, install the structure
+		$settingsRowExists = $this->databaseConnection->selectOne ($this->settings['database'], "{$this->settings['tablePrefix']}settings", array ('id' => 1));		// A test for tableExists is not reliable as some hosting may not have sufficient database privileges
+		if (!$settingsRowExists) {
 			$html .= $this->databaseSetup ();
 			$html = $this->settings['headerHtml'] . $html . $this->settings['footerHtml'];
 			echo $html;
