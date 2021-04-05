@@ -1245,7 +1245,7 @@ class elections
 			}
 			
 			# Construct the HTML
-			$questionsHtml .= "<p>Jump to question: " . implode (' ', $questionsJumplist) . '</p>';
+			$questionsHtml .= "\n\n<p>Jump to question: " . implode (' ', $questionsJumplist) . '</p>';
 			$questionsHtml .= implode ($list);
 		}
 		
@@ -2145,7 +2145,8 @@ class elections
 			return $html = '<p>This listing is not election-specific. Please check the URL and try again.</p>';
 		}
 		
-		# Get data
+		# List the questions
+		$html .= "\n<p class=\"alignright\"><a href=\"{$this->baseUrl}/admin/addquestions.html\">+ Add a question</a></p>";
 		$html .= $this->showQuestions ();
 		
 		# Return the HTML
@@ -2678,7 +2679,7 @@ class elections
 		
 		# Compile the HTML
 		$html  = "\n<h3>Most recently-added questions</h3>";
-		$html .= "\n<p>Here are the {$mostRecent} questions most recently added to the database:</p>";
+		$html .= "\n<p>Below are the {$mostRecent} questions most recently added to the database. You can also <a href=\"{$this->baseUrl}/admin/allquestions.html\">view all questions</a>.</p>";
 		$html .= application::htmlUl ($list, 0, 'spaced');
 		
 		# Surround in a div
