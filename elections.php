@@ -460,7 +460,7 @@ class elections
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Affiliations (political parties)';
 			
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}candidates` (
-			  `id` int(11) NOT NULL auto_increment COMMENT 'Unique key',
+			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Unique key',
 			  `election` varchar(255) NOT NULL COMMENT 'Election / year (join to elections)',
 			  `areaId` varchar(255) NOT NULL COMMENT 'Area (join to areas)',
 			  `forename` varchar(255) NOT NULL COMMENT 'Forename',
@@ -470,8 +470,9 @@ class elections
 			  `verification` varchar(6) NOT NULL COMMENT 'Verification number',
 			  `affiliation` varchar(255) NOT NULL COMMENT 'Affiliation (join to affiliations)',
 			  `cabinetRestanding` varchar(255) DEFAULT NULL COMMENT 'Whether the candidate is a restanding Cabinet member, and if so, their current Cabinet post',
-			  `private` int(1) default NULL,
-			  PRIMARY KEY  (`id`),
+			  `private` int(1) DEFAULT NULL,
+			  `elected` int(1) DEFAULT NULL COMMENT 'Candidate elected',
+			  PRIMARY KEY (`id`),
 			  UNIQUE KEY `verification` (`verification`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Candidates';
 			
