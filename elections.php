@@ -1137,6 +1137,7 @@ class elections
 				{$this->settings['tablePrefix']}affiliations.name as affiliation,
 				{$this->settings['tablePrefix']}affiliations.colour,
 				CONCAT(forename,' ',UPPER(surname)) as name,
+				CONCAT(forename,' ',surname) as nameNaturalCase,
 				{$this->settings['tablePrefix']}candidates.email
 			FROM {$this->settings['tablePrefix']}candidates
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}affiliations ON {$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['tablePrefix']}affiliations.id
@@ -3297,12 +3298,12 @@ class elections
 		$submissionUrl = "https://{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/";
 		
 		# Assemble the text
-		#!# Entities being shown in area name, e.g. "Dear Sawston &amp; Shelford Division candidate,"
+		#!# Entities being shown in area name, e.g. "Sawston &amp; Shelford Division candidate,"
 		$text  = "\n";
 		if ($type == 'reminders') {
 			$text .= "\n" . 'Dear candidate - Just a reminder of this below - thanks in advance for your time.' . "\n\n--\n\n";
 		}
-		$text .= "\n" . 'Dear candidate,';
+		$text .= "\n" . "Dear {$candidate['nameNaturalCase']},";
 		$text .= "\n" . "We are writing to you as one of the {$areaName} {$this->election['areaType']} candidates in the {$this->election['name']}.";
 		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' https://www', $this->election['organisationIntroductionHtml'])));
 		$text .= "\n";
