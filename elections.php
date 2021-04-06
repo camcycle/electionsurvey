@@ -1080,7 +1080,7 @@ class elections
 	private function areasListing ($election)
 	{
 		# Start the HTML
-		$html  = "\n\n" . '<h2><img src="{$this->baseUrl}/images/next.jpg" width="20" height="20" alt="&gt;" border="0" /> Candidates\' responses for each ' . $election['areaType'] . '</h2>';
+		$html  = "\n\n" . '<h2><img src="' . $this->baseUrl . '/images/next.jpg" width="20" height="20" alt="&gt;" border="0" /> Candidates\' responses for each ' . $election['areaType'] . '</h2>';
 		$html .= "\n<p>The following " . $election['areaTypePlural'] . " being contested are those for which we have sent questions to candidates:</p>";
 		
 		# Get the areas for this election
