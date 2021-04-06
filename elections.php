@@ -3251,7 +3251,8 @@ class elections
 					<td colspan=\"2\">
 						<p>&nbsp;</p>
 						<p>&nbsp;</p>
-						<p>Dear " . $areaName . ' ' . $this->election['areaType'] . " candidate,</p>
+						<p>Dear candidate,</p>
+						<p>We are writing to you as one of the {$areaName} {$this->election['areaType']} candidates in the {$this->election['name']}.</p>
 						" . $this->election['organisationIntroductionHtml'] . "
 						<p>We ask candidates to submit their responses via the automated facility on our website. Just go to: <u>{$submissionUrl}</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
 						" . $screenshotHtml . "
@@ -3301,7 +3302,8 @@ class elections
 		if ($type == 'reminders') {
 			$text .= "\n" . 'Dear candidate - Just a reminder of this below - thanks in advance for your time.' . "\n\n--\n\n";
 		}
-		$text .= "\n" . 'Dear ' . $areaName . ' ' . $this->election['areaType'] . ' candidate,';
+		$text .= "\n" . 'Dear candidate,';
+		$text .= "\n" . "We are writing to you as one of the {$areaName} {$this->election['areaType']} candidates in the {$this->election['name']}.";
 		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' https://www', $this->election['organisationIntroductionHtml'])));
 		$text .= "\n";
 		$text .= "\n" . 'Please access the survey and submit your responses online, here:';
