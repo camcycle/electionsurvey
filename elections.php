@@ -466,7 +466,7 @@ class elections
 			  `forename` varchar(255) NOT NULL COMMENT 'Forename',
 			  `surname` varchar(255) NOT NULL COMMENT 'Surname',
 			  `address` varchar(255) NOT NULL COMMENT 'Address',
-			  `email` varchar(255) NULL COMMENT 'E-mail address',
+			  `email` varchar(255) DEFAULT NULL COMMENT 'E-mail address',
 			  `verification` varchar(6) NOT NULL COMMENT 'Verification number',
 			  `affiliation` varchar(255) NOT NULL COMMENT 'Affiliation (join to affiliations)',
 			  `cabinetRestanding` varchar(255) DEFAULT NULL COMMENT 'Whether the candidate is a restanding Cabinet member, and if so, their current Cabinet post',
