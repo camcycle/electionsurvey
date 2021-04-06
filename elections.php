@@ -3431,6 +3431,7 @@ class elections
 		$internalAuthSettings = array (
 			'applicationName'	=> $this->settings['applicationName'],
 			'baseUrl'		=> $this->baseUrl,
+			'imagesLocation'	=> $this->baseUrl . '/images/icons/',
 			'database'		=> $this->settings['database'],
 			'table'			=> $this->settings['tablePrefix'] . 'users',
 			'administratorEmail'	=> $this->settings['webmaster'],
