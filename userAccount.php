@@ -39,7 +39,7 @@ class userAccount
 		'passwordRequiresLettersAndNumbers'	=> true,
 		'usernames'							=> false,	// Whether to use usernames (necessary only for social applications, where friendly profile URLs are needed)
 		'usernameRegexp'					=> '^([a-z0-9]{5,})$',
-		'usernameRegexpDescription'			=> 'Usernames must be all lower-case letters/numbers, at least 5 characters long. NO capital letters allowed.',
+		'usernameRegexpDescription'			=> 'Usernames must be all lower-case letters/numbers, at least 5 characters long. No capital letters allowed.',
 		'privileges'						=> false,	// Whether there is a privileges field
 		'visibleNames'						=> false,	// Whether there is a visible name field
 		'cookieName'						=> 'login',	// NB: If there is more than one session system on the page, they must be set to have the same session.name PHP ini value

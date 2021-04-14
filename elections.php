@@ -107,7 +107,7 @@ class elections
 				'admingroup' => 'areas',
 			),
 			'showaffiliations'	=> array (
-				'description' => 'Show/edit existing political parties/groups',
+				'description' => 'Show existing political parties/groups',
 				'url' => 'admin/showaffiliations.html',
 				'administrator' => true,
 				'admingroup' => 'affilations',
@@ -115,6 +115,13 @@ class elections
 			'addaffiliations'	=> array (
 				'description' => 'Add details of a political party/group',
 				'url' => 'admin/addaffiliations.html',
+				'administrator' => true,
+				'admingroup' => 'affilations',
+			),
+			#!# Not present
+			'editaffiliations'	=> array (
+				'description' => 'Edit details of a political party/group',
+				'url' => 'admin/editaffiliations.html',
 				'administrator' => true,
 				'admingroup' => 'affilations',
 			),
@@ -3431,6 +3438,7 @@ class elections
 		$internalAuthSettings = array (
 			'applicationName'	=> $this->settings['applicationName'],
 			'baseUrl'		=> $this->baseUrl,
+			'imagesLocation'	=> $this->baseUrl . '/images/icons/',
 			'database'		=> $this->settings['database'],
 			'table'			=> $this->settings['tablePrefix'] . 'users',
 			'administratorEmail'	=> $this->settings['webmaster'],
