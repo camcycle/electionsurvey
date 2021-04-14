@@ -2521,8 +2521,9 @@ class elections
 			return $html;
 		}
 		
-		# Define the required fields
+		# Define and state the required fields
 		$requiredFields = array ('forename', 'surname', 'areaId', 'affiliation', 'address', 'email');
+		$html .= "\n<p>You will need to prepare a spreadsheet containing the candidate data. This must include the following headings (in order): <strong>" . implode ('</strong>, <strong>', $requiredFields) . "</strong>. These headings must be present in the box below as the first line, so that the system knows which column is which.</p>";
 		
 		# Create a new form
 		require_once ('ultimateForm.php');
@@ -2538,7 +2539,7 @@ class elections
 		));
 		$form->textarea (array (
 			'name'			=> 'data',
-			'title'			=> 'Enter the candidate data, pasted from your spreadsheet, which must contain headings (in order): <strong>' . implode ('</strong>, <strong>', $requiredFields) . '</strong>',
+			'title'			=> 'Enter the candidate data, pasted from your spreadsheet - see details above. Make sure it includes the headings in the first line.',
 			'required'		=> true,
 			'cols'			=> 80,
 			'rows'			=> 10,
