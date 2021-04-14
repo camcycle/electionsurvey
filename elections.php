@@ -2433,7 +2433,7 @@ class elections
 		
 		# Add introduction
 		$html .= "\n<p>On this page you can mass-import the candidate data.</p>";
-		$html .= "\n<p><strong>Note that this will replace the data for the selected election.</strong> You should not use this while an election is in progress.</p>";
+		$html .= "\n<p><strong>Note that this will completely replace the data for the selected election. You should not use this while an election is in progress.</strong></p>";
 		$html .= "\n<p>Only those surveys that have not already started can have candidate data added.</p>";
 		
 		# Get all elections that are forthcoming, but not including those that have started, to prevent answers becoming misconnected to candidates who would have new IDs
