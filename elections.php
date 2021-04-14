@@ -998,7 +998,7 @@ class elections
 	
 	
 	# Function to get areas being contested in an election
-	private function getAreasForElection ($electionId)
+	private function getAreasForElection ($electionId, $includeAreaId = false, $convertEntities = true)
 	{
 		# Get data
 		$query = "SELECT
@@ -1016,7 +1016,7 @@ class elections
 		
 		# Add in the constructed area name
 		foreach ($data as $key => $area) {
-			$data[$key]['_name'] = $this->areaName ($area);
+			$data[$key]['_name'] = $this->areaName ($area, $convertEntities) . ($includeAreaId ? " [{$key}]" : '');
 		}
 		
 		# Return the data
@@ -1775,7 +1775,7 @@ class elections
 	
 	
 	# Function to get active areas across all current elections
-	private function getActiveAreas ($includeAreaId = false, $convertEntities = true)
+	private function getActiveAreas ()
 	{
 		# Get data
 		$query = "SELECT
@@ -1797,7 +1797,7 @@ class elections
 		# Rearrange as key=>value
 		$areas = array ();
 		foreach ($data as $area) {
-			$areas[$area['areaId']] = $this->areaName ($area, $convertEntities) . ($includeAreaId ? " [{$area['areaId']}]" : '');
+			$areas[$area['areaId']] = $this->areaName ($area);
 		}
 		
 		# Return the data
@@ -2455,6 +2455,18 @@ class elections
 			$elections[$electionId] = $election['name'] . " [{$electionId}]";
 		}
 		
+		# Get the areas for this election, as key-value pairs
+		$areasById = array ();
+		if (!$areas = $this->getAreasForElection ($this->election['id'], true, false)) {
+			$html .= "\n<p>There are not yet any surveys loaded, so we cannot yet list the available areas - please <a href=\"{$this->baseUrl}/{$this->actions['addsurveys']['url']}\">create a survey for an area</> first.</p>";
+			return $html;
+		}
+		foreach ($areas as $areaId => $area) {
+			$areasById[$areaId] = $area['_name'];
+		}
+		
+		# Ensure that areas are loaded
+		
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
@@ -2467,7 +2479,7 @@ class elections
 			'includeOnly'	=> array ('election', 'forename', 'surname', 'areaId', 'affiliation', 'address', 'email'),
 			'attributes' => array (
 				'election'		=> array ('type' => 'select', 'values' => $elections, 'default' => $this->election['id'], 'editable' => false, ),
-				'areaId'		=> array ('type' => 'select', 'values' => $this->getActiveAreas (true, false), ),
+				'areaId'		=> array ('type' => 'select', 'values' => $areasById),
 				'affiliation'	=> array ('type' => 'select', 'values' => $this->getAffiliationNames ()),
 				'address'		=> array ('description' => 'Use a comma-space between each part of the address. Enter a dash (-) if the address is not known.', ),
 			),
