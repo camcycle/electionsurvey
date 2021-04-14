@@ -2465,11 +2465,10 @@ class elections
 			$areasById[$areaId] = $area['_name'];
 		}
 		
-		# Ensure that areas are loaded
-		
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
+			'div' => 'ultimateform ' . __FUNCTION__,
 			'databaseConnection' => $this->databaseConnection,
 			'autofocus' => true,
 		));
