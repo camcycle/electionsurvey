@@ -2507,7 +2507,7 @@ class elections
 			$data[$index]['election'] = $result['election'];
 			
 			# Add random verification number for candidate login; note that uniqueness across the dataset is not actually required
-			$data[$index]['verification'] = rand (100000, 999999);
+			$data[$index]['verification'] = $this->generateVerificationNumber ();
 		}
 		
 		# Clear any existing data
@@ -2528,6 +2528,15 @@ class elections
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Helper function to generate a verification number
+	#!# Needs to do uniqueness check to avoid (unlikely) clashes
+	#!# Change to generating alpha-numeric
+	private function generateVerificationNumber ()
+	{
+		return rand (100000, 999999);
 	}
 	
 	
