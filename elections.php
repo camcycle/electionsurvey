@@ -165,12 +165,19 @@ class elections
 				'admingroup' => 'surveys',
 				//'election' => true,
 			),
+			'addcandidate'	=> array (
+				'description' => 'Add a candidate',
+				'url' => 'admin/addcandidate.html',
+				'administrator' => true,
+				'admingroup' => 'candidates',
+				'election' => true,
+			),
 			'addcandidates'	=> array (
-				'description' => 'Add candidates',
+				'description' => 'Mass-import candidates data',
 				'url' => 'admin/addcandidates.html',
 				'administrator' => true,
 				'admingroup' => 'candidates',
-				//'election' => true,
+				'election' => true,
 			),
 			#!# Not present
 			'editcandidates'	=> array (
@@ -468,14 +475,14 @@ class elections
 			
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}candidates` (
 			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Unique key',
-			  `election` varchar(255) NOT NULL COMMENT 'Election / year (join to elections)',
-			  `areaId` varchar(255) NOT NULL COMMENT 'Area (join to areas)',
+			  `election` varchar(255) NOT NULL COMMENT 'Election / year',
+			  `areaId` varchar(255) NOT NULL COMMENT 'Area',
 			  `forename` varchar(255) NOT NULL COMMENT 'Forename',
 			  `surname` varchar(255) NOT NULL COMMENT 'Surname',
 			  `address` varchar(255) NOT NULL COMMENT 'Address',
 			  `email` varchar(255) DEFAULT NULL COMMENT 'E-mail address',
 			  `verification` varchar(6) NOT NULL COMMENT 'Verification number',
-			  `affiliation` varchar(255) NOT NULL COMMENT 'Affiliation (join to affiliations)',
+			  `affiliation` varchar(255) NOT NULL COMMENT 'Affiliation',
 			  `cabinetRestanding` varchar(255) DEFAULT NULL COMMENT 'Whether the candidate is a restanding Cabinet member, and if so, their current Cabinet post',
 			  `private` int(1) DEFAULT NULL,
 			  `elected` int(1) DEFAULT NULL COMMENT 'Candidate elected',
@@ -1768,7 +1775,7 @@ class elections
 	
 	
 	# Function to get active areas across all current elections
-	private function getActiveAreas ()
+	private function getActiveAreas ($includeAreaId = false, $convertEntities = true)
 	{
 		# Get data
 		$query = "SELECT
@@ -1789,8 +1796,8 @@ class elections
 		
 		# Rearrange as key=>value
 		$areas = array ();
-		foreach ($data as $key => $values) {
-			$areas[$values['areaId']] = $this->areaName ($values);
+		foreach ($data as $area) {
+			$areas[$area['areaId']] = $this->areaName ($area, $convertEntities) . ($includeAreaId ? " [{$area['areaId']}]" : '');
 		}
 		
 		# Return the data
@@ -2425,7 +2432,68 @@ class elections
 	}
 	
 	
-	# Function to add candidates for an election
+	# Function to add a candidate for an election
+	public function addcandidate ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Ensure there is an election supplied
+		if (!$this->election) {
+			$html .= "\n<p>Please select which election:</p>";
+			$html .= $this->listElections ($this->elections, true, false, __FUNCTION__ . '.html');
+			return $html;
+		}
+		
+		# Add introduction
+		$html .= "\n<p>Here you can add an individual candidate standing for election.</p>";
+		$html .= "\n<p>Note: It is usually easier to <a href=\"{$this->baseUrl}/{$this->actions['addcandidates']['url']}\">mass-import the candidates</a> data. But this screen may be useful if you need to add afterwards a candidate who was accidentally omitted.</p>";
+		
+		# Get the elections, as key-value pairs, though only the currently-selected one (see above) will get selected (as a fixed value)
+		$elections = array ();
+		foreach ($this->elections as $electionId => $election) {
+			$elections[$electionId] = $election['name'] . " [{$electionId}]";
+		}
+		
+		# Create a new form
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'databaseConnection' => $this->databaseConnection,
+			'autofocus' => true,
+		));
+		$form->dataBinding (array (
+			'database'		=> $this->settings['database'],
+			'table'			=> "{$this->settings['tablePrefix']}candidates",
+			'includeOnly'	=> array ('election', 'forename', 'surname', 'areaId', 'affiliation', 'address', 'email'),
+			'attributes' => array (
+				'election'		=> array ('type' => 'select', 'values' => $elections, 'default' => $this->election['id'], 'editable' => false, ),
+				'areaId'		=> array ('type' => 'select', 'values' => $this->getActiveAreas (true, false), ),
+				'affiliation'	=> array ('type' => 'select', 'values' => $this->getAffiliationNames ()),
+				'address'		=> array ('description' => 'Use a comma-space between each part of the address. Enter a dash (-) if the address is not known.', ),
+			),
+		));
+		if ($result = $form->process ($html)) {
+			
+			# Generate a verification number
+			$result['verification'] = $this->generateVerificationNumber ();
+			
+			# Insert the candidate
+			if (!$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}candidates", $result)) {
+				$html = "\n<p><img src=\"{$this->baseUrl}/images/icons/cross.png\" class=\"icon\" /> An error occurred adding the candidate.</p>";
+				return $html;
+			}
+			
+			# Confirm success
+			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The candidate has been added.</p>";
+			$html .= "\n<p>Add another?</p>";
+		}
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to add (mass-import) candidates for an election
 	public function addcandidates ()
 	{
 		# Start the HTML
@@ -2433,7 +2501,7 @@ class elections
 		
 		# Add introduction
 		$html .= "\n<p>On this page you can mass-import the candidate data.</p>";
-		$html .= "\n<p><strong>Note that this will completely replace the data for the selected election. You should not use this while an election is in progress.</strong></p>";
+		$html .= "\n<p><strong>Note that this will completely replace the data for the selected election. You should not use this while an election is in progress.</strong> You may instead be intending to <a href=\"{$this->baseUrl}/{$this->actions['addcandidate']['url']}\">add in a single candidate</a>.</p>";
 		$html .= "\n<p>Only those surveys that have not already started can have candidate data added.</p>";
 		
 		# Get all elections that are forthcoming, but not including those that have started, to prevent answers becoming misconnected to candidates who would have new IDs
