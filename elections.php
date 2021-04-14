@@ -2510,8 +2510,12 @@ class elections
 		# Start the HTML
 		$html = '';
 		
+		# Define the required fields
+		$requiredFields = array ('forename', 'surname', 'areaId', 'affiliation', 'address', 'email');
+		
 		# Add introduction
 		$html .= "\n<p>On this page you can mass-import the candidate data.</p>";
+		$html .= "\n<p>You will need to prepare a spreadsheet containing the candidate data. This must include the following headings (in order): <strong>" . implode ('</strong>, <strong>', $requiredFields) . "</strong>. These headings must be present in the box below as the first line, so that the system knows which column is which.</p>";
 		$html .= "\n<p><strong>Note that this will completely replace the data for the selected election. You should not use this while an election is in progress.</strong> You may instead be intending to <a href=\"{$this->baseUrl}/{$this->actions['addcandidate']['url']}\">add in a single candidate</a>.</p>";
 		$html .= "\n<p>Only those surveys that have not already started can have candidate data added.</p>";
 		
@@ -2520,10 +2524,6 @@ class elections
 			$html .= "<p><em>There are no forthcoming surveys.</em></p>";
 			return $html;
 		}
-		
-		# Define and state the required fields
-		$requiredFields = array ('forename', 'surname', 'areaId', 'affiliation', 'address', 'email');
-		$html .= "\n<p>You will need to prepare a spreadsheet containing the candidate data. This must include the following headings (in order): <strong>" . implode ('</strong>, <strong>', $requiredFields) . "</strong>. These headings must be present in the box below as the first line, so that the system knows which column is which.</p>";
 		
 		# Create a new form
 		require_once ('ultimateForm.php');
