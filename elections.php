@@ -1343,7 +1343,7 @@ class elections
 		$multiPersonAreas = false;
 		foreach ($candidates as $candidateKey => $candidate) {
 			if (isSet ($affiliations[$candidate['affiliationId']])) {$multiPersonAreas = true;}
-			$affiliations[$candidate['affiliationId']][$candidateKey] = 1 + (isSet ($affiliations[$candidate['affiliationId']]) ? 1 : 0);
+			$affiliations[$candidate['affiliationId']][$candidateKey] = 1 + (isSet ($affiliations[$candidate['affiliationId']]) ? count ($affiliations[$candidate['affiliationId']]) : 0);
 		}
 		
 		# Loop through each candidate (so that all are listed, irrespective of whether they have responded)
