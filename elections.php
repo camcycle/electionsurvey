@@ -1345,13 +1345,13 @@ class elections
 		foreach ($candidates as $candidateKey => $candidate) {
 			$affiliation = $candidate['affiliationId'];		// E.g. 'labour'
 			
-			# Add one to the count so far
-			$affiliationSuffixes[$affiliation][$candidateKey] = (isSet ($affiliationSuffixes[$affiliation]) ? count ($affiliationSuffixes[$affiliation]) : 0) + 1;
-			
-			# Drop the flag that at least one area is multi-person
+			# If an entry is already present, drop the flag that at least one area is multi-person
 			if (isSet ($affiliationSuffixes[$affiliation])) {
 				$multiPersonAreas = true;
 			}
+			
+			# Add one to the count so far
+			$affiliationSuffixes[$affiliation][$candidateKey] = (isSet ($affiliationSuffixes[$affiliation]) ? count ($affiliationSuffixes[$affiliation]) : 0) + 1;
 		}
 		
 		# Loop through each candidate (so that all are listed, irrespective of whether they have responded)
