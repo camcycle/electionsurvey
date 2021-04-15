@@ -1339,11 +1339,19 @@ class elections
 			$html .= "\n<p><strong>{$totalResponses}</strong> of the <strong>{$totalCandidates}</strong> candidates (<strong>{$percentageReplied}%</strong>) who were asked this question responded as below.</p>";
 		}
 		
-		# Determine if this is a election with more than one person standing per party
+		# Determine if this is a election with more than one person standing per party, and if so, assign a suffix (e.g. _1, _2, _3) for each such candidate
+		$affiliationSuffixes = array ();	// Indexed by party, and then within that by candidate => suffix index
 		$multiPersonAreas = false;
 		foreach ($candidates as $candidateKey => $candidate) {
-			if (isSet ($affiliations[$candidate['affiliationId']])) {$multiPersonAreas = true;}
-			$affiliations[$candidate['affiliationId']][$candidateKey] = 1 + (isSet ($affiliations[$candidate['affiliationId']]) ? count ($affiliations[$candidate['affiliationId']]) : 0);
+			$affiliation = $candidate['affiliationId'];		// E.g. 'labour'
+			
+			# Add one to the count so far
+			$affiliationSuffixes[$affiliation][$candidateKey] = (isSet ($affiliationSuffixes[$affiliation]) ? count ($affiliationSuffixes[$affiliation]) : 0) + 1;
+			
+			# Drop the flag that at least one area is multi-person
+			if (isSet ($affiliationSuffixes[$affiliation])) {
+				$multiPersonAreas = true;
+			}
 		}
 		
 		# Loop through each candidate (so that all are listed, irrespective of whether they have responded)
@@ -1354,7 +1362,7 @@ class elections
 			# If this is a multi-person area election, determine the suffix to add to the unique ID below
 			$multiPersonAreasIdSuffix = '';
 			if ($multiPersonAreas) {
-				$multiPersonAreasIdSuffix = '_' . $affiliations[$candidate['affiliationId']][$candidateKey];
+				$multiPersonAreasIdSuffix = '_' . $affiliationSuffixes[$candidate['affiliationId']][$candidateKey];
 			}
 			
 			# Set a unique ID for use in the table, including the flag for whether the candidate is elected
