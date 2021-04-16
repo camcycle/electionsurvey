@@ -2523,9 +2523,10 @@ class elections
 		
 		# Add introduction
 		$html .= "\n<p>On this page you can mass-import the candidate data.</p>";
-		$html .= "\n<p>You will need to prepare a spreadsheet containing the candidate data. This must include the following headings (in order): <strong>" . implode ('</strong>, <strong>', $requiredFields) . "</strong>. These headings must be present in the box below as the first line, so that the system knows which column is which.</p>";
-		$html .= "\n<p><strong>Note that this will completely replace the data for the selected election. You should not use this while an election is in progress.</strong> You may instead be intending to <a href=\"{$this->baseUrl}/{$this->actions['addcandidate']['url']}\">add in a single candidate</a>.</p>";
-		$html .= "\n<p>Only those surveys that have not already started can have candidate data added.</p>";
+		$html .= "\n<p>You may instead wish to <a href=\"{$this->baseUrl}/{$this->actions['addcandidate']['url']}\">add in a single candidate</a>.</p>";
+		$html .= "\n<p>To import candidate data, you will need to prepare a spreadsheet containing it. This must include the following headings (in order): <strong>" . implode ('</strong>, <strong>', $requiredFields) . "</strong>. These headings must be present in the box below as the first line, so that the system knows which column is which.</p>";
+		$html .= "\n<p><strong>Please use this form carefully.</strong> The 'Replace' option below will disconnect any existing responses from candidates for the selected election. You should never use that option while an election is in progress.</p>";
+		$html .= "\n<p>This form will not do any e-mailing. If you are adding new candidates to the existing data, you will then need to use the 'Reissue e-mail facility individually for each new candidate.</p>";
 		
 		# Get all elections that are forthcoming, but not including those that have started, to prevent answers becoming misconnected to candidates who would have new IDs
 		if (!$elections = $this->getElections ($includeForthcoming = true, $excludeStarted = true)) {
@@ -2543,6 +2544,15 @@ class elections
 			'name'			=> 'election',
 			'title'			=> 'Which election',
 			'values'		=> $this->getElectionNames ($elections),
+			'required'		=> true,
+		));
+		$form->radiobuttons (array (
+			'name'			=> 'action',
+			'title'			=> 'Action (please choose carefully)',
+			'values'		=> array (
+				'replace'	=> 'Replace: This will replace the existing candidate data for this election. NEVER use this when e-mails to candidates have already gone out, as it will break the link with existing answers.',
+				'add'		=> 'Add: This will add additional candidates, so should be used when the initial import was not complete. It is safe to do once the election in progress, as it will not delete existing candidates. Make sure you do not add candidates already loaded, as that will cause duplication.',
+			),
 			'required'		=> true,
 		));
 		$form->textarea (array (
@@ -2598,10 +2608,12 @@ class elections
 			$data[$index]['verification'] = $this->generateVerificationNumber ();
 		}
 		
-		# Clear any existing data
-		$this->databaseConnection->delete ($this->settings['database'], "{$this->settings['tablePrefix']}candidates", array ('election' => $result['election']));
+		# In replace mode, clear any existing data
+		if ($result['action'] == 'replace') {
+			$this->databaseConnection->delete ($this->settings['database'], "{$this->settings['tablePrefix']}candidates", array ('election' => $result['election']));
+		}
 		
-		# Insert the data; note that this wil result in new candidate IDs
+		# Insert the data; note that this will result in new candidate IDs if replacing
 		if (!$this->databaseConnection->insertMany ($this->settings['database'], "{$this->settings['tablePrefix']}candidates", $data)) {
 			$error = $this->databaseConnection->error ();
 			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured. The database server said:</p>";
@@ -2612,7 +2624,7 @@ class elections
 		# Confirm success
 		$total = count ($data);
 		#!# Ideally the message should make clear if this was entirely new or a replacement
-		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The candidate data (total: {$total}) for this <a href=\"{$this->baseUrl}/{$result['election']}/\">election</a> has been entered.</p>";
+		$html = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The candidate data you entered (total: {$total}) for this <a href=\"{$this->baseUrl}/{$result['election']}/\">election</a> has been entered.</p>";
 		
 		# Return the HTML
 		return $html;
