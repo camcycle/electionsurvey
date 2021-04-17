@@ -1166,7 +1166,6 @@ class elections
 		
 		# Add in the constructed complete name with affiliation
 		foreach ($data as $key => $candidate) {
-			$data[$key]['_nameUncoloured'] = htmlspecialchars ($candidate['name']) . ' &nbsp;(' . htmlspecialchars ($candidate['affiliation']) . ')';
 			$data[$key]['_nameUncolouredNoAffiliation'] = htmlspecialchars ($candidate['name']);
 			$data[$key]['_name'] = "<span style=\"color: #{$candidate['colour']}; font-weight: bold;\">" . htmlspecialchars ($candidate['name']) . ' &nbsp;(' . htmlspecialchars ($candidate['affiliation']) . ')</span>';
 		}
@@ -3484,7 +3483,7 @@ class elections
 		foreach ($candidates as $areaName => $candidatesThisArea) {
 			$elected[$areaName] = array ();
 			foreach ($candidatesThisArea as $candidateId => $candidate) {
-				$candidatesByArea[$areaName][$candidateId] = str_replace ('&nbsp;', '', $candidate['_nameUncoloured']);
+				$candidatesByArea[$areaName][$candidateId] = $candidate['name'] . ' (' . $candidate['affiliation'] . ')';
 				if ($candidate['elected']) {
 					$elected[$areaName][] = $candidateId;
 				}
