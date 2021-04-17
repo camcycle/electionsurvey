@@ -1166,7 +1166,6 @@ class elections
 		
 		# Add in the constructed complete name with affiliation
 		foreach ($data as $key => $candidate) {
-			$data[$key]['_nameUncolouredNoAffiliation'] = htmlspecialchars ($candidate['name']);
 			$data[$key]['_name'] = "<span style=\"color: #{$candidate['colour']}; font-weight: bold;\">" . htmlspecialchars ($candidate['name']) . ' &nbsp;(' . htmlspecialchars ($candidate['affiliation']) . ')</span>';
 		}
 		
@@ -3355,8 +3354,8 @@ class elections
 			<table class=\"header\" cellpadding=\"0\" cellspacing=\"0\">
 				<tr>
 					<td class=\"address\">
-						{$candidate['_nameUncolouredNoAffiliation']},<br />
-						" . str_replace (',', ',<br />', htmlspecialchars ($candidate['address'])) . "
+						" . htmlspecialchars ($candidate['name']) . ',<br />
+						' . str_replace (',', ',<br />', htmlspecialchars ($candidate['address'])) . "
 					</td>
 					<td class=\"letterhead\">
 						{$this->election['letterheadHtml']}
