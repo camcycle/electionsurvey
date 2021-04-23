@@ -179,10 +179,9 @@ class elections
 				'admingroup' => 'candidates',
 				'election' => true,
 			),
-			#!# Not present
-			'editcandidates'	=> array (
-				'description' => 'Show/edit candidates',
-				'url' => 'admin/editcandidates.html',
+			'editcandidate'	=> array (
+				'description' => 'Edit candidate',
+				'url' => 'admin/editcandidate/',
 				'administrator' => true,
 				'admingroup' => 'candidates',
 				'election' => true,
@@ -2680,6 +2679,122 @@ class elections
 		
 		# Return the list
 		return $electionNames;
+	}
+	
+	
+	# Function to edit details of a candidate
+	public function editcandidate ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Ensure there is an election supplied
+		if (!$this->election) {
+			$html .= "\n<p>Please select which election:</p>";
+			$html .= $this->listElections ($this->elections, true, false, __FUNCTION__ . '/');
+			return $html;
+		}
+		
+		# Not available once the election is over
+		if (!$this->election['active']) {
+			return $html .= '<p>This is no longer available now the election is over.</p>';
+		}
+		
+		# Get the candidates
+		if (!$candidates = $this->getCandidates (true)) {
+			$html .= '<p>There are no candidates at present.</p>';
+			return $html;
+		}
+		
+		# Determine if there is a valid ID supplied
+		$id = false;
+		if (isSet ($_GET['id'])) {
+			if (!array_key_exists ($_GET['id'], $candidates)) {
+				$html = $this->pageNotFound ();
+				return $html;
+			}
+			$id = $_GET['id'];
+		}
+		
+		# Introduction
+		$html .= "\n<p>This form can be used to fix up data for a candidate, e.g. to correct a name.</p>";
+		$html .= "\n<p>Making changes will retain links between the candidate and any answers they have submitted.</p>";
+		$html .= "\n<p>You should not use this to mutate a candidate to be a different person.</p>";
+		
+		# Assemble candidate names by area, for a drop-down list
+		$candidatesByArea = array ();
+		foreach ($candidates as $candidateId => $candidate) {
+			$area = $candidate['areaName'] . ':';
+			$candidatesByArea[$area][$candidateId] = $candidate['name'] . ' (' . $candidate['affiliation'] . ')';
+		}
+		
+		# If no ID, start with the candidate selection drop-down
+		if (!$id) {
+			require_once ('ultimateForm.php');
+			$form = new form (array (
+				'databaseConnection' => $this->databaseConnection,
+				'submitButtonText' => 'Edit candidate details &gt;',
+				'autofocus' => true,
+			));
+			$form->select (array (
+				'name'		=> 'id',
+				'title'		=> 'Candidate',
+				'values'	=> $candidatesByArea,
+			));
+			if ($result = $form->process ($html)) {
+				
+				# Redirect to same URL with ID
+				$redirectTo = $this->baseUrl . '/' . $this->election['id'] . '/' . $this->action . '/' . $result['id'] . '/';
+				$html = application::sendHeader (301, $redirectTo);
+			}
+			
+			# End, returning the HTML
+			return $html;
+		}
+		
+		# Show the candidate details editing form, now that a valid ID is known
+		require_once ('ultimateForm.php');
+		$form = new form (array (
+			'databaseConnection' => $this->databaseConnection,
+			'submitButtonText' => 'Update candidate details',
+			'autofocus' => true,
+			'displayRestrictions' => false,
+		));
+		$candidate = $candidates[$id];
+		$data = array (
+			'id'			=> $candidate['id'],
+			'forename'		=> $candidate['forename'],
+			'surname'		=> $candidate['surname'],
+			'address'		=> $candidate['address'],
+			'email'			=> $candidate['email'],
+			'affiliation'	=> $candidate['affiliationId'],
+		);
+		$form->dataBinding (array (
+			'database'		=> $this->settings['database'],
+			'table'			=> "{$this->settings['tablePrefix']}candidates",
+			'includeOnly'	=> array_keys ($data),
+			'data'			=> $data,
+			'intelligence'	=> true,
+			'attributes'	=> array (
+				'data'			=> $data,
+				'id'			=> array ('type' => 'select', 'title' => 'Candidate', 'values' => $candidatesByArea, 'editable' => false, ),
+				'affiliation'	=> array ('type' => 'select', 'values' => $this->getAffiliationNames ()),
+			),
+		));
+		if ($result = $form->process ($html)) {
+			
+			# Update the database
+			if (!$this->databaseConnection->update ($this->settings['database'], "{$this->settings['tablePrefix']}candidates", $result, array ('id' => $id))) {
+				$html = "\n<p class=\"warning\">There was a problem updating the database.</p>";
+			}
+			
+			# Confirm success
+			$html  = "\n<p>✓ The candidate has now been updated.</p>";
+			$html .= "\n<p><a href=\"{$this->baseUrl}/admin/\">Return to the admin section.</a></p>";
+		}
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	
