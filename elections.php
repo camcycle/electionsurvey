@@ -1690,6 +1690,7 @@ class elections
 			'displayRestrictions'	=> false,
 			'cols' => 90,
 			'fixMailHeaders' => true,
+			'unsavedDataProtection' => true,
 		));
 		$i = 0;
 		foreach ($questions as $key => $question) {
