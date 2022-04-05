@@ -1255,7 +1255,7 @@ class elections
 				$i++;
 				$number = ($limitToArea ? $i : $question['id']);	// Index when showing an area-specific questionnaire, but the actual internal ID when showing everything
 				$link = 'question' . $number;
-				$questionsJumplist[] = "<strong><a href=\"#{$link}\">&nbsp;{$number}&nbsp;</a></strong>";
+				$questionsJumplist[] = "<strong><a href=\"#{$link}\">&nbsp;" . ($limitToArea ? $number : "#{$number}") . '&nbsp;</a></strong>';
 				$questionNumberPublic = $questionNumbersPublic[$question['questionId']];
 				$list[$i]  = "\n\n<h4 class=\"question\" id=\"{$link}\"><a href=\"#{$link}\">#</a> " . ($limitToArea ? 'Question ' : 'Question ID #') . $number . '</h4>';	// In all-listing mode (i.e. admins-only), show the IDs
 				$list[$i] .= $this->responsesBlock ($question, $this->candidates, $responses, false, $questionNumberPublic);
