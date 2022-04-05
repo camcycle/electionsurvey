@@ -1124,7 +1124,7 @@ class elections
 	{
 		# Convert entities if required
 		if ($convertEntities) {
-			$area['prefix'] = htmlspecialchars ($area['prefix']);
+			$area['prefix'] = htmlspecialchars ((string) $area['prefix']);
 			$area['areaName'] = htmlspecialchars ($area['areaName']);
 		}
 		
