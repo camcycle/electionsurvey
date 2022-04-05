@@ -1461,7 +1461,7 @@ class elections
 	private function formatLinks ($links, $letterMode = false)
 	{
 		# End if no links
-		$links = trim ($links);
+		$links = trim ((string) $links);
 		if (empty ($links)) {return '';}
 		
 		# Introduce the links
