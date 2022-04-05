@@ -1,11 +1,11 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-20
- * Version 1.5.42
- * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
- * Requires PHP 4.1+ with register_globals set to 'off'
- * Download latest from: http://download.geog.cam.ac.uk/projects/application/
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-22
+ * Version 1.8.0
+ * Distributed under the terms of the GNU Public Licence - https://www.gnu.org/licenses/gpl-3.0.html
+ * Requires PHP 5.3+ with register_globals set to 'off'
+ * Download latest from: https://download.geog.cam.ac.uk/projects/application/
  */
 
 
@@ -16,16 +16,6 @@ require_once ('pureContent.php');
 # Class containing general application support static methods
 class application
 {
-	# Constructor
-	public function __construct ($applicationName, $errors, $administratorEmail)
-	{
-		# Make inputs global
-		$this->applicationName = $applicationName;
-		$this->errors = $errors;
-		$this->administratorEmail = $administratorEmail;
-	}
-	
-	
 	# Function to merge the arguments; note that $errors returns the errors by reference and not as a result from the method
 	public static function assignArguments (&$errors, $suppliedArguments, $argumentDefaults, $functionName, $subargument = NULL, $handleErrors = false)
 	{
@@ -71,27 +61,6 @@ class application
 		
 		# Return the arguments
 		return $arguments;
-	}
-	
-	
-	# Function to deal with errors
-	#!# To be deleted after frontControllerApplication 1.10.0 release
-	public function throwError ($number, $diagnosisDetails = '')
-	{
-		# Define the default error message if the specified error number does not exist
-		$errorMessage = (isSet ($this->errors[$number]) ? $this->errors[$number] : "A strange yet unknown error (#$number) has occurred.");
-		
-		# Show the error message
-		$userErrors[] = 'Error: ' . $errorMessage . ' The administrator has been notified of this problem.';
-		echo self::showUserErrors ($userErrors);
-		
-		# Assemble the administrator's error message
-		if ($diagnosisDetails != '') {$errorMessage .= "\n\nFurther information available: " . $diagnosisDetails;}
-		
-		# Mail the admininistrator
-		$subject = '[' . ucfirst ($this->applicationName) . '] error';
-		$message = 'The ' . $this->applicationName . " has an application error: please investigate. Diagnostic details are given below.\n\nApplication error $number:\n" . $errorMessage;
-		self::sendAdministrativeAlert ($this->administratorEmail, $this->applicationName, $subject, $message);
 	}
 	
 	
@@ -196,7 +165,7 @@ class application
 	
 	
 	# Function to serve cache headers (304 Not modified header) instead of a resource; based on: http://www.php.net/header#61903
-	public function preferClientCache ($path)
+	public static function preferClientCache ($path)
 	{
 		# The server file path must exist and be readable
 		if (!is_readable ($path)) {return;}
@@ -667,7 +636,6 @@ class application
 	
 	
 	# Function to get the first value in an array, whether the array is associative or not
-	#!# PHP 7.3 now has array_value_first - should replace this function with a global function and migrate callers
 	public static function array_first_value ($array)
 	{
 		return reset ($array);	// Safe to do as this function receives a copy of the array
@@ -675,7 +643,6 @@ class application
 	
 	
  	# Function to get the last value in an array, whether the array is associative or not
-	#!# PHP 7.3 now has array_value_last - should replace this function with a global function and migrate callers
 	public static function array_last_value ($array)
 	{
 		return end ($array);    // Safe to do as this function receives a copy of the array
@@ -843,6 +810,52 @@ class application
 		
 		# Return the result
 		return $resultKeyed;
+	}
+	
+	
+	# Function to decode HTML entity values recursively through an associative array of any structure; NB this only changes values, not keys
+	public static function array_html_entity_decode ($array)
+	{
+		# Loop through the array, and recurse where a value is associative, otherwise decode
+		foreach ($array as $key => $value) {
+			if (!is_array ($value)) {
+				$array[$key] = html_entity_decode ($value);
+			} else {
+				$array[$key] = self::array_html_entity_decode ($value);
+			}
+		}
+		
+		# Return the modified array
+		return $array;
+	}
+	
+	
+	# Function to convert patterns in an array in the light of real data
+	# E.g. array ('a' => 'b', '/foo([0-9]+/)/' => '\1bar') with keys array ('foo1', 'foo2') will return array ('a' => 'b', 'foo1' => '1bar', 'foo2' => '2bar')
+	public static function expandPatternedArray ($array, $keysPresent)
+	{
+		# Start a replacement array; the original is not modified, as otherwise the ordering will be incorrect
+		$replacementArray = array ();
+		
+		# Loop through each entry
+		foreach ($array as $search => $replace) {
+			
+			# If not a regexp, register in the replacement array
+			if (!preg_match ('|^/.+/$|', $search)) {
+				$replacementArray[$search] = $replace;
+				continue;
+			}
+			
+			# Perform each substitution
+			foreach ($keysPresent as $keyPresent) {
+				if (preg_match ($search, $keyPresent, $matches)) {
+					$replacementArray[$keyPresent] = preg_replace ($search, $replace, $keyPresent);
+				}
+			}
+		}
+		
+		# Return the modified array
+		return $replacementArray;
 	}
 	
 	
@@ -1035,7 +1048,7 @@ class application
 	}
 	
 	
-	# Function to format free text
+	# Function to format free text as HTML
 	public static function formatTextBlock ($text, $paragraphClass = NULL)
 	{
 		# Do nothing if the text is empty
@@ -1157,12 +1170,32 @@ class application
 	
 	
 	# Wrapper for mail to make it UTF8 Unicode - see http://www.php.net/mail#92976 ; note that the From/To/Subject headers are only encoded to UTF-8 when they include non-ASCII characters (so that filtering is more likely to work)
-	public static function utf8Mail ($to, $subject, $message, $extraHeaders = false, $additionalParameters = NULL, $includeMimeContentTypeHeaders = true /* Set to true, the type, or false */)
+	public static function utf8Mail ($to, $subject, $message, $extraHeaders = false, $additionalParameters = NULL, $includeMimeContentTypeHeaders = true /* Set to true, the type, or false */, $attachments = array () /* array of filenames */, $forcePlainTextOnly = false)
 	{
-		# If the message is text+html, supplied as array('text'=>$text,'html'=>$htmlVersion), set this up; see http://krijnhoetmer.nl/stuff/php/html-plain-text-mail/
-		$isMultipart = false;
-		if (is_array ($message) && (count ($message) == 2) && isSet ($message['text']) && isSet ($message['html'])) {
-			$isMultipart = true;
+		# Add attachments if required, rewriting the message
+		if ($attachments) {
+			$message = self::attachmentsMimeSplitter ($attachments, $message, $extraHeaders /* will be appended to by reference */);
+			$includeMimeContentTypeHeaders = false;
+		}
+		
+		# Determine if the message is text+html, supplied as array ('text' => $text, 'html' => $htmlVersion)
+		$isMultipart = (is_array ($message) && (count ($message) == 2) && isSet ($message['text']) && isSet ($message['html']));
+		
+		# Unless forcing plain text only, generate an HTML version of plain text and convert the message to multipart
+		if (!$forcePlainTextOnly) {
+			if (!$isMultipart) {
+				if (!$attachments) {	// #!# Not yet compatible with using attachments - need to add support; will stay as text only, plus the attachment
+					$message = array (
+						'text'	=> $message,
+						'html'	=> self::formatTextBlock (self::makeClickableLinks (htmlspecialchars ($message), $addMailto = true, false, $target = false)),
+					);
+					$isMultipart = true;
+				}
+			}
+		}
+		
+		# Assemble multipart message if required; see: https://krijnhoetmer.nl/stuff/php/html-plain-text-mail/
+		if ($isMultipart) {
 			$boundary = uniqid ('np');
 			$includeMimeContentTypeHeaders = 'multipart/alternative;boundary=' . $boundary;
 			
@@ -1205,8 +1238,9 @@ class application
 		
 		# Convert a From: header, if it exists, when supplied as "Name <email>"
 		if (!preg_match ('/^From: ([[:alnum:]|[:punct:]|[:blank:]]+)(\r?)$/m', $headers)) {
-			$callbackFunction = create_function ('$matches', 'return "From: =?UTF-8?B?" . base64_encode ($matches[1]) . "?=" . " <{$matches[2]}>{$matches[3]}";');
-			$headers = preg_replace_callback ('/^From: (.+) <([^>]+)>(\r?)$/m', $callbackFunction, $headers);
+			$headers = preg_replace_callback ('/^From: (.+) <([^>]+)>(\r?)$/m', function ($matches) {
+				return "From: =?UTF-8?B?" . base64_encode ($matches[1]) . "?=" . " <{$matches[2]}>{$matches[3]}";
+			}, $headers);
 		}
 		
 		# If using SMTP auth, use the PEAR::Mail module
@@ -1252,6 +1286,62 @@ class application
 			# Send the mail and return the outcome
 			return mail ($to, $subject, $message, $headers, $additionalParameters);
 		}
+	}
+	
+	
+	# Function to add attachments; useful articles explaining the background at https://web.archive.org/web/20070101043612/www.zend.com/zend/spotlight/sendmimeemailpart1.php and https://web.archive.org/web/20070203131427/hollowearth.co.uk/tech/php/email_attachments.php and https://snipplr.com/view/2686/send-multipart-encoded-mail-with-attachments
+	private static function attachmentsMimeSplitter ($attachments /* array of filenames */, $originalMessage, &$extraHeaders /* will be appended to */)
+	{
+		# Define end-of-line
+		$eol = "\r\n";
+		
+		# Set the MIME boundary, a unique string
+		$mimeBoundary = '<<<--==+X[' . md5 (time ()). ']';
+		
+		# Add MIME headers
+		if (strlen ($extraHeaders)) {
+			$extraHeaders = trim ($extraHeaders) . $eol;	// Normalise to ensure EOL present at end
+		}
+		$extraHeaders .= 'MIME-Version: 1.0' . $eol;
+		$extraHeaders .= "Content-Type: multipart/related; boundary=\"{$mimeBoundary}\"" . $eol;
+		
+		# Push the attachment stuff into the main message area, starting with the MIME introduction
+		$message  = $eol;
+		$message .= 'This is a multi-part message in MIME format.' . $eol;
+		$message .= $eol;
+		$message .= '--' . $mimeBoundary . $eol;
+		
+		# Main message 'attachment'
+		$message .= 'Content-type: text/plain; charset="UTF-8"' . $eol;
+		$message .= 'Content-Transfer-Encoding: 8bit' . $eol;
+		$message .= $eol;
+		$message .= wordwrap ($originalMessage) . "{$eol}{$eol}{$eol}" . $eol;
+		$message .= '--' . $mimeBoundary . $eol;
+		
+		# Add each attachment, starting with a mini-header for each
+		$totalAttachments = count ($attachments);
+		$i = 0;
+		foreach ($attachments as $index => $filename) {
+			$message .= 'Content-Type: ' . mime_content_type ($filename) . '; name="' . basename ($filename) . '"' . $eol;
+			$message .= "Content-Transfer-Encoding: base64" . $eol;
+			$message .= 'Content-Disposition: attachment; filename="' . basename ($filename) . '"' . $eol;
+			$message .= $eol;
+			$message .= chunk_split (base64_encode (file_get_contents ($filename)));	// Contents
+			$message .= $eol;
+			$message .= '--' . $mimeBoundary;
+			if (++$i != $totalAttachments) {
+				$message .= $eol;	// Avoid extra EOL at end
+			}
+		}
+		
+		# Close the final boundary line
+		$message .= '--';
+		
+		# Debug
+		//var_dump ($message);
+		
+		# Return the message
+		return $message;
 	}
 	
 	
@@ -1483,7 +1573,8 @@ class application
 	
 	
 	# Function to extract the title of the page in question by opening the first $startingCharacters characters of the file and extracting what's between the <$tag> tags
-	public static function getTitleFromFileContents ($html, $startingCharacters = 100, $tag = 'h1')
+	#!# $startingCharacters is ignored
+	public static function getTitleFromFileContents ($html, $startingCharacters = 100, $tag = 'h1', $asHtml = false)
 	{
 		# Define the starting and closing tags
 		$startingTag = "<{$tag}[^>]*>";
@@ -1495,11 +1586,15 @@ class application
 		# Trim
 		$title = trim ($temporary[1]);
 		
-		# Strip tags
-		$title = strip_tags ($title);
-		
-		# Un-decode entities
-		$title = htmlspecialchars_decode ($title);
+		# Process as text, unless HTML permitted
+		if (!$asHtml) {
+			
+			# Strip tags
+			$title = strip_tags ($title);
+			
+			# Un-decode entities
+			$title = htmlspecialchars_decode ($title);
+		}
 		
 		# Send the title back as the result
 		return $title;
@@ -1797,7 +1892,7 @@ class application
 	
 	
 	# Function to insert a value before another in order; either afterField or beforeField must be specified
-	public function array_insert_value ($array, $newFieldKey, $newFieldValue, $afterField = false, $beforeField = false)
+	public static function array_insert_value ($array, $newFieldKey, $newFieldValue, $afterField = false, $beforeField = false)
 	{
 		# Throw error if neither or both of after/before supplied
 		if (!$afterField && !$beforeField) {return false;}
@@ -1831,7 +1926,7 @@ class application
 	
 	
 	# Function to add a value to the array if not already present, returning the new number of elements in the array
-	public function array_push_new (&$array, $value, $strict = false)
+	public static function array_push_new (&$array, $value, $strict = false)
 	{
 		# Add if not already present
 		if (!in_array ($value, $array, $strict)) {
@@ -2050,6 +2145,21 @@ class application
 			default:
 				return $size;
 		}
+	}
+	
+	
+	# Function to format bytes
+	public static function formatBytes ($bytes)
+	{
+		# Select either MB or KB
+		if ($bytes > (1024*1024)) {
+			$result = max (1, round ($bytes / (1024*1024), 1)) . 'MB';
+		} else {
+			$result = max (1, round ($bytes / 1024)) . 'KB';
+		}
+		
+		# Return the result
+		return $result;
 	}
 	
 	
@@ -2568,6 +2678,31 @@ class application
 		
 		# Return the result
 		return array ($headerLine, $dataLine);
+	}
+	
+	
+	# Function to convert a dataset to GeoJSON
+	public static function datasetToGeojson ($dataset, $geometryField = 'geometry')
+	{
+		# Start the GeoJSON
+		$geojson = array (
+			'type'		=> 'GeometryCollection',
+			'features'	=> array (),
+		);
+		
+		# Add each feature
+		foreach ($dataset as $feature) {
+			$properties = $feature;
+			unset ($properties[$geometryField]);
+			$geojson['features'][] = array (
+				'type'			=> 'Feature',
+				'properties'	=> $properties,
+				'geometry'		=> json_decode ($feature[$geometryField], true),
+			);
+		}
+		
+		# Return the GeoJSON
+		return $geojson;
 	}
 	
 	
@@ -3350,14 +3485,38 @@ class application
 	}
 	
 	
+	# Function to romanise a string, e.g. an e acute becomes 'e'
+	public static function romaniseString ($string)
+	{
+		# Special cases
+		$specialCases = array (
+			"\u{00e4}"	 => 'ae',    // umlaut ä => ae
+			"\u{00f6}"	 => 'oe',    // umlaut ö => oe
+			"\u{00fc}"	 => 'ue',    // umlaut ü => ue
+			"\u{00c4}"	 => 'AE',    // umlaut Ä => AE
+			"\u{00d6}"	 => 'OE',    // umlaut Ö => OE
+			"\u{00dc}"	 => 'UE',    // umlaut Ü => UE
+			"\u{00f1}"	 => 'ny',    // ñ => ny
+			"\u{00ff}"	 => 'yu',    // ÿ => yu
+		);
+		$string = str_replace (array_keys ($specialCases), array_values ($specialCases), $string);
+		
+		# Romanise
+		$string = iconv ('UTF-8', 'ASCII//TRANSLIT', $string);
+		
+		# Return the string
+		return $string;
+	}
+	
+	
 	# Equivalent of file_get_contents but for POST rather than GET
-	public static function file_post_contents ($url, $postData, $multipart = false, &$error = '', $userAgent = 'Proxy for: %HTTP_USER_AGENT')
+	public static function file_post_contents ($url, $postData, $multipart = false, &$error = '', $userAgent = 'Proxy for: %HTTP_USER_AGENT', $cookieString = false)
 	{
 		# Define the user agent
 		$userAgent = str_replace ('%HTTP_USER_AGENT', $_SERVER['HTTP_USER_AGENT'], $userAgent);
 		
-		# If not requiring multipart, avoid requirement for cURL
-		if (!$multipart) {
+		# If not requiring multipart/cookies, avoid requirement for cURL
+		if (!$multipart && !$cookieString) {
 			
 			# Set the stream options
 			$streamOptions = array (
@@ -3383,6 +3542,11 @@ class application
 		# Build the POST query
 		curl_setopt ($handle, CURLOPT_POST, 1);
 		curl_setopt ($handle, CURLOPT_POSTFIELDS, $postData);
+		
+		# Add support for a cookie string
+		if ($cookieString) {
+			curl_setopt ($handle, CURLOPT_HTTPHEADER, array ('Cookie: ' . $cookieString));
+		}
 		
 		# Obtain the original page HTML
 		curl_setopt ($handle, CURLOPT_RETURNTRANSFER, true);
@@ -3413,8 +3577,8 @@ class application
 			$outputFile = tempnam (sys_get_temp_dir (), 'tmp');		// Define a tempfile location for the created PDF
 		}
 		
-		# Convert to PDF; see options at http://wkhtmltopdf.org/usage/wkhtmltopdf.txt
-		$command = "wkhtmltopdf --encoding 'utf-8' --print-media-type {$inputFile} {$outputFile}";
+		# Convert to PDF; see options at https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
+		$command = "wkhtmltopdf --enable-local-file-access --encoding 'utf-8' --print-media-type {$inputFile} {$outputFile}";
 		exec ($command, $output, $returnValue);
 		$result = (!$returnValue);
 		
@@ -3426,7 +3590,7 @@ class application
 			if (file_exists ($outputFile)) {
 				unlink ($outputFile);
 			}
-			echo "\n<p class=\"warning\">Sorry, an error occured creating the PDF file.</p>";
+			echo "\n<p class=\"warning\">Sorry, an error occurred creating the PDF file.</p>";
 			return false;
 		}
 		
@@ -3669,7 +3833,7 @@ class application
 		}
 		
 		# Return false as the output if the return status is a failure
-		if ($returnStatus) {return false;}	// Unix return status >0 is failure
+#		if ($returnStatus) {return false;}	// Unix return status >0 is failure
 		
 		# Return the output
 		return $output;
@@ -3713,10 +3877,22 @@ class application
 	}
 	
 	
-	# Function to process the jumplist
-	public static function jumplistProcessor ($name = 'jumplist')
+	# Decode numeric entities; from https://www.php.net/html-entity-decode#96324
+	public static function numeric_entities ($string)
 	{
-return '';
+		$mapping_hex = array ();
+		$mapping_dec = array ();
+		
+		$translations = get_html_translation_table (HTML_ENTITIES, ENT_QUOTES);
+		foreach ($translations as $char => $entity) {
+			$mapping_hex[html_entity_decode ($entity, ENT_QUOTES, 'UTF-8')] = '&#x' . strtoupper (dechex (ord (html_entity_decode ($entity, ENT_QUOTES)))) . ';';
+			$mapping_dec[html_entity_decode ($entity, ENT_QUOTES, 'UTF-8')] = '&#' . ord (html_entity_decode ($entity, ENT_QUOTES)) . ';';
+		}
+		
+		$string = str_replace (array_values ($mapping_hex),array_keys ($mapping_hex), $string);
+		$string = str_replace (array_values ($mapping_dec),array_keys ($mapping_dec), $string);
+		
+		return $string;
 	}
 	
 	
@@ -3748,34 +3924,12 @@ return '';
 
 
 
-# Ensure that the file_put_contents function exists - taken from http://cvs.php.net/viewvc.cgi/pear/PHP_Compat/Compat/Function/file_put_contents.php?revision=1.9&view=markup
-if (!function_exists('file_put_contents'))
-{
-	function file_put_contents ($filename, $content)
-	{
-	    $bytes = 0;
-	
-	    if (($file = fopen($filename, 'w+')) === false) {
-	        return false;
-	    }
-	
-	    if (($bytes = fwrite($file, $content)) === false) {
-	        return false;
-	    }
-	
-	    fclose($file);
-	
-	    return $bytes;
-	}
-}
-
-
 # Define an emulated mime_content_type function (if not using Windows) - taken from http://cvs.php.net/viewvc.cgi/pear/PHP_Compat/Compat/Function/mime_content_type.php?revision=1.6&view=markup
 if (!function_exists ('mime_content_type') && (!strstr (PHP_OS, 'WIN')))
 {
 	function mime_content_type ($filename)
 	{
-	    // Sanity check
+	// Sanity check
 	    if (!file_exists($filename)) {
 	        return false;
 	    }
@@ -3800,15 +3954,6 @@ if (!function_exists ('mime_content_type') && (!strstr (PHP_OS, 'WIN')))
 }
 
 
-# Emulation of htmlspecialchars_decode; from http://uk.php.net/manual/en/function.htmlspecialchars-decode.php#68962
-if ( !function_exists('htmlspecialchars_decode') )
-{
-	function htmlspecialchars_decode($text)
-	{
-		return strtr($text, array_flip(get_html_translation_table(HTML_SPECIALCHARS)));
-	}
-}
-
 # Polyfill for str_contains (natively available from PHP 8.0); see: https://php.watch/versions/8.0/str_contains
 if (!function_exists ('str_contains')) {
     function str_contains (string $haystack, string $needle)
@@ -3817,7 +3962,16 @@ if (!function_exists ('str_contains')) {
     }
 }
 
-# Emulation of mb_strtolower for UTF-8 compliance; based on http://www.php.net/strtolower#90871
+
+# Polyfill for str_starts_with (natively available from PHP 8)
+if (!function_exists ('str_starts_with')) {
+	function str_starts_with ($haystack, $needle) {
+		return (strpos ($haystack, $needle ) === 0);
+	}
+}
+
+
+# Emulation of mb_strtolower for UTF-8 compliance (natively available if Multibyte String extension installed); based on http://www.php.net/strtolower#90871
 if (!function_exists ('mb_strtolower'))
 {
 	function mb_strtolower ($string, $encoding)
@@ -3836,7 +3990,8 @@ if (!function_exists ('mb_ucfirst')) {
 	}
 }
 
-# Missing mb_str_split function; based on http://php.net/str-split#117112
+
+# Missing mb_str_split function (natively available from PHP 7.4 if Multibyte String extension installed); based on http://php.net/str-split#117112
 if (!function_exists ('mb_str_split')) {
     if (function_exists ('mb_substr')) {
 		function mb_str_split ($string, $split_length = 1)
@@ -3857,5 +4012,16 @@ if (!function_exists ('mb_str_split')) {
 	}
 }
 
+
+# Polyfill for array_key_first (natively available from PHP 7.3)
+if (!function_exists ('array_key_first')) {
+	function array_key_first (array $arr)
+	{
+		foreach ($arr as $key => $unused) {
+			return $key;
+		}
+		return NULL;
+	}
+}
 
 ?>

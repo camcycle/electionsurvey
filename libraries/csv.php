@@ -1,6 +1,6 @@
 <?php
 
-# Version 1.3.14
+# Version 1.3.15
 
 # Load required libraries
 require_once ('application.php');
@@ -22,7 +22,7 @@ class csv
 	# Wrapper function to get CSV data
 	#!# Consider further file error handling
 	#!# Need to merge this with application::getCsvData
-	public static function getData ($filename, $stripKey = true, $hasNoKeys = false, $allowsRowsWithEmptyFirstColumn = false)
+	public static function getData ($filename, $stripKey = true, $hasNoKeys = false, $allowRowsWithEmptyFirstColumn = false, $skipCommentLines = false)
 	{
 		# Get the headers
 		#!# Not entirely efficient, but API becomes messy otherwise
@@ -45,24 +45,31 @@ class csv
 		# Loop through each line of data
 		$data = array ();
 		$counter = 0;
-		while ($csvData = fgetcsv ($fileHandle, $longestLineLength + 1)) {
+		while ($csvDataLine = fgetcsv ($fileHandle, $longestLineLength + 1)) {
 			
 			# Skip if in the first (header) row
 			if (!$counter++) {continue;}
 			
+			# Skip comment lines, i.e. starting with #, if required
+			if ($skipCommentLines) {
+				if (strlen ($csvDataLine[0]) && substr ($csvDataLine[0], 0, 1) == '#') {
+					continue;
+				}
+			}
+			
 			# Check the first item exists and set it as the row key then unset it
-			$rowExists = (strlen ($csvData[0]) || $allowsRowsWithEmptyFirstColumn);
+			$rowExists = (strlen ($csvDataLine[0]) || $allowRowsWithEmptyFirstColumn);
 			if ($rowExists) {
 				
 				# Obtain the row key, being the first column's value
-				$rowKey = $csvData[0];
+				$rowKey = $csvDataLine[0];
 				
-				if ($stripKey) {unset ($csvData[0]);}
+				if ($stripKey) {unset ($csvDataLine[0]);}
 				if ($hasNoKeys) {$rowKey = $counter - 1;}
 				
 				# Loop through each item of data
 				#!# What should happen if a row has fewer columns than another? If there are fields missing, then it may be better to allow offsets to be generated as otherwise the data error may not be known. Filling in the remaining fields is probably wrong as we don't know which are missing.
-				foreach ($csvData as $key => $value) {
+				foreach ($csvDataLine as $key => $value) {
 					
 					# Assign the entry into the table
 					if (isSet ($headers[$key])) {$data[$rowKey][$headers[$key]] = $value;}
@@ -535,6 +542,7 @@ class csv
 	public static function xls2csv ($xlsDirectory, $csvDirectory, $pearPath = '/usr/local/lib/php/')
 	{
 		# Load the PEAR library; the function requires PHPExcel which must be in the path. Install using: /usr/local/bin/pear channel-discover pear.pearplex.net ; /usr/local/bin/pear install pearplex/PHPExcel
+		#!# Needs to be migrated to PhpSpreadsheet, using enclosureRequired; see: https://github.com/PHPOffice/PhpSpreadsheet/blob/master/src/PhpSpreadsheet/Writer/Csv.php
 		if ($pearPath) {
 			set_include_path (get_include_path () . PATH_SEPARATOR . $pearPath);
 		}
@@ -569,6 +577,7 @@ class csv
 			$objReader = PHPExcel_IOFactory::createReader ($excelImplementation);
 			$objPHPExcel = $objReader->load ($xlsFile);
 			$objWriter = PHPExcel_IOFactory::createWriter ($objPHPExcel, 'CSV');
+			#!# This becomes enclosureRequired under PhpSpreadsheet
 			$objWriter->setEnclosureIsOptional (true);				// Requires the patch at https://github.com/PHPOffice/PHPExcel/issues/282
 			$objWriter->save ($csvFile);
 			$converted[$xlsDirectory . $file] = $csvFile;

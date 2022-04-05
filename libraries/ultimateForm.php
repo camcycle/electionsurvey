@@ -53,7 +53,7 @@
  * @package ultimateForm
  * @license	https://opensource.org/licenses/gpl-license.php GNU Public License
  * @author	{@link http://www.geog.cam.ac.uk/contacts/webmaster.html Martin Lucas-Smith}, University of Cambridge
- * @copyright Copyright  2003-20, Martin Lucas-Smith, University of Cambridge
+ * @copyright Copyright  2003-21, Martin Lucas-Smith, University of Cambridge
  * @version See $version below
  */
 class form
@@ -70,7 +70,7 @@ class form
 	var $name;									// The name of the form
 	var $location;								// The location where the form is submitted to
 	var $duplicatedElementNames = array ();		// The array to hold any duplicated form field names
-	var $formSetupErrors = array ();			// Array of form setup errors, to which any problems can be added
+	var $formSetupErrors = array ();			// Array of form setup errors, to which any problems can be added; those whose key is prefixed with _ are warnings
 	var $elementProblems = array ();			// Array of submitted element problems
 	var $externalProblems = array ();			// Array of external element problems as inserted by the calling applications
 	var $validationRules = array ();			// Array of validation rules
@@ -111,7 +111,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.26.4';
+	var $version = '1.27.1';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -176,6 +176,7 @@ class form
 		'timestamping'						=> false,							# Add a timestamp to any CSV entry
 		'ipLogging'							=> false,							# Add the user IP address to any CSV entry
 		'escapeOutput'						=> false,							# Whether to escape output in the processing output ONLY (will not affect other types)
+		'emailName'							=> 'Website feedback',				# Name string for emitted e-mails
 		'emailIntroductoryText'				=> '',								# Introductory text for e-mail output type
 		'emailShowFieldnames'				=> true,							# Whether to show the underlying fieldnames in the e-mail output type
 		'confirmationEmailIntroductoryText'	=> '',								# Introductory text for confirmation e-mail output type
@@ -1045,6 +1046,7 @@ class form
 			'config.bodyClass'					=> false,										// Apply value of <body class="..."> to editing window
 			'config.format_tags'				=> 'p;h1;h2;h3;h4;h5;h6;pre',
 			'config.stylesSet'					=> "[
+				{name: 'No paragraph style', element: 'p', attributes: {'class': ''}},
 				{name: 'Warning style (paragraph)', element: 'p', attributes: {'class': 'warning'}},
 				{name: 'Success style (paragraph)', element: 'p', attributes: {'class': 'success'}},
 				{name: 'Comment text (paragraph)', element: 'p', attributes: {'class': 'comment'}},
@@ -1823,6 +1825,7 @@ class form
 			'autocompleteOptions'	=> false,	# Autocomplete options; see: http://jqueryui.com/demos/autocomplete/#remote (this is the new plugin)
 			'entities'				=> true,	# Convert HTML in label to entity equivalents
 			'data'					=> array (),	# Values for data-* attributes
+			'tolerateInvalid'		=> false,	# Whether to tolerate an invalid default value, and reset the value to empty
 		);
 		
 		# Create a new form widget
@@ -1998,7 +2001,7 @@ class form
 		}
 		
 		# Ensure that all initial values are in the array of values
-		$this->ensureDefaultsAvailable ($arguments);
+		$this->ensureDefaultsAvailable ($arguments, $warningHtml /* returned by reference */);
 		
 		# Emulate the need for the field to be 'required', i.e. the minimum number of fields is greater than 0
 		$required = ($arguments['required'] > 0);
@@ -2147,6 +2150,9 @@ class form
 			$elementValue = array_keys ($presentableDefaults);
 		}
 		
+		# If a warning has been generated, show this
+		$widgetHtml .= $this->showWarning ($warningHtml);
+		
 		# Support copyTo - sets the value of another field to the selected option's visible text if it is currently empty or changed again
 		$this->copyTo ($arguments);
 		
@@ -2221,6 +2227,15 @@ class form
 			'groupValidation' => 'compiled',
 			'after' => $arguments['after'],
 		);
+	}
+	
+	
+	# Function to render a warning
+	private function showWarning ($warningHtml)
+	{
+		# Show the warning if present
+		if (!$warningHtml) {return false;}
+		return '<br /><span class="warning"><strong>&#9888; Warning:</strong> ' . $warningHtml . '</span>';
 	}
 	
 	
@@ -2380,6 +2395,7 @@ class form
 			'after'					=> false,		# Placing the widget after a specific other widget
 			'entities'				=> true,		# Convert HTML in label to entity equivalents
 			'titles'				=> array (),	# Title attribute texts, as array (value => string, ...)
+			'tolerateInvalid'		=> false,		# Whether to tolerate an invalid default value, and reset the value to empty
 		);
 		
 		# Create a new form widget
@@ -2453,7 +2469,7 @@ class form
 		}
 		
 		# Ensure that all initial values are in the array of values
-		$this->ensureDefaultsAvailable ($arguments);
+		$this->ensureDefaultsAvailable ($arguments, $warningHtml /* returned by reference */);
 		
 		# If the field is not a required field (and therefore there is a null text field), ensure that none of the values have an empty string as the value (which is reserved for the null)
 		#!# Policy question: should empty values be allowed at all? If so, make a special constant for a null field but which doesn't have the software name included
@@ -2517,6 +2533,9 @@ class form
 				}
 			}
 		}
+		
+		# If a warning has been generated, show this
+		$widgetHtml .= $this->showWarning ($warningHtml);
 		
 		# Re-assign back the value
 		$this->form[$arguments['name']] = $elementValue;
@@ -2605,6 +2624,7 @@ class form
 			'tabindex'				=> false,	# Tabindex if required; replace with integer between 0 and 32767 to create
 			'after'					=> false,	# Placing the widget after a specific other widget
 			'entities'				=> true,	# Convert HTML in label to entity equivalents
+			'tolerateInvalid'		=> false,	# Whether to tolerate an invalid default value, and reset the value to empty
 		);
 		
 		# Create a new form widget
@@ -2672,7 +2692,7 @@ class form
 		if ($arguments['maximum'] && $arguments['required'] && ($arguments['maximum'] < $arguments['required'])) {$this->formSetupErrors['checkboxesMaximumMismatch'] = "In the <strong>{$arguments['name']}</strong> element, A maximum and a minimum number of checkboxes have both been specified but this maximum (<strong>{$arguments['maximum']}</strong>) is less than the minimum (<strong>{$arguments['required']}</strong>) required.";}
 		
 		# Ensure that all initial values are in the array of values
-		$this->ensureDefaultsAvailable ($arguments);
+		$this->ensureDefaultsAvailable ($arguments, $warningHtml /* returned by reference */);
 		
 		# Start a tally to check the number of checkboxes checked
 		$checkedTally = 0;
@@ -2787,6 +2807,9 @@ class form
 		if (isSet ($restriction)) {
 			$restriction = implode (';<br />', $restriction);
 		}
+		
+		# If a warning has been generated, show this
+		$widgetHtml .= $this->showWarning ($warningHtml);
 		
 		# Re-assign back the value
 		$this->form[$arguments['name']] = $elementValue;
@@ -3516,6 +3539,106 @@ class form
 			$widgetHtml .= "\n\t\t\t" . '<input type="hidden" name="UPLOAD_IDENTIFIER" value="' . $uploadProgressIdentifier . '">';
 		}
 		
+		# Convert to drag and drop zone if required; this merely styles the input box and does not use HTML5 Drag and Drop; see: https://codepen.io/TheLukasWeb/pen/qlGDa
+		if ($arguments['draganddrop']) {
+			$thumbnailText = 'Click here to pick photo, or drag and drop into this box.';
+			$widgetHtml .= "
+				<style type=\"text/css\">
+					form tr.upload div.draganddrop {
+						width: calc({$this->settings['uploadThumbnailWidth']}px + 4px + 4px);
+						height: calc({$this->settings['uploadThumbnailHeight']}px + 4px + 4px);
+						border: 4px dashed gray;
+					}
+					form tr.upload p {
+						width: {$this->settings['uploadThumbnailWidth']}px;
+						height: {$this->settings['uploadThumbnailHeight']}px;
+						text-align: center;
+						padding: 15px;
+						color: gray;
+					}
+					form tr.upload div input {
+						position: absolute;
+						margin: 0;
+						padding: 0;
+						width: {$this->settings['uploadThumbnailWidth']}px;
+						height: {$this->settings['uploadThumbnailHeight']}px;
+						outline: none;
+						opacity: 0;
+					}
+				</style>
+			";
+		}
+		
+		# If thumbnail viewing is enabled, parse the argument and assemble the HTML5/JS code
+		if ($arguments['thumbnail']) {
+			$thumbnailHtmlBySubfield = array ();
+			
+			# Enable jQuery
+			#!# Actually this is currently enabling jQuery as well as jQueryUI
+			$this->enableJqueryUi ();
+			
+			# Define the thumbnailing code; this is done once globally
+			$this->jQueryCode[__FUNCTION__] = "\n" . $this->thumbWrapperJs ();
+			
+			# For each subfield, add a thumbnail preview, creating the div if required
+			$this->jQueryCode[__FUNCTION__  . $arguments['name']] = '';	// Indexed by element to ensure that multiple upload instances do not overwrite
+			for ($subfield = 0; $subfield < $arguments['subfields']; $subfield++) {
+				$thumbnailHtml = '';
+				
+				# Get the widget ID
+				$elementId = $this->cleanId ($this->settings['name'] ? "{$this->settings['name']}[{$arguments['name']}_{$subfield}]" : "{$arguments['name']}_{$subfield}");
+				
+				# Assign the thumbnail ID
+				$selector = $arguments['thumbnail'];
+				if ($arguments['thumbnail'] === true) {
+					$thumbnailDivId = $elementId . '_thumbnailpreview';
+					$selector = '#' . $thumbnailDivId;
+				}
+				
+				# Create the div if set to boolean true; otherwise the named selector that the client code has created on its page will be used
+				#!# Named selector will fail if multiple subfields, as they will all be the same
+				if ($arguments['thumbnail'] === true) {
+					
+					# Open div to contain the thumbnail
+					$thumbnailHtml .= "\n\t\t\t\t<div id=\"{$thumbnailDivId}\" style=\"width: {$this->settings['uploadThumbnailWidth']}px; height: {$this->settings['uploadThumbnailHeight']}px;\">";
+					
+					# Determine whether there is a default image, so that this can be set below
+					$createDefaultImage = ($arguments['default'] && isSet ($arguments['default'][$subfield]));
+					
+					# Add default image, or text
+					if ($createDefaultImage) {
+						$thumbnailImage = "<img src=\"{$arguments['previewLocationPrefix']}{$arguments['default'][$subfield]['name']}\" style=\"max-width: 100%; max-height: 100%;\" />";
+						if ($arguments['thumbnailExpandable']) {
+							$thumbnailImage = "<a href=\"{$arguments['previewLocationPrefix']}{$arguments['default'][$subfield]['name']}\" target=\"_blank\">" . $thumbnailImage . '</a>';
+						}
+						$thumbnailHtml .= $thumbnailImage;
+					} else {
+						
+						# Set the thumbnail text
+						if (!isSet ($thumbnailText)) {
+							$thumbnailText = '(Thumbnail will appear here.)';
+						}
+						$thumbnailHtml .= "\n\t\t\t\t\t<p class=\"comment\">{$thumbnailText}</p>";
+					}
+					
+					# Complete div
+					$thumbnailHtml .= "\n\t\t\t\t</div>\n";
+				}
+				
+				# Add JS handler to set the thumbnail on file selection
+				$this->jQueryCode[__FUNCTION__  . $arguments['name']] .= "\n" . "
+				$(document).ready (function () {
+					$('#{$elementId}').change (function () {
+						thumbWrapper (this.files, '{$selector}');
+					});
+				});
+				";
+				
+				# Register the thumbnail HTML for this subfield
+				$thumbnailHtmlBySubfield[$subfield] = $thumbnailHtml;
+			}
+		}
+		
 		
 		# Loop through the number of fields required to create the widget
 		if ($arguments['subfields'] > 1) {$widgetHtml .= "\n\t\t\t";}
@@ -3532,9 +3655,12 @@ class form
 			// $widgetHtml .= '<input type="hidden" name="MAX_FILE_SIZE" value="' . application::convertSizeToBytes (ini_get ('upload_max_filesize')) . '" />';
 			if ($arguments['editable']) {
 				if ($arguments['draganddrop']) {
-					$widgetHtml .= '<div class="draganddrop">' . "\n\t\t\t\t";
+					$widgetHtml .= "\n\t\t\t" . '<div class="draganddrop">' . "\n\t\t\t\t";
 				}
 				$widgetHtml .= '<input' . $this->nameIdHtml ($arguments['name'], false, $subfield, true) . " type=\"file\" size=\"{$arguments['size']}\"" . (($arguments['autofocus'] && $subfield == 0) ? ' autofocus="autofocus"' : '') . $widget->tabindexHtml ($subfield) . ($mimeTypes ? ' accept="' . implode (', ', $mimeTypes) . '"' : '') . ' />';
+				if ($arguments['thumbnail']) {
+					$widgetHtml .= "\n" . $thumbnailHtmlBySubfield[$subfield];
+				}
 				if ($arguments['draganddrop']) {
 					$widgetHtml .= "\n\t\t\t" . '</div>' . "\n\t\t\t";
 				}
@@ -3544,36 +3670,6 @@ class form
 					$widgetHtml .= '<input' . $this->nameIdHtml ($arguments['name'], false, $subfield, true) . ' type="hidden" value="' . htmlspecialchars (basename ($arguments['default'][$subfield]['name'])) . '" />' . "\n\t\t\t";
 				}
 			}
-		}
-		
-		# Convert to drag and drop zone if required; this merely styles the input box and does not use HTML5 Drag and Drop; see: https://codepen.io/TheLukasWeb/pen/qlGDa
-		if ($arguments['draganddrop']) {
-			$thumbnailText = 'Click here to pick photo, or drag and drop into this box.';
-			$widgetHtml .= "
-			<style type=\"text/css\">
-				form tr.upload div.draganddrop {
-					width: calc({$this->settings['uploadThumbnailWidth']}px + 4px + 4px);
-					height: calc({$this->settings['uploadThumbnailHeight']}px + 4px + 4px);
-					border: 4px dashed gray;
-				}
-				form tr.upload p {
-					width: {$this->settings['uploadThumbnailWidth']}px;
-					height: {$this->settings['uploadThumbnailHeight']}px;
-					text-align: center;
-					padding: 15px;
-					color: gray;
-				}
-				form tr.upload div input {
-					position: absolute;
-					margin: 0;
-					padding: 0;
-					width: {$this->settings['uploadThumbnailWidth']}px;
-					height: {$this->settings['uploadThumbnailHeight']}px;
-					outline: none;
-					opacity: 0;
-				}
-			</style>
-			";
 		}
 		
 		# Progress bar handler
@@ -3603,138 +3699,6 @@ class form
 					});
 				});
 			";
-		}
-		
-		# If thumbnail viewing is enabled, parse the argument and create the HTML5 code
-		if ($arguments['thumbnail']) {
-			
-			# Enable jQuery
-			#!# Actually this is currently enabling jQuery as well as jQueryUI
-			$this->enableJqueryUi ();
-			
-			# Define the thumbnailing code; this is done once globally
-			$this->jQueryCode[__FUNCTION__] = "\n" . "
-			function thumbWrapper (files, selector) {
-				
-				thumb (files);
-				
-				function thumb(files) {
-					
-					if (files == null || files == undefined) {
-						$(selector).html( '<p><em>Unable to show a thumbnail, as this web browser is too old to support this.</em></p>' );
-						return false;
-					}
-					
-					for (var i = 0; i < files.length; i++) {
-						var file = files[i];
-						var imageType = /image.*/;
-						
-						if (!file.type.match(imageType)) {
-							continue;
-						}
-						
-						var reader = new FileReader();
-						
-						if (reader != null) {
-							reader.onload = GetThumbnail;
-							reader.readAsDataURL(file);
-						}
-					}
-				}
-				
-				function GetThumbnail(e) {
-					
-					var thumbnailCanvas = document.createElement('canvas');
-					var img = new Image();
-					img.src = e.target.result;
-					
-					img.onload = function () {
-						
-						var originalImageWidth = img.width;
-						var originalImageHeight = img.height;
-						
-						thumbnailCanvas.id = 'myTempCanvas';
-						thumbnailCanvas.width  = $(selector).width();
-						thumbnailCanvas.height = $(selector).height();
-						
-						// Scale the thumbnail to fit the box
-						if (originalImageWidth >= originalImageHeight) {
-							scaledWidth = Math.min(thumbnailCanvas.width, originalImageWidth);	// Ensure width is no greater than the available size
-							scaleFactor = (scaledWidth / originalImageWidth);
-							scaledHeight = Math.round(scaleFactor * originalImageHeight);	// Scale to same proportion, and round
-						} else {
-							scaledHeight = Math.min(thumbnailCanvas.height, originalImageHeight);
-							scaleFactor = (scaledHeight / originalImageHeight);
-							scaledWidth = Math.round(scaleFactor * originalImageWidth);
-						}
-						
-						if (thumbnailCanvas.getContext) {
-							var canvasContext = thumbnailCanvas.getContext('2d');
-							canvasContext.drawImage(img, 0, 0, scaledWidth, scaledHeight);
-							var dataURL = thumbnailCanvas.toDataURL();
-							
-							if (dataURL != null && dataURL != undefined) {
-								var nImg = document.createElement('img');
-								nImg.src = dataURL;
-								$(selector).html(nImg);
-							} else {
-								$(selector).html( '<p><em>Unable to read the image.</em></p>' );
-							}
-						}
-					}
-				}
-			}";
-			
-			# For each subfield, add a thumbnail preview, creating the div if required
-			$this->jQueryCode[__FUNCTION__  . $arguments['name']] = '';	// Indexed by element to ensure that multiple upload instances do not overwrite
-			for ($subfield = 0; $subfield < $arguments['subfields']; $subfield++) {
-				
-				# Get the widget ID
-				$elementId = $this->cleanId ($this->settings['name'] ? "{$this->settings['name']}[{$arguments['name']}_{$subfield}]" : "{$arguments['name']}_{$subfield}");
-				
-				# Assign the thumbnail ID; if set to boolean true, auto-create the div; otherwise the named selector will be used
-				#!# Named selector will fail if multiple subfields, as they will all be the same
-				$createDivJs = 'false';
-				$thumbnailDivId = false;
-				$selector = $arguments['thumbnail'];
-				if ($arguments['thumbnail'] === true) {
-					$createDivJs = 'true';
-					$thumbnailDivId = $elementId . '_thumbnailpreview';
-					$selector = '#' . $thumbnailDivId;
-				}
-				
-				# Define the thumbnail text
-				if (!isSet ($thumbnailText)) {
-					$thumbnailText = '(Thumbnail will appear here.)';
-				}
-				
-				# Determine whether there is a default image, so that this can be set below
-				$createDefaultImage = ($arguments['default'] && isSet ($arguments['default'][$subfield]));
-				
-				# Add the Javascript
-				$this->jQueryCode[__FUNCTION__  . $arguments['name']] .= "\n" . "
-				$(document).ready(function() {
-					
-					if ({$createDivJs}) {
-						$('#{$elementId}').after ( $('<div />', {
-							id: '{$thumbnailDivId}',
-							width: '{$this->settings['uploadThumbnailWidth']}px',
-							height: '{$this->settings['uploadThumbnailHeight']}px'
-						}) );
-						$('{$selector}').html( '<p class=\"comment\">{$thumbnailText}</p>' );
-					}
-					
-				" . ($createDefaultImage ? "
-					$('#{$thumbnailDivId}').html ('" . ($arguments['thumbnailExpandable'] ? "<a href=\"{$arguments['previewLocationPrefix']}{$arguments['default'][$subfield]['name']}\" target=\"_blank\">" : '') . "<img src=\"{$arguments['previewLocationPrefix']}{$arguments['default'][$subfield]['name']}\" style=\"max-width: 100%; max-height: 100%;\" />" . ($arguments['thumbnailExpandable'] ? '</a>' : '') . "');
-				" : '')
-				 . "
-					
-					$('#{$elementId}').change(function() {
-						thumbWrapper(this.files, '{$selector}');
-					});
-				});
-				";
-			}
 		}
 		
 		# Loop through the number of fields required to perform checks
@@ -3870,6 +3834,87 @@ class form
 	}
 	
 	
+	# Thumbnail wrapper JS
+	private function thumbWrapperJs ()
+	{
+		# Create the JS
+		$js = "
+		function thumbWrapper (files, selector) {
+			
+			thumb (files);
+			
+			function thumb(files) {
+				
+				if (files == null || files == undefined) {
+					$(selector).html( '<p><em>Unable to show a thumbnail, as this web browser is too old to support this.</em></p>' );
+					return false;
+				}
+				
+				for (var i = 0; i < files.length; i++) {
+					var file = files[i];
+					var imageType = /image.*/;
+					
+					if (!file.type.match(imageType)) {
+						continue;
+					}
+					
+					var reader = new FileReader();
+					
+					if (reader != null) {
+						reader.onload = GetThumbnail;
+						reader.readAsDataURL(file);
+					}
+				}
+			}
+			
+			function GetThumbnail(e) {
+				
+				var thumbnailCanvas = document.createElement('canvas');
+				var img = new Image();
+				img.src = e.target.result;
+				
+				img.onload = function () {
+					
+					var originalImageWidth = img.width;
+					var originalImageHeight = img.height;
+					
+					thumbnailCanvas.id = 'myTempCanvas';
+					thumbnailCanvas.width  = $(selector).width();
+					thumbnailCanvas.height = $(selector).height();
+					
+					// Scale the thumbnail to fit the box
+					if (originalImageWidth >= originalImageHeight) {
+						scaledWidth = Math.min(thumbnailCanvas.width, originalImageWidth);	// Ensure width is no greater than the available size
+						scaleFactor = (scaledWidth / originalImageWidth);
+						scaledHeight = Math.round(scaleFactor * originalImageHeight);	// Scale to same proportion, and round
+					} else {
+						scaledHeight = Math.min(thumbnailCanvas.height, originalImageHeight);
+						scaleFactor = (scaledHeight / originalImageHeight);
+						scaledWidth = Math.round(scaleFactor * originalImageWidth);
+					}
+					
+					if (thumbnailCanvas.getContext) {
+						var canvasContext = thumbnailCanvas.getContext('2d');
+						canvasContext.drawImage(img, 0, 0, scaledWidth, scaledHeight);
+						var dataURL = thumbnailCanvas.toDataURL();
+						
+						if (dataURL != null && dataURL != undefined) {
+							var nImg = document.createElement('img');
+							nImg.src = dataURL;
+							$(selector).html(nImg);
+						} else {
+							$(selector).html( '<p><em>Unable to read the image.</em></p>' );
+						}
+					}
+				}
+			}
+		}";
+		
+		# Return the JS
+		return $js;
+	}
+	
+	
 	# AJAX endpoint function to provide progress upload, which calling code can use
 	# See: https://github.com/php/pecl-php-uploadprogress
 	# See: https://www.automatem.co.nz/blog/the-state-of-upload-progress-measurement-on-ubuntu-16-04-php7.html
@@ -3912,6 +3957,9 @@ class form
 			'discard'				=> false,	# Whether to process the input but then discard it in the results
 			'datatype'				=> false,	# Datatype used for database writing emulation (or caching an actual value)
 		);
+		
+		# Hidden elements are not editable
+		$argumentDefaults['editable'] = false;
 		
 		# Create a new form widget
 		$widget = new formWidget ($this, $suppliedArguments, $argumentDefaults, __FUNCTION__);
@@ -4232,7 +4280,7 @@ class form
 	
 	
 	# Function to ensure that all initial values are in the array of values
-	function ensureDefaultsAvailable ($arguments)
+	function ensureDefaultsAvailable ($arguments, &$warningHtml = false)
 	{
 		# Convert to an array (for this local function only) if not already
 		if (!is_array ($arguments['default'])) {
@@ -4253,8 +4301,20 @@ class form
 		
 		# Construct the warning message
 		if (isSet ($missingValues)) {
+			
+			# Construct the message
 			$totalMissingValues = count ($missingValues);
-			$this->formSetupErrors['defaultMissingFromValuesArray'] = "In the <strong>{$arguments['name']}</strong> element, the default " . ($totalMissingValues > 1 ? 'values ' : 'value ') . '<em>' . htmlspecialchars (implode (', ', $missingValues)) . '</em>' . ($totalMissingValues > 1 ? ' were' : ' was') . ' not found in the list of available items for selection by the user.';
+			$message = "the default " . ($totalMissingValues > 1 ? 'values ' : 'value ') . '<em>' . htmlspecialchars (implode (', ', $missingValues)) . '</em>' . ($totalMissingValues > 1 ? ' were' : ' was') . ' not found in the list of available items';
+			
+			# If tolerating invalid values, show a warning to the user
+			if ($arguments['tolerateInvalid']) {
+				$warningHtml = ucfirst ($message) . '. As such, the value for this field has been reset, but you should review it.';
+			}
+			
+			# Flag the error to the admin
+			$errorKey = 'defaultMissingFromValuesArray' . '_' . $arguments['name'];		// Name appended to avoid hiding if multiple widget throw the same error
+			if ($arguments['tolerateInvalid']) {$errorKey = '_' . $errorKey;}	// Prefix with _ to indicate warning
+			$this->formSetupErrors[$errorKey] = "In the <strong>{$arguments['name']}</strong> element, " . $message . ' for selection by the user.';
 		}
 	}
 	
@@ -4446,7 +4506,7 @@ class form
 		# Flag whether to display as empty (rather than absent) those widgets which are optional and have had nothing submitted
 		$this->configureResultEmailShowUnsubmitted = $displayUnsubmitted;
 		
-		# If the recipient is an array, split it into a recipient as the first and cc: as the remainder:
+		# If the recipient is an array, split it into a recipient as the first and cc: as the remainder
 		if (is_array ($recipient)) {
 			$recipientList = $recipient;
 			$recipient = array_shift ($recipientList);
@@ -4474,21 +4534,24 @@ class form
 	function _setTitle ($title)
 	{
 		# Assign the subject title, replacing a match for {fieldname} with the contents of the fieldname, which must be an 'input' widget type
-		if (preg_match_all ('/\{([^\}]+)\}/', $title, $matches)) {
-			#!# Add more when tested
-			$supportedWidgetTypes = array ('input', 'email', 'url', 'tel', 'search', 'number', 'range', 'color', 'select', 'radiobuttons');
-			foreach ($matches[1] as $element) {
+		if ($this->formPosted) {	// This only needs to be run when the form is posted; otherwise the replacement by output type will give an offset as there will be no output type when initially showing the form
+			if (preg_match_all ('/\{([^\}]+)\}/', $title, $matches)) {
 				
-				# Extract any output format specifier
-				$placeholder = $element;	// Cache this, as $element may get overwritten
-				$outputFormat = 'presented';
-				if (substr_count ($element, '|')) {
-					list ($element, $outputFormat) = explode ('|', $element, 2);
-				}
-				
-				# Replace this element placeholder in the string
-				if (isSet ($this->elements[$element]) && (in_array ($this->elements[$element]['type'], $supportedWidgetTypes))) {
-					$title = str_replace ('{' . $placeholder . '}', $this->elements[$element]['data'][$outputFormat], $title);
+				#!# Add more when tested
+				$supportedWidgetTypes = array ('input', 'email', 'url', 'tel', 'search', 'number', 'range', 'color', 'select', 'radiobuttons');
+				foreach ($matches[1] as $element) {
+					
+					# Extract any output format specifier
+					$placeholder = $element;	// Cache this, as $element may get overwritten
+					$outputFormat = 'presented';
+					if (substr_count ($element, '|')) {
+						list ($element, $outputFormat) = explode ('|', $element, 2);
+					}
+					
+					# Replace this element placeholder in the string
+					if (isSet ($this->elements[$element]) && (in_array ($this->elements[$element]['type'], $supportedWidgetTypes))) {
+						$title = str_replace ('{' . $placeholder . '}', $this->elements[$element]['data'][$outputFormat], $title);
+					}
 				}
 			}
 		}
@@ -5406,6 +5469,7 @@ class form
 		
 		# If the form is not posted or contains problems, display it and flag that it has been displayed
 		$elementProblems = $this->getElementProblems ();
+		#!# Form saving bypassing validation can be problematic if, e.g. "You submitted more characters (174) than are allowed (130)" occurs, and the database then tries to save this, resulting in truncation; form save should still error on invalid data submitted (e.g. too long) but not absent values
 		if ($this->formSave) {$elementProblems = false;}	// A form save bypasses validation
 		if (!$this->formPosted || $elementProblems || $formRefreshed || ($this->settings['reappear'] && $this->formPosted && !$elementProblems)) {
 			
@@ -5698,24 +5762,48 @@ class form
 		$this->_checkGroupValidations ();
 		
 		# If there are any form setup errors - a combination of those just defined and those assigned earlier in the form processing, show them
+		$errorTexts = array ();
+		$warningTexts = array ();
 		if (!empty ($this->formSetupErrors)) {
-			$setupErrorText = application::showUserErrors ($this->formSetupErrors, $parentTabLevel = 1, (count ($this->formSetupErrors) > 1 ? 'Various errors were' : 'An error was') . " found in the setup of the form. The website's administrator needs to correct the configuration before the form will work:", false, $this->settings['errorsCssClass']);
+			
+			# Split the setup errors into errors and warnings
+			foreach ($this->formSetupErrors as $errorKey => $error) {
+				$errorText = "\n- " . strip_tags ($error);
+				if (substr ($errorKey, 0, 1) == '_') {
+					$warningTexts[] = $errorText;
+				} else {
+					$errorTexts[] = $errorText;
+				}
+			}
+			
+			# Show the setup errors/warnings
+			$introductionMessageComponents = array ();
+			if ($errorTexts) {
+				$introductionMessageComponents[] = (count ($errorTexts) > 1 ? 'various errors' : 'an error');
+			}
+			if ($warningTexts) {
+				$introductionMessageComponents[] = (count ($warningTexts) > 1 ? 'various warnings' : 'a warning');
+			}
+			$introductionMessage = ucfirst (implode (' and ', $introductionMessageComponents)) . ' ' . (count ($this->formSetupErrors) > 1 ? 'were' : 'was') . ' found in the setup of the form.' . ($warningTexts && !$errorTexts /* Form not shown if any errors, so don't point to warnings in that scenario */ ? ' Please see the warning(s) below.' : '') . ($errorTexts ? " The website's administrator needs to correct the error before the form will work." : '');
+			$setupErrorText = application::showUserErrors ($this->formSetupErrors, $parentTabLevel = 1, $introductionMessage, false, $this->settings['errorsCssClass']);
 			$this->html .= $setupErrorText;
 			
 			# E-mail the errors to the admin if wanted
-			foreach ($this->formSetupErrors as $error) {
-				$errorTexts[] = "\n- " . strip_tags ($error);
-			}
 			if ($this->settings['mailAdminErrors']) {
 				$administrator = (application::validEmail ($this->settings['mailAdminErrors']) ? $this->settings['mailAdminErrors'] : $_SERVER['SERVER_ADMIN']);
-				$message  = "The webform at \n" . $_SERVER['_PAGE_URL'] . "\nreports the following ultimateForm setup misconfiguration:";
-				$message .= "\n\n" . implode ("\n", $errorTexts);
+				$message  = "The webform at \n" . $_SERVER['_PAGE_URL'] . "\nreports the following ultimateForm setup misconfiguration:\n";
+				if ($errorTexts) {
+					$message .= "\n\nERRORS:\n" . implode ("\n", $errorTexts);
+				}
+				if ($warningTexts) {
+					$message .= "\n\nWARNINGS:\n" . implode ("\n", $warningTexts);
+				}
 				$message .= "\n\n\nIP:    {$_SERVER['REMOTE_ADDR']}\nUser:  {$_SERVER['REMOTE_USER']}";
 				application::utf8Mail (
 					$administrator,
-					'Form setup error',
+					'Form setup ' . ($errorTexts ? 'error' : 'warning'),
 					wordwrap ($message),
-					$additionalHeaders = 'From: Website feedback <' . $administrator . ">\r\n"
+					$additionalHeaders = "From: {$this->settings['emailName']} <" . $administrator . ">\r\n"
 				);
 			}
 		}
@@ -5723,8 +5811,8 @@ class form
 		# Set that the form has effectively been displayed
 		$this->formDisplayed = true;
 		
-		# Return true (i.e. form set up OK) if the errors array is empty
-		return (empty ($this->formSetupErrors));
+		# Return true (i.e. form set up OK) if the errors (i.e. excluding warnings) array is empty
+		return (empty ($errorTexts));
 	}
 	
 	
@@ -7205,7 +7293,7 @@ class form
 		
 		# Add support for "Visible name <name@email>" rather than just "name@email"
 		$sender = ($outputType == 'email' ? $this->configureResultEmailAdministrator : $this->configureResultConfirmationEmailAdministrator);
-		$emailName = 'Website feedback';
+		$emailName = $this->settings['emailName'];
 		$emailAddress = $sender;
 		if (preg_match ('/^(.+)<([^>]+)>$/', $sender, $matches)) {
 			$emailName = $matches[1];
@@ -7315,6 +7403,7 @@ class form
 			$message .= 'Content-type: text/plain; charset="UTF-8"' . $eol;
 			$message .= "Content-Transfer-Encoding: 8bit" . $eol;
 			$message .= $eol;
+			#!# The note about files being saved on the webserver will not be correct if $this->settings['attachmentsDeleteIfMailed'] is off
 			$message .= wordwrap ($introductoryText . "\n\n" . ($totalAttachments == 1 ? 'There is also an attachment.' : "There are also {$totalAttachments} attachments. Please take care when opening them.") . ($totalAttachmentsDifference ? ' ' . ($totalAttachmentsDifference == 1 ? 'One other submitted file was too large to e-mail, so it has' : "{$totalAttachmentsDifference} other submitted files were too large to e-mail, so they have") . " been saved on the webserver. Please contact the webserver's administrator to retrieve " . ($totalAttachmentsDifference == 1 ? 'it' : 'them') . '.' : '') . "\n\n\n\n" . implode ("\n\n\n", $resultLines)) . "{$eol}{$eol}{$eol}" . $eol;
 			$message .= '--' . $mimeBoundary;
 			
@@ -8008,7 +8097,7 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 				}
 				
 				# Website fields - for fieldnames containing 'url/website/http'
-				if (preg_match ('/(website|http)/i', $fieldName) || $fieldName == 'url') {
+				if (preg_match ('/(website|http)/i', $fieldName) || preg_match ('/.+Url$/', $fieldName) || $fieldName == 'url') {
 					$forceType = 'url';
 					$standardAttributes['regexp'] = '^(http|https)://';
 					$standardAttributes['description'] = 'Must begin https://';	// ' or http://' not added to this description just to keep it simple
@@ -8669,7 +8758,6 @@ class formWidget
 		if (!$this->settings['autofocus']) {return false;}
 		
 		# End if this current widget is not editable, as that will never have autofocus
-		#!# Undefined index: editable generated from __timestamp
 		if (!$this->arguments['editable']) {return false;}
 		
 		# End if there is an editable, non-heading widget already defined

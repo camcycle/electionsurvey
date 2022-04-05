@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-20
- * Version 1.12.1
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-22
+ * Version 1.12.7
  * Distributed under the terms of the GNU Public Licence - www.gnu.org/copyleft/gpl.html
  * Requires PHP 5.3
  * Download latest from: https://download.geog.cam.ac.uk/projects/purecontent/
@@ -394,8 +394,8 @@ class pureContent {
 	# Function to provide an SSO link area
 	public static function ssoLinks ($ssoBrandName = false, $profileUrl = false, $profileName = 'My profile', $superusersSwitching = array (), $internalHostRegexp = false)
 	{
-		# End if SSO not enabled
-		if (!isSet ($_SERVER['SINGLE_SIGN_ON_ENABLED'])) {return false;}
+		# End if SSO not enabled (defined and equal to 1, in the server environment)
+		if (!isSet ($_SERVER['SINGLE_SIGN_ON_ENABLED']) || !$_SERVER['SINGLE_SIGN_ON_ENABLED']) {return false;}
 		
 		# Set to show the links by default
 		$showLinks = true;
@@ -484,7 +484,7 @@ class pureContent {
 		$html = "\n<div id=\"ssologin\">" . $html . "\n</div>";
 		
 		# Disable the standard link
-		$html .= "\n" . '<style type="text/css">p.loggedinas {display: none;}</style>';
+		$html .= "\n" . '<style>p.loggedinas {display: none;}</style>';
 		
 		# Return the HTML
 		return $html;
@@ -634,7 +634,7 @@ class pureContent {
 			
 			# Send the user back to the previous page (or the front page if not set); NB: the previous page cannot have had ?style=[whatever] in it because that would have been redirected
 			$referrer = (isSet ($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'http://' . $_SERVER['SERVER_NAME'] . '/');
-			header ("Location: $referrer");
+			header ("Location: {$referrer}");
 		}
 		
 		# Assign the cookie style if that is set and it exists
@@ -652,7 +652,7 @@ class pureContent {
 		$style = (isSet ($style) ? $style : $temp['key']);
 		
 		# Start the HTML
-		$html['header'] = '<style type="text/css" media="all" title="User Defined Style">@import "' . $directory . $style . '.css";</style>';
+		$html['header'] = '<style media="all" title="User Defined Style">@import "' . $directory . $style . '.css";</style>';
 		$html['links']  = "\n\t" . '<ul class="switch">';
 		$html['links'] .= "\n\t\t" . '<li>Switch style:</li>';
 		
@@ -735,7 +735,7 @@ class pureContent {
 	
 	
 	# Social networking metadata
-	public static function socialNetworkingMetadata ($siteName, $twitterHandle = false, $imageLocation /* Starting / */, $description, $title = false, $imageWidth = false, $imageHeight = false, $pageUrl = false)
+	public static function socialNetworkingMetadata ($siteName, $twitterHandle /* handle or false */, $imageLocation /* Starting / */, $description, $title = false, $imageWidth = false, $imageHeight = false, $pageUrl = false)
 	{
 		# Start the HTML
 		$html = '';
@@ -876,15 +876,27 @@ class pureContent {
 	
 	# Function to run Wordpress-style shortcode handling to enable application embedding, by scanning the page for supported shortcodes, and replacing the content
 	# E.g. [my_form foo="bar" size="5"] runs my_form.php and replaces any %attributes placeholder in that file with $foo = 'bar', $size = '5'
-	public static function shortcodeHandledContent ()
+	public static function shortcodeHandledContent ($additionalDirectory = false)
 	{
+		# Assemble the list of directories where shortcode files are defined
+		$directories = array ();
+		$directories[] = $_SERVER['DOCUMENT_ROOT'] . '/sitetech/shortcodes/';
+		if ($additionalDirectory) {
+			$directories[] = $additionalDirectory;
+		}
+		
 		# Define supported shortcodes, which are listed as files in the shortcodes directory
-		$directory = $_SERVER['DOCUMENT_ROOT'] . '/sitetech/shortcodes/';
-		$files = array_values (preg_grep ('/(.+)\.php$/', scandir ($directory)));	// array_values just reindexes
 		$shortcodes = array ();
-		foreach ($files as $file) {
-			$shortcode = pathinfo ($file, PATHINFO_FILENAME);
-			$shortcodes[$shortcode] = $directory . $file;
+		foreach ($directories as $directory) {
+			if (is_dir ($directory)) {
+				if ($filesThisDirectory = preg_grep ('/(.+)\.php$/', scandir ($directory))) {
+					$filesThisDirectory = array_values ($filesThisDirectory);	// array_values just reindexes
+					foreach ($filesThisDirectory as $file) {
+						$shortcode = pathinfo ($file, PATHINFO_FILENAME);
+						$shortcodes[$shortcode] = $directory . $file;
+					}
+				}
+			}
 		}
 		
 		# Start a list of instances of shortcodes and their (optional) attributes on the page
@@ -978,8 +990,9 @@ class pureContent {
 		# Perform replacements, so that the page now has the shortcodes replaced with the real PHP
 		$content = strtr ($currentFileContents, $replacements);
 		
-		# Determine the shadow file
-		$shadowFile = preg_replace ('/^' . preg_quote ($_SERVER['DOCUMENT_ROOT'], '/') . '/', $_SERVER['DOCUMENT_ROOT'] . '/sitetech/shortcodes-cache', $currentPage);
+		# Determine the shadow file; NB We cannot remove the DOCUMENT_ROOT from $currentPage as the page may be aliased, so instead we look at the local path
+		$scriptName = str_replace (array ('../', '..\\'), '', $_SERVER['SCRIPT_NAME']) . (substr ($_SERVER['SCRIPT_NAME'], -1) == '/' ? 'index.html' : '');
+		$shadowFile = $_SERVER['DOCUMENT_ROOT'] . '/sitetech/shortcodes-cache' . $scriptName;
 		
 		# Determine whether to write the shadow file, or use an existing file if present
 		$writeShadowFile = true;

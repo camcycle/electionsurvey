@@ -3,7 +3,7 @@
 #!# Needs account deletion facility
 #!# Needs e-mail address change facility
 
-# Version 1.5.7
+# Version 1.6.0
 
 
 # Library class to provide user login functionality
@@ -40,6 +40,7 @@ class userAccount
 		'usernames'							=> false,	// Whether to use usernames (necessary only for social applications, where friendly profile URLs are needed)
 		'usernameRegexp'					=> '^([a-z0-9]{5,})$',
 		'usernameRegexpDescription'			=> 'Usernames must be all lower-case letters/numbers, at least 5 characters long. No capital letters allowed.',
+		'emailAddressesDisallowRegexp'		=> false,
 		'privileges'						=> false,	// Whether there is a privileges field
 		'visibleNames'						=> false,	// Whether there is a visible name field
 		'cookieName'						=> 'login',	// NB: If there is more than one session system on the page, they must be set to have the same session.name PHP ini value
@@ -137,7 +138,7 @@ class userAccount
 			}
 		}
 		
-		# End if a setup error occured
+		# End if a setup error occurred
 		if ($this->setupError) {
 			$this->html = $this->setupError;
 			return false;
@@ -666,20 +667,36 @@ class userAccount
 		
 		# Insert the new user
 		if (!$this->databaseConnection->insert ($this->settings['database'], $this->settings['table'], $data)) {
-			$message = 'There was a problem creating the account. Please try again later.';
+			$error = $this->databaseConnection->error ();
+			if (substr_count ($error['queryEmulated'], 'Duplicate entry')) {
+				$message = 'That username/e-mail address already exists.';
+			} else {
+				$message = 'There was a problem creating the account. Please try again later.';
+			}
 			return false;
 		}
 		
+		# Determine the subject title name
+		$subjectTitle = " on {$_SERVER['SERVER_NAME']}";
+		
+		# Determine the base URL for the validation link
+		$baseLink = $this->siteUrl . $this->baseUrl . $this->settings['pageRegister'];
+		
+		# If the account creation is namespaced, strip the namespace from the e-mail being sent
+		if (preg_match ('/^(.+)\\\\(.+)$/', $data['email'], $matches)) {	// Literal backslash in preg_match is \\\\ ; see: https://www.developwebsites.net/match-backslash-preg_match-php/
+			$data['email'] = $matches[2];
+		}
+		
 		# Assemble the e-mail message
-		$emailMessage  = "\nA request to create a new account on {$_SERVER['SERVER_NAME']} has been made.";
-		$emailMessage .= "\n\nTo validate the account, use this link:";
-		$emailMessage .= "\n\n{$this->siteUrl}{$this->baseUrl}{$this->settings['pageRegister']}{$data['validationToken']}/";
+		$emailMessage  = "\nA request to create a new account {$subjectTitle} has been made.";
+		$emailMessage .= "\n\nTo validate the account, please use this link:";
+		$emailMessage .= "\n\n{$baseLink}{$data['validationToken']}/";
 		$emailMessage .= "\n\n\nIf you did not request to create this account, do not worry - it will not yet have been fully created. You can just ignore this e-mail.";
 		
 		# Send the e-mail
 		$mailheaders = 'From: ' . ((PHP_OS == 'WINNT') ? $this->settings['administratorEmail'] : $this->settings['applicationName'] . ' <' . $this->settings['administratorEmail'] . '>');
 		$additionalParameters = "-f {$this->settings['administratorEmail']} -r {$this->settings['administratorEmail']}";
-		application::utf8Mail ($data['email'], "Registration on {$_SERVER['SERVER_NAME']} - confirmation required", wordwrap ($emailMessage), $mailheaders, $additionalParameters);
+		application::utf8Mail ($data['email'], "Registration {$subjectTitle} - confirmation required", wordwrap ($emailMessage), $mailheaders, $additionalParameters);
 		
 		# Set a status message
 		$message = 'Please check your e-mail to confirm the account creation.';
@@ -929,6 +946,7 @@ class userAccount
 			'editable'		=> (!$prefillEmail),
 			'description'	=> ($tokenConfirmation ? '' : 'We will send a confirmation message to this address.'),
 			'autofocus'		=> true,
+			'disallow'		=> $this->settings['emailAddressesDisallowRegexp'],
 		));
 		$form->heading ('p', 'Now ' . ($tokenConfirmation ? 'enter a new password' : 'choose a password') . ", and repeat it to confirm.");
 		$form->password (array (
@@ -1256,7 +1274,7 @@ class userAccount
 		
 		# Perform the update
 		if (!$this->databaseConnection->update ($this->settings['database'], $this->settings['table'], $updates, $conditions = array ('id' => $userId))) {
-			$html = "\n<p>The details were not changed, as a problem occured. Please contact the Webmaster.</p>";
+			$html = "\n<p>The details were not changed, as a problem occurred. Please contact the Webmaster.</p>";
 			$this->html = $html;
 			return;
 		}
