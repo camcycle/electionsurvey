@@ -1253,7 +1253,7 @@ class elections
 			$list = array ();
 			foreach ($questions as $surveyId => $question) {
 				$i++;
-				$link = "question{$i}" . (!$limitToArea && $this->election ? $area : '');
+				$link = "question{$i}";
 				$questionsJumplist[] = "<strong><a href=\"#{$link}\">&nbsp;{$i}&nbsp;</a></strong>";
 				$questionNumberPublic = $questionNumbersPublic[$question['questionId']];
 				$list[$surveyId]  = "\n\n<h4 class=\"question\" id=\"{$link}\"><a href=\"#{$link}\">#</a> " . ($limitToArea ? "Question {$i}" : "Question ID #{$surveyId}") . '</h4>';	// In all-listing mode (i.e. admins-only), show the IDs
