@@ -10,7 +10,7 @@ RewriteBase /elections/
 RewriteRule ^$ index.php?action=home [L,QSA]
 
 # User account
-RewriteRule ^(login)/$ index.php?action=logininternal [L]
+RewriteRule ^(login)/$ index.php?action=logininternal [L,QSA]
 RewriteRule ^(login)$ $1/ [L,R=301]
 RewriteRule ^login/(register|resetpassword|accountdetails)/$ index.php?action=$1 [L]
 RewriteRule ^login/(register|resetpassword|accountdetails|logout)$ login/$1/ [L,R=301]

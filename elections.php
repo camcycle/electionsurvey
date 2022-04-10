@@ -337,7 +337,8 @@ class elections
 		# On pages requiring administrative credentials, ensure the user is an administrator
 		if (isSet ($this->actions[$this->action]['administrator']) && $this->actions[$this->action]['administrator']) {
 			if (!$this->userIsAdministrator && !$this->settings['overrideAdmin']) {
-				$html = "\n<p>You must be <a href=\"{$this->baseUrl}/{$this->actions['logininternal']['url']}?/{$this->actions['admin']['url']}\">logged in</a> as an administrator to access this page.</p>";
+				$path = $this->baseUrl . preg_replace ('/' . addcslashes ($this->baseUrl, '/') . '/', '', $_SERVER['REQUEST_URI']);		// I.e. local path after baseUrl
+				$html = "\n<p>You must be <a href=\"{$this->baseUrl}/{$this->actions['logininternal']['url']}?" . htmlspecialchars ($path) . '">logged in</a> as an administrator to access this page.</p>';
 				$html = $this->settings['headerHtml'] . $html . $this->settings['footerHtml'];
 				echo $html;
 				return false;
@@ -3663,6 +3664,18 @@ class elections
 	# Function to provide cookie-based login internally
 	private function loadInternalAuth ()
 	{
+		# Determine if a local redirect path is provided
+		#!# This is necessary because userAccount.php doesn't auto-add baseUrl properly or avoiding redirecting /login/ back to /login/ - these should be added
+		$redirectToAfterLogin = '/' . $this->actions['admin']['url'];	// Set admin page as default, otherwise /login/ will redirect back to /login/, which is not helpful
+		$parameters = $_GET;
+		unset ($parameters['action']);
+		if (count ($parameters) == 1) {
+			$firstKey = array_key_first ($parameters);
+			if (substr ($firstKey, 0, 1) == '/') {
+				$redirectToAfterLogin = preg_replace ('/_html$/', '.html', $firstKey);
+			}
+		}
+		
 		# Assemble the settings to use
 		$internalAuthSettings = array (
 			'applicationName'	=> $this->settings['applicationName'],
@@ -3673,7 +3686,7 @@ class elections
 			'administratorEmail'	=> $this->settings['webmaster'],
 			'usernames'		=> true,
 			'privileges'		=> true,
-			'redirectToAfterLogin'	=> '/' . $this->actions['admin']['url'],
+			'redirectToAfterLogin'	=> $redirectToAfterLogin,
 		);
 		
 		# Load the user account system
