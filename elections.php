@@ -1437,13 +1437,14 @@ class elections
 		# If there is not an election specified, i.e. top-level listing of all questions, retrieve all available questions
 		if (!$election) {
 			$query = "SELECT *, id AS questionId FROM {$this->settings['tablePrefix']}questions;";
+			$preparedStatementValues = array ();
 			
 		# Otherwise get surveys by area
 		} else {
 			$query = "SELECT
 					{$this->settings['tablePrefix']}surveys.id as id,
 					{$this->settings['tablePrefix']}surveys.areaId,
-					{$this->settings['tablePrefix']}questions.id as questionId,
+					{$this->settings['tablePrefix']}questions.id AS questionId,
 					{$this->settings['tablePrefix']}questions.question,
 					{$this->settings['tablePrefix']}questions.links,
 					{$this->settings['tablePrefix']}questions.highlight,
@@ -1453,12 +1454,13 @@ class elections
 				LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}surveys.areaId = {$this->settings['tablePrefix']}areas.id
 				LEFT OUTER JOIN {$this->settings['tablePrefix']}questions ON {$this->settings['tablePrefix']}surveys.question = {$this->settings['tablePrefix']}questions.id
 				WHERE election = :election
-				" . ($area ? "AND {$this->settings['tablePrefix']}surveys.areaId = '{$area}'" : '') . "
+				" . ($area ? "AND {$this->settings['tablePrefix']}surveys.areaId = :areaId" : '') . "
 				" . ($groupByQuestionId ? "GROUP BY questionId" : '') . "
 				ORDER BY " . ($groupByQuestionId ? 'questionId' : "{$this->settings['tablePrefix']}surveys.areaId,ordering,{$this->settings['tablePrefix']}surveys.id") . "
 			;";
+			$preparedStatementValues = array ('election' => $election);
+			if ($area) {$preparedStatementValues['areaId'] = $area;}
 		}
-		$preparedStatementValues = array ('election' => $election);
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas", true, $preparedStatementValues);
 		
 		# Return the data
