@@ -2475,6 +2475,7 @@ class elections
 		
 		# Add introduction
 		$html .= "\n<p>Here you can add an individual candidate standing for election.</p>";
+		$html .= "\n<p>Adding a candidate on this page will not result in an e-mail being sent immediately. E-mails/letters are only distributed upon completion of the survey, where you will explicitly start them sending.</p>";
 		$html .= "\n<p>Note: It is usually easier to <a href=\"{$this->baseUrl}/{$this->actions['addcandidates']['url']}\">mass-import the candidates</a> data. But this screen may be useful if you need to add afterwards a candidate who was accidentally omitted.</p>";
 		
 		# Get the elections, as key-value pairs, though only the currently-selected one (see above) will get selected (as a fixed value)
@@ -2509,6 +2510,7 @@ class elections
 				'areaId'		=> array ('type' => 'select', 'values' => $areasById),
 				'affiliation'	=> array ('type' => 'select', 'values' => $this->getAffiliationNames ()),
 				'address'		=> array ('description' => 'Use a comma-space between each part of the address. Enter a dash (-) if the address is not known.', ),
+				'email'		=> array ('description' => 'This page will <strong>not</strong> send an e-mail at this point.', ),
 			),
 		));
 		if ($result = $form->process ($html)) {
