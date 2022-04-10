@@ -834,7 +834,7 @@ class elections
 	private function getQuestionsForElection ($electionId  /* will be false if all questions */, $idToIndex = false)
 	{
 		# Get all the questions for this election
-		$data = $this->getQuestions (false, $electionId, $groupByQuestionId = true);
+		$data = $this->getQuestions ($electionId, false, $groupByQuestionId = true);
 		
 		# Reindex from 1 (for the sake of nicer /question/<id>/ URLs) as the keys are effectively arbitrary, keeping only relevant fields (i.e. stripping bogus fields like areaId that have become left behind from the GROUP BY operation)
 		$questions = array ();
@@ -1212,7 +1212,7 @@ class elections
 		
 		# Get the data
 		$electionId = ($limitToArea ? $this->election['id'] : false);
-		if (!$data = $this->getQuestions ($limitToArea, $electionId)) {
+		if (!$data = $this->getQuestions ($electionId, $limitToArea)) {
 			$areaName = $this->areas[$limitToArea]['_name'];
 			$html .= "\n\n<h3 class=\"area\" id=\"{$areaName}\">Questions for {$areaName} {$this->election['areaType']} candidates</h3>";
 			return $html .= "\n<p>There are no questions assigned for this {$this->election['areaType']} at present.</p>";
@@ -1234,6 +1234,7 @@ class elections
 		}
 		
 		# Get all the question index numbers in use in this election across all wards, as shown on the all questions page - i.e. the public numbers 1,2,3.. (as shown on the question index page) rather than the internal IDs
+		#!# This is inefficient as it runs getQuestions a second time but is not always needed
 		$questionNumbersAcrossElection = $this->getQuestionsForElection ($electionId, true);
 		
 		# Loop through each grouping
@@ -1265,9 +1266,11 @@ class elections
 				$number = ($limitToArea ? $i : $question['id']);	// Index when showing an area-specific questionnaire, but the actual internal ID when showing everything
 				$link = 'question' . $number;
 				$questionsJumplist[] = "<strong><a href=\"#{$link}\">&nbsp;" . ($limitToArea ? $number : "#{$number}") . '&nbsp;</a></strong>';
-				$questionNumberAcrossElection = $questionNumbersAcrossElection[$question['questionId']];
 				$list[$i]  = "\n\n<h4 class=\"question\" id=\"{$link}\"><a href=\"#{$link}\">#</a> " . ($limitToArea ? 'Question ' : 'Question ID #') . $number . '</h4>';	// In all-listing mode (i.e. admins-only), show the IDs
 				$list[$i] .= $this->questionBox ($question);
+				
+				# Show responses
+				$questionNumberAcrossElection = $questionNumbersAcrossElection[$question['questionId']];
 				$list[$i] .= $this->responsesBlock ($question, $this->candidates, $responses, false, $questionNumberAcrossElection);
 			}
 			
@@ -1430,7 +1433,8 @@ class elections
 	
 	
 	# Function to get all questions being asked
-	private function getQuestions ($area = false, $election = false, $groupByQuestionId = false)
+	#!# This function has become unwieldy, as it is actually getting questions OR surveys; it should be split into separate functions
+	private function getQuestions ($election = false, $area = false, $groupByQuestionId = false)
 	{
 		# If there is not an election specified, i.e. top-level listing of all questions, retrieve all available questions
 		if (!$election) {
@@ -1657,7 +1661,7 @@ class elections
 		$html .= application::htmlTableKeyed ($table, array (), true, 'lines', $allowHtml = true);
 		
 		# Get the questions for this candidate's area
-		if (!$questions = $this->getQuestions ($candidate['areaId'], $candidate['electionId'])) {
+		if (!$questions = $this->getQuestions ($candidate['electionId'], $candidate['areaId'])) {
 			return $html .= "\n<p>There are no questions assigned for this {$this->election['areaType']} at present.</p>";
 		}
 		
@@ -3362,7 +3366,7 @@ class elections
 		}
 		
 		# Get the surveys
-		if (!$surveys = $this->getQuestions (false, $this->election['id'])) {
+		if (!$surveys = $this->getQuestions ($this->election['id'], false)) {
 			$html .= '<p>There are no questions at present.</p>';
 			return false;
 		}
