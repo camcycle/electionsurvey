@@ -137,6 +137,13 @@ class elections
 				'administrator' => true,
 				'admingroup' => 'questions',
 			),
+			#!# Not present
+			'editquestion'	=> array (
+				'description' => 'Edit a question',
+				'url' => 'admin/editquestion.html',
+				'administrator' => true,
+				'admingroup' => 'questions',
+			),
 			'deletequestions'	=> array (
 				'description' => 'Delete a question',
 				'url' => 'admin/deletequestions.html',
