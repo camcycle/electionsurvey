@@ -1611,8 +1611,7 @@ class elections
 				'name'			=> 'area',
 				'title'			=> 'Area',
 				'required'		=> 1,
-				#!# Remove this hack
-				'values'		=> str_replace ('&amp;', '&', $areas),
+				'values'		=> $areas,
 			));
 			
 			# Process the form or end
@@ -1810,7 +1809,7 @@ class elections
 		# Rearrange as key=>value
 		$areas = array ();
 		foreach ($data as $area) {
-			$areas[$area['areaId']] = $this->areaName ($area);
+			$areas[$area['areaId']] = $this->areaName ($area, $convertEntities = false);
 		}
 		
 		# Return the data
