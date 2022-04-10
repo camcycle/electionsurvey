@@ -605,7 +605,7 @@ class elections
 	private function pageNotFound ()
 	{
 		# Send the header
-		header ('HTTP/1.0 404 Not Found');
+		header ('HTTP/1.1 404 Not Found');
 		
 		# Create the 404 page
 		$html = "
@@ -649,7 +649,7 @@ class elections
 	{
 		# Validate the election
 		if (!$this->election) {
-			header ('HTTP/1.0 404 Not Found');
+			header ('HTTP/1.1 404 Not Found');
 			$html = '<p>There is no such election. Please check the URL and try again.</p>';
 			return $html;
 		}
@@ -695,14 +695,14 @@ class elections
 		
 		# Validate the election
 		if (!$this->election) {
-			header ('HTTP/1.0 404 Not Found');
+			header ('HTTP/1.1 404 Not Found');
 			$html = '<p>There is no such election. Please check the URL and try again.</p>';
 			return $html;
 		}
 		
 		# Validate the area
 		if (!$this->area) {
-			header ('HTTP/1.0 404 Not Found');
+			header ('HTTP/1.1 404 Not Found');
 			$html = '<p>There is no such ' . $this->election['areaType'] . ' being contested in this election. Please check the URL and try again.</p>';
 			return $html;
 		}
@@ -731,7 +731,7 @@ class elections
 		
 		# Ensure there is an election which is validated
 		if (!$this->election) {
-			header ('HTTP/1.0 404 Not Found');
+			header ('HTTP/1.1 404 Not Found');
 			$html = '<p>There is no such election. Please check the URL and try again.</p>';
 			return $html;
 		}
@@ -762,7 +762,7 @@ class elections
 		
 		# Validate the question number
 		if (!isSet ($questions[$questionNumber])) {
-			header ('HTTP/1.0 404 Not Found');
+			header ('HTTP/1.1 404 Not Found');
 			return $html = '<p>The specific question number is invalid. Please check the URL and try again.</p>';
 		}
 		
@@ -1855,7 +1855,7 @@ class elections
 	{
 		# Validate the election
 		if (!$this->election) {
-			header ('HTTP/1.0 404 Not Found');
+			header ('HTTP/1.1 404 Not Found');
 			$html = '<p>There is no such election. Please check the URL and try again.</p>';
 			return $html;
 		}
@@ -1943,14 +1943,14 @@ class elections
 		
 		# Validate the election
 		if (!$this->election) {
-			header ('HTTP/1.0 404 Not Found');
+			header ('HTTP/1.1 404 Not Found');
 			$html .= '<p>There is no such election. Please check the URL and try again.</p>';
 			return $html;
 		}
 		
 		# End if no Cabinet members restanding in this election
 		if (!$this->cabinetRestanding) {
-			header ('HTTP/1.0 404 Not Found');
+			header ('HTTP/1.1 404 Not Found');
 			$html .= "\n<p>There are no Cabinet members in {$this->election['areaTypePlural']} we are surveying restanding in this election. Please check the URL and try again.</p>";
 			return $html;
 		}
@@ -2175,7 +2175,7 @@ class elections
 		
 		# Ensure that an election is not being supplied
 		if ($this->election) {
-			header ('HTTP/1.0 404 Not Found');
+			header ('HTTP/1.1 404 Not Found');
 			return $html = '<p>This listing is not election-specific. Please check the URL and try again.</p>';
 		}
 		
