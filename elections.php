@@ -1791,25 +1791,24 @@ class elections
 	{
 		# Get data
 		$query = "SELECT
-				{$this->settings['tablePrefix']}candidates.id,
-				{$this->settings['tablePrefix']}candidates.areaId,
-				prefix, {$this->settings['tablePrefix']}areas.areaName
+				{$this->settings['tablePrefix']}areas.id,
+				{$this->settings['tablePrefix']}areas.prefix,
+				{$this->settings['tablePrefix']}areas.areaName
 			FROM {$this->settings['tablePrefix']}candidates
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}elections ON {$this->settings['tablePrefix']}candidates.election = {$this->settings['tablePrefix']}elections.id
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.areaId = {$this->settings['tablePrefix']}areas.id
 			WHERE
 				{$this->settings['tablePrefix']}elections.endDate >= (CAST(NOW() AS DATE))
-			GROUP BY {$this->settings['tablePrefix']}candidates.areaId
-			ORDER BY {$this->settings['tablePrefix']}candidates.areaId
+			ORDER BY {$this->settings['tablePrefix']}areas.areaName
 		;";
 		if (!$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas")) {
 			return false;
 		}
 		
-		# Rearrange as key=>value
+		# Rearrange as key=>value, assembling the area names from the prefix and name
 		$areas = array ();
 		foreach ($data as $area) {
-			$areas[$area['areaId']] = $this->areaName ($area, $convertEntities = false);
+			$areas[$area['id']] = $this->areaName ($area, $convertEntities = false);
 		}
 		
 		# Return the data
