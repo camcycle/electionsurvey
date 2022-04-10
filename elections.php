@@ -1002,14 +1002,14 @@ class elections
 	{
 		# Get data
 		$query = "SELECT
-				{$this->settings['tablePrefix']}candidates.areaId AS id,
+				{$this->settings['tablePrefix']}areas.id,
 				{$this->settings['tablePrefix']}areas.prefix,
 				{$this->settings['tablePrefix']}areas.areaName,
 				COUNT({$this->settings['tablePrefix']}areas.id) AS 'candidates'
 			FROM {$this->settings['tablePrefix']}candidates
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.areaId = {$this->settings['tablePrefix']}areas.id
 			WHERE election = :electionId
-			GROUP BY {$this->settings['tablePrefix']}areas.areaName
+			GROUP BY id, prefix, areaName
 			ORDER BY {$this->settings['tablePrefix']}areas.areaName
 		;";
 		$preparedStatementValues = array ('electionId' => $electionId);
