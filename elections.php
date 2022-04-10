@@ -1214,6 +1214,11 @@ class elections
 			return $html .= "\n<p>There are no questions assigned for this {$this->election['areaType']} at present.</p>";
 		}
 		
+		# Order by most recent first if getting all
+		if (!$limitToArea && !$this->election) {
+			krsort ($data);
+		}
+		
 		# Regroup by area
 		$data = ((!$limitToArea && !$this->election) ? array ('_all' => $data) : application::regroup ($data, 'areaId', $removeGroupColumn = false));
 		
