@@ -775,8 +775,8 @@ class elections
 		#!# This section is over-complex and involves multiple SQL lookups, for the sake of avoiding code duplication in responsesBlock (which has a certain datastructure) - ideally there would be a single OUTER JOIN that would list all candidates and show the responses where the candidate has answered, but this means duplicating lookups like candidate['_name']
 		
 		# Get the areas (and their associated survey IDs) where this question was asked
-		$areasQuery = "SELECT id,areaId FROM {$this->settings['tablePrefix']}surveys WHERE question = {$question['questionId']} AND election = '{$this->election['id']}';";
-		$areas = $this->databaseConnection->getPairs ($areasQuery);
+		$conditions = array ('question' => $question['questionId'], 'election' => $this->election['id']);
+		$areas = $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}surveys", $conditions, array ('id', 'areaId'));
 		
 		# Get the candidates having this question
 		$candidates = $this->getCandidates (false, false, $areas);
@@ -1008,11 +1008,11 @@ class elections
 				COUNT({$this->settings['tablePrefix']}areas.id) AS 'candidates'
 			FROM {$this->settings['tablePrefix']}candidates
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.areaId = {$this->settings['tablePrefix']}areas.id
-			WHERE election = :electionId
+			WHERE election = :election
 			GROUP BY id, prefix, areaName
 			ORDER BY {$this->settings['tablePrefix']}areas.areaName
 		;";
-		$preparedStatementValues = array ('electionId' => $electionId);
+		$preparedStatementValues = array ('election' => $electionId);
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas", true, $preparedStatementValues);
 		
 		# Add in the constructed area name
@@ -1158,12 +1158,13 @@ class elections
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}affiliations ON {$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['tablePrefix']}affiliations.id
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.areaId = {$this->settings['tablePrefix']}areas.id
 			WHERE
-				election = '{$this->election['id']}'
+				election = :election
 				" . ($inAreas ? " AND {$this->settings['tablePrefix']}candidates.areaId IN('" . implode ("','", $inAreas) . "')" : ($onlyArea ? "AND {$this->settings['tablePrefix']}candidates.areaId = '{$onlyArea['id']}'" : '')) . "
 				" . ($cabinetRestanding ? " AND ({$this->settings['tablePrefix']}candidates.cabinetRestanding IS NOT NULL AND {$this->settings['tablePrefix']}candidates.cabinetRestanding != '')" : '') . "
 			ORDER BY " . ($inAreas ? 'affiliation,surname,forename' : ($all ? 'areaId,surname' : 'surname,forename')) . "
 		;";
-		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas");
+		$preparedStatementValues = array ('election' => $this->election['id']);
+		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas", true, $preparedStatementValues);
 		
 		# Add in the constructed complete name with affiliation
 		foreach ($data as $key => $candidate) {
@@ -1451,13 +1452,14 @@ class elections
 				FROM {$this->settings['tablePrefix']}surveys
 				LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}surveys.areaId = {$this->settings['tablePrefix']}areas.id
 				LEFT OUTER JOIN {$this->settings['tablePrefix']}questions ON {$this->settings['tablePrefix']}surveys.question = {$this->settings['tablePrefix']}questions.id
-				WHERE election = '{$election}'
+				WHERE election = :election
 				" . ($area ? "AND {$this->settings['tablePrefix']}surveys.areaId = '{$area}'" : '') . "
 				" . ($groupByQuestionId ? "GROUP BY questionId" : '') . "
 				ORDER BY " . ($groupByQuestionId ? 'questionId' : "{$this->settings['tablePrefix']}surveys.areaId,ordering,{$this->settings['tablePrefix']}surveys.id") . "
 			;";
 		}
-		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas");
+		$preparedStatementValues = array ('election' => $election);
+		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas", true, $preparedStatementValues);
 		
 		# Return the data
 		return $data;
@@ -1882,10 +1884,11 @@ class elections
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.areaId = {$this->settings['tablePrefix']}areas.id
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}affiliations ON {$this->settings['tablePrefix']}candidates.affiliation = {$this->settings['tablePrefix']}affiliations.id
 			WHERE
-				election = '{$this->election['id']}'
+				election = :election
 			ORDER BY areaId,surname
 		;";
-		$respondents = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}responses");
+		$preparedStatementValues = array ('election' => $this->election['id']);
+		$respondents = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}responses", true, $preparedStatementValues);
 		
 		# Count the responses
 		$total = count ($respondents);
