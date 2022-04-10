@@ -789,6 +789,7 @@ class elections
 		# Start the HTML with the question
 		$html .= "\n<p><em>&laquo; Back to <a href=\"{$this->baseUrl}/{$this->election['id']}/questions/\">list of all {$total} questions</a> for this election</em></p>";
 		$html .= "\n<h2>Question {$questionNumber} - we asked:</h2>";
+		$html .= $this->questionBox ($question);
 		$html .= $this->responsesBlock ($question, $candidates, $responses, $areas);
 		
 		# Return the HTML
@@ -1266,6 +1267,7 @@ class elections
 				$questionsJumplist[] = "<strong><a href=\"#{$link}\">&nbsp;" . ($limitToArea ? $number : "#{$number}") . '&nbsp;</a></strong>';
 				$questionNumberAcrossElection = $questionNumbersAcrossElection[$question['questionId']];
 				$list[$i]  = "\n\n<h4 class=\"question\" id=\"{$link}\"><a href=\"#{$link}\">#</a> " . ($limitToArea ? 'Question ' : 'Question ID #') . $number . '</h4>';	// In all-listing mode (i.e. admins-only), show the IDs
+				$list[$i] .= $this->questionBox ($question);
 				$list[$i] .= $this->responsesBlock ($question, $this->candidates, $responses, false, $questionNumberAcrossElection);
 			}
 			
@@ -1302,9 +1304,6 @@ class elections
 		application::dumpData ($candidates);
 		application::dumpData ($responses);
 		*/
-		
-		# Add the question box at the top
-		$html .= $this->questionBox ($question);
 		
 		# Determine the number of areas in this election
 		$totalAreasExisting = count ($this->areas);
