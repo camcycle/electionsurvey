@@ -838,14 +838,10 @@ class elections
 		
 		# Reindex from 1 (for the sake of nicer /question/<id>/ URLs) as the keys are effectively arbitrary, keeping only relevant fields (i.e. stripping bogus fields like areaId that have become left behind from the GROUP BY operation)
 		$questions = array ();
-		$relevantFields = array ('questionId', 'question', 'links', 'highlight');
 		$i = 1;
 		foreach ($data as $question) {
 			$key = $i++;
-			$questions[$key] = array ();
-			foreach ($relevantFields as $relevantField) {
-				$questions[$key][$relevantField] = $question[$relevantField];
-			}
+			$questions[$key] = $question;
 		}
 		
 		# Reverse the indexing as questionId => orderId if required
@@ -1434,6 +1430,7 @@ class elections
 	
 	# Function to get all questions being asked
 	#!# This function has become unwieldy, as it is actually getting questions OR surveys; it should be split into separate functions
+	#!# Variable name groupByQuestionId is an unclear purpose - really this is saying that we want unique questions rather than surveys
 	private function getQuestions ($election = false, $area = false, $groupByQuestionId = false)
 	{
 		# If there is not an election specified, i.e. top-level listing of all questions, retrieve all available questions
@@ -1457,13 +1454,25 @@ class elections
 				LEFT OUTER JOIN {$this->settings['tablePrefix']}questions ON {$this->settings['tablePrefix']}surveys.question = {$this->settings['tablePrefix']}questions.id
 				WHERE election = :election
 				" . ($area ? "AND {$this->settings['tablePrefix']}surveys.areaId = :areaId" : '') . "
-				" . ($groupByQuestionId ? "GROUP BY questionId" : '') . "
 				ORDER BY " . ($groupByQuestionId ? 'questionId' : "{$this->settings['tablePrefix']}surveys.areaId,ordering,{$this->settings['tablePrefix']}surveys.id") . "
 			;";
 			$preparedStatementValues = array ('election' => $election);
 			if ($area) {$preparedStatementValues['areaId'] = $area;}
 		}
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas", true, $preparedStatementValues);
+		
+		# Group by question ID if required; this cannot be done within the main query due to GROUP BY limitations
+		#!# This block is a working but somewhat unsatisfactory workaround for not easily being able to run a modified version of the query above, because 'id' will not be present causing the database library to throw errors
+		if ($groupByQuestionId) {
+			$uniqueQuestions = array ();
+			$onlyFields = array ('questionId', 'question', 'links', 'highlight');
+			foreach ($data as $surveyQuestion) {
+				$questionId =  $surveyQuestion['questionId'];
+				$uniqueQuestions[$questionId] = application::arrayFields ($surveyQuestion, $onlyFields);
+				// Subsequent iterations will overwrite but the values will be the same
+			}
+			$data = $uniqueQuestions;
+		}
 		
 		# Return the data
 		return $data;
