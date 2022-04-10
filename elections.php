@@ -1008,11 +1008,12 @@ class elections
 				COUNT({$this->settings['tablePrefix']}areas.id) AS 'candidates'
 			FROM {$this->settings['tablePrefix']}candidates
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.areaId = {$this->settings['tablePrefix']}areas.id
-			WHERE election REGEXP '^({$electionId})$'
+			WHERE election = :electionId
 			GROUP BY {$this->settings['tablePrefix']}areas.areaName
 			ORDER BY {$this->settings['tablePrefix']}areas.areaName
 		;";
-		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas");
+		$preparedStatementValues = array ('electionId' => $electionId);
+		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas", true, $preparedStatementValues);
 		
 		# Add in the constructed area name
 		foreach ($data as $key => $area) {
