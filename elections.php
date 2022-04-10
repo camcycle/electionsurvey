@@ -1304,7 +1304,6 @@ class elections
 		*/
 		
 		# Add the question box at the top
-		$question['question'] = nl2br (htmlspecialchars ($question['question']));
 		$html .= $this->questionBox ($question);
 		
 		# Determine the number of areas in this election
@@ -1427,7 +1426,7 @@ class elections
 	private function questionBox ($question)
 	{
 		# Return the assembled HTML
-		return "\n<div class=\"graybox\"><p>{$question['question']}</p>" . $this->formatLinks ($question['links']) . '</div>';
+		return "\n<div class=\"graybox\"><p>" . nl2br (htmlspecialchars ($question['question'])) . '</p>' . $this->formatLinks ($question['links']) . '</div>';
 	}
 	
 	
@@ -1683,7 +1682,6 @@ class elections
 		foreach ($questions as $key => $question) {
 			$i++;
 			$template .= "\n\n<h4 class=\"question\"> Question {$i}" . ($showIds ? " &nbsp;[survey-id#{$key}]" : '') . '</h4>';
-			$question['question'] = nl2br (htmlspecialchars ($question['question']));
 			$template .= $this->questionBox ($question);
 			$template .= "\n<p>Your response:</p>";
 			$template .= "{question{$key}}";
