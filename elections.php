@@ -1232,8 +1232,8 @@ class elections
 			$responses = $this->getResponses ($areaSurveyIds);
 		}
 		
-		# Get all the question index numbers in use in this election - i.e. the public numbers 1,2,3.. (as shown on the question index page) rather than the internal IDs
-		$questionNumbersPublic = $this->getQuestionsForElection ($electionId, true);
+		# Get all the question index numbers in use in this election across all wards, as shown on the all questions page - i.e. the public numbers 1,2,3.. (as shown on the question index page) rather than the internal IDs
+		$questionNumbersAcrossElection = $this->getQuestionsForElection ($electionId, true);
 		
 		# Loop through each grouping
 		$questionsHtml = '';
@@ -1264,9 +1264,9 @@ class elections
 				$number = ($limitToArea ? $i : $question['id']);	// Index when showing an area-specific questionnaire, but the actual internal ID when showing everything
 				$link = 'question' . $number;
 				$questionsJumplist[] = "<strong><a href=\"#{$link}\">&nbsp;" . ($limitToArea ? $number : "#{$number}") . '&nbsp;</a></strong>';
-				$questionNumberPublic = $questionNumbersPublic[$question['questionId']];
+				$questionNumberAcrossElection = $questionNumbersAcrossElection[$question['questionId']];
 				$list[$i]  = "\n\n<h4 class=\"question\" id=\"{$link}\"><a href=\"#{$link}\">#</a> " . ($limitToArea ? 'Question ' : 'Question ID #') . $number . '</h4>';	// In all-listing mode (i.e. admins-only), show the IDs
-				$list[$i] .= $this->responsesBlock ($question, $this->candidates, $responses, false, $questionNumberPublic);
+				$list[$i] .= $this->responsesBlock ($question, $this->candidates, $responses, false, $questionNumberAcrossElection);
 			}
 			
 			# Construct the HTML
@@ -1292,7 +1292,7 @@ class elections
 	
 	
 	# Function to create the block of candidate responses to a question
-	private function responsesBlock ($question, $candidates, $responses, $crossAreaMode = false, $questionNumberPublic = false)
+	private function responsesBlock ($question, $candidates, $responses, $crossAreaMode = false, $questionNumberAcrossElection = false)
 	{
 		# Start the HTML
 		$html = '';
@@ -1311,9 +1311,9 @@ class elections
 		$totalAreasExisting = count ($this->areas);
 		
 		# Add a link to all responses in other areas if required
-		if ($questionNumberPublic) {
+		if ($questionNumberAcrossElection) {
 			if ($totalAreasExisting > 1) {
-				$html .= "\n<p class=\"allresponseslink\"><a href=\"{$this->baseUrl}/{$this->election['id']}/questions/{$questionNumberPublic}/\">Responses to this question from all {$this->election['areaTypePlural']}&hellip;</a></p>";
+				$html .= "\n<p class=\"allresponseslink\"><a href=\"{$this->baseUrl}/{$this->election['id']}/questions/{$questionNumberAcrossElection}/\">Responses to this question from all {$this->election['areaTypePlural']}&hellip;</a></p>";
 			}
 		}
 		
