@@ -1324,17 +1324,18 @@ class elections
 		
 		# State the areas and the number of responses, if in cross-area mode
 		if ($crossAreaMode) {
-			$areaNames = array ();
+			$areaNamesLinked = array ();
 			foreach ($crossAreaMode as $area) {
-				$areaNames[] = $this->areas[$area]['_name'];
+				$areaName = $this->areas[$area]['areaName'];
+				$areaNamesLinked[$areaName] = "<a href=\"{$this->baseUrl}/{$this->election['id']}/{$area}/\">{$this->areas[$area]['_name']}</a>";
 			}
-			sort ($areaNames);
-			$totalAreasAsked = count ($areaNames);
+			ksort ($areaNamesLinked);
+			$totalAreasAsked = count ($areaNamesLinked);
 			if ($totalAreasExisting == 1) {
 				$html .= "\n<p>We asked this question:</p>";
 			} else {
 				$everyAreaAsked = ($totalAreasExisting == $totalAreasAsked);
-				$html .= "\n<p>We asked this question " . ($everyAreaAsked ? "in <strong>all {$totalAreasAsked} {$this->election['areaTypePlural']}</strong>, namely: " : ($totalAreasAsked > 1 ? "in these <strong>{$totalAreasAsked} {$this->election['areaTypePlural']}</strong>: " : 'only in ')) . implode (', ', $areaNames) . '.</p>';
+				$html .= "\n<p>We asked this question " . ($everyAreaAsked ? "in <strong>all {$totalAreasAsked} {$this->election['areaTypePlural']}</strong>, namely: " : ($totalAreasAsked > 1 ? "in these <strong>{$totalAreasAsked} {$this->election['areaTypePlural']}</strong>: " : 'only in ')) . implode (', ', $areaNamesLinked) . '.</p>';
 			}
 			$totalCandidates = count ($candidates);
 			$totalResponses = count ($responses);
