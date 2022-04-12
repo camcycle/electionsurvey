@@ -137,10 +137,9 @@ class elections
 				'administrator' => true,
 				'admingroup' => 'questions',
 			),
-			#!# Not present
-			'editquestion'	=> array (
+			'editquestions'	=> array (
 				'description' => 'Edit a question',
-				'url' => 'admin/editquestion.html',
+				'url' => 'admin/editquestions.html',
 				'administrator' => true,
 				'admingroup' => 'questions',
 			),
@@ -2849,7 +2848,7 @@ class elections
 		$html .= "\n<p>The {$mostRecent} most recently-added questions are shown below.</p>";
 		
 		# Create the form
-		if (!$result = $this->questionForm ($html)) {
+		if (!$result = $this->questionForm (array (), $html)) {
 			#!# Need to check that highlight text appears in the question
 			$html .= $this->recentlyAddedQuestions ($mostRecent);
 			return $html;
@@ -2873,7 +2872,7 @@ class elections
 	
 	
 	# Helper function to create a question creation form
-	public function questionForm (&$html = '')
+	public function questionForm ($question = array (), &$html = '')
 	{
 		# Links explanation text
 		$linksExplanation  = "\n" . '<p>Here, you can enter one or more links that will appear after the question. This is helpful to give candidates some context or further reading matter.</p>';
@@ -2897,6 +2896,7 @@ class elections
 		$form->dataBinding (array (
 			'database'	=> $this->settings['database'],
 			'table'		=> "{$this->settings['tablePrefix']}questions",
+			'data'		=> $question,
 			'intelligence' => true,
 			'size'	=> 80,	#!# This is here due to a bug in ultimateForm
 			'attributes' => array (
@@ -2908,6 +2908,82 @@ class elections
 		
 		# Return the result
 		return $result;
+	}
+	
+	
+	# Function to edit a question
+	public function editquestions ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Get the questions
+		$questionTexts = $this->getQuestionTexts ();
+		
+		# Determine if a question ID is supplied
+		$id = false;
+		if (isSet ($_GET['id'])) {
+			if (!strlen ($_GET['id']) || !isSet ($questionTexts[$_GET['id']])) {
+				return $this->pageNotFound ();
+			}
+			$id = $_GET['id'];
+		}
+		
+		# Require an ID
+		if (!$id) {
+			
+			# Create the form
+			require_once ('ultimateForm.php');
+			$form = new form (array (
+				'databaseConnection' => $this->databaseConnection,
+				'formCompleteText' => false,
+			));
+			$form->heading ('p', '<strong>IMPORTANT:</strong> You should <strong>not</strong> be editing a question that is currently live, as candidates may already have answered (or even just read) it, which would cause unfairness.');
+			$form->heading ('p', 'Please select a question to edit.');
+			$form->select (array (
+				'name'			=> 'id',
+				'title'			=> 'Question',
+				'values'		=> $questionTexts,
+				'required'		=> true,
+			));
+			if (!$result = $form->process ($html)) {
+				return $html;
+			}
+			
+			# Extract the ID
+			$id = $result['id'];
+			
+			# Redirect to add the ID to the URL
+			$url = $_SERVER['_SITE_URL'] . $this->baseUrl . '/' . $this->actions[$this->action]['url'] . '?id=' . $id;
+			$html .= application::sendHeader (302, $url);
+			return $html;
+		}
+		
+		# Get the full question data
+		$questionOriginal = $this->getQuestion ($id);
+		
+		# Show back link to cancel
+		$html .= "\n\n<p class=\"alignright\"><a href=\"{$this->baseUrl}/{$this->actions[$this->action]['url']}\">&laquo; Cancel editing</a> if required.</p>";
+		
+		# Create the form
+		if (!$question = $this->questionForm ($questionOriginal, $html)) {
+			return $html;
+		}
+		
+		# Update the question
+		$this->updateQuestion ($id, $question);
+		
+		# Confirm success
+		$html = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The question has now been updated as shown below:</p>";
+		$html .= "\n" . '<div class="graybox">';
+		$html .= "\n" . $this->questionBox ($question);
+		$html .= "\n" . '</div>';
+		
+		# Provide ongoing links
+		$html .= "\n\n<p>You can: <a href=\"{$this->baseUrl}/{$this->actions[$this->action]['url']}\">edit another question</a> or <a href=\"{$this->baseUrl}/admin/\">return to admin area</a>.</p>";
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	
@@ -3088,6 +3164,20 @@ class elections
 	private function getQuestionTexts ()
 	{
 		return $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}questions", array (), array ('id', "CONCAT(id, ': ', SUBSTRING(question, 1, 70), ' ...') AS text"), true, $orderBy = 'id DESC');
+	}
+	
+	
+	# Function to get a single questions
+	private function getQuestion ($id)
+	{
+		return $this->databaseConnection->selectOne ($this->settings['database'], "{$this->settings['tablePrefix']}questions", array ('id' => $id));
+	}
+	
+	
+	# Function to update a question
+	private function updateQuestion ($id, $question)
+	{
+		return $this->databaseConnection->update ($this->settings['database'], "{$this->settings['tablePrefix']}questions", $question, array ('id' => $id));
 	}
 	
 	
