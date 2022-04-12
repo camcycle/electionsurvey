@@ -2499,7 +2499,7 @@ class elections
 		# Get the areas for this election, as key-value pairs
 		$areasById = array ();
 		if (!$areas = $this->getAreasForElection ($this->election['id'], true, false)) {
-			$html .= "\n<p>There are not yet any surveys loaded, so we cannot yet list the available areas - please <a href=\"{$this->baseUrl}/{$this->actions['addsurveys']['url']}\">create a survey for an area</> first.</p>";
+			$html .= "\n<p>There are not yet any surveys loaded, so we cannot yet list the available areas - please <a href=\"{$this->baseUrl}/{$this->actions['addsurveys']['url']}\">create a survey for an area</a> first.</p>";
 			return $html;
 		}
 		foreach ($areas as $areaId => $area) {
