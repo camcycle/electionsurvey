@@ -518,8 +518,8 @@ class elections
 			CREATE TABLE IF NOT EXISTS `{$this->settings['tablePrefix']}questions` (
 			  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Unique key',
 			  `question` text NOT NULL COMMENT 'Text of question',
+			  `highlight` varchar(255) DEFAULT NULL COMMENT 'Piece of text within the question to highlight in bold (optional)',
 			  `links` text DEFAULT NULL COMMENT 'Background links (as URL then text)',
-			  `highlight` varchar(255) DEFAULT NULL COMMENT 'Optional highlighted text',
 			  PRIMARY KEY (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Available questions';
 
@@ -2843,10 +2843,20 @@ class elections
 		$html .= "\n<p>In this section, you can add questions that can then be used in a survey. Note that questions have to be added one at a time.</p>";
 		$html .= "\n<p>The {$mostRecent} most recently-added questions are shown below.</p>";
 		
+		# Links explanation text
+		$linksExplanation  = "\n" . '<p>Here, you can enter one or more links that will appear after the question. This is helpful to give candidates some context or further reading matter.</p>';
+		$linksExplanation .= "\n" . '<p>You can enter each such link in one of two ways:</p>';
+		$linksExplanation .= "\n" . '<p>If you have two or more links, enter each on a separate line.</p>';
+		$linksExplanation .= "\n" . '<ul class="spaced">';
+		$linksExplanation .= "\n\t" . '<li>Just the web address:<br /><tt>https://www.example.com/</tt><br />which will show as a bare URL:<br /><a href="https://www.example.com/">https://www.example.com/</a></li>';
+		$linksExplanation .= "\n\t" . '<li>Or the web address followed by a label, which is nicer:<br /><tt>https://www.example.com/ My example link</tt><br />which will show as:<br /><a href="https://www.example.com/">My example link</a></p>';
+		$linksExplanation .= "\n" . '</ul>';
+		
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'databaseConnection' => $this->databaseConnection,
+			'display' => 'paragraphs',
 			'picker' => true,
 			'size' => 80,
 			'rows' => 7,
@@ -2857,6 +2867,10 @@ class elections
 			'table'		=> "{$this->settings['tablePrefix']}questions",
 			'intelligence' => true,
 			'size'	=> 80,	#!# This is here due to a bug in ultimateForm
+			'attributes' => array (
+				'question' => array ('heading' => array (3 => 'The question')),
+				'links' => array ('heading' => array (3 => 'Optional links', '' => $linksExplanation, )),
+			),
 		));
 		#!# Need to check that highlight text appears in the question
 		if (!$result = $form->process ($html)) {
