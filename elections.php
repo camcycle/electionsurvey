@@ -2848,6 +2848,33 @@ class elections
 		$html .= "\n<p>In this section, you can add questions that can then be used in a survey. Note that questions have to be added one at a time.</p>";
 		$html .= "\n<p>The {$mostRecent} most recently-added questions are shown below.</p>";
 		
+		# Create the form
+		if (!$result = $this->questionForm ($html)) {
+			#!# Need to check that highlight text appears in the question
+			$html .= $this->recentlyAddedQuestions ($mostRecent);
+			return $html;
+		}
+		
+		# Insert the question
+		if (!$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}questions", $result)) {
+			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
+			return $html;
+		}
+		$questionId = $this->databaseConnection->getLatestId ();
+		
+		# Confirm success
+		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The question has been added, as ID <strong>#{$questionId}</strong>, as shown below. It is now available to use when constructing surveys.</p>";
+		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">+ add another</a>?</p>";
+		$html .= $this->recentlyAddedQuestions ($mostRecent);
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Helper function to create a question creation form
+	public function questionForm (&$html = '')
+	{
 		# Links explanation text
 		$linksExplanation  = "\n" . '<p>Here, you can enter one or more links that will appear after the question. This is helpful to give candidates some context or further reading matter.</p>';
 		$linksExplanation .= "\n" . '<p>If you have two or more links, enter each on a separate line.</p>';
@@ -2877,26 +2904,10 @@ class elections
 				'links' => array ('heading' => array (3 => 'Optional links', '' => $linksExplanation, )),
 			),
 		));
-		#!# Need to check that highlight text appears in the question
-		if (!$result = $form->process ($html)) {
-			$html .= $this->recentlyAddedQuestions ($mostRecent);
-			return $html;
-		}
+		$result = $form->process ($html);
 		
-		# Insert the question
-		if (!$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}questions", $result)) {
-			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
-			return $html;
-		}
-		$questionId = $this->databaseConnection->getLatestId ();
-		
-		# Confirm success
-		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The question has been added, as ID <strong>#{$questionId}</strong>, as shown below. It is now available to use when constructing surveys.</p>";
-		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">+ add another</a>?</p>";
-		$html .= $this->recentlyAddedQuestions ($mostRecent);
-		
-		# Return the HTML
-		return $html;
+		# Return the result
+		return $result;
 	}
 	
 	
