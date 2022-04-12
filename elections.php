@@ -2850,8 +2850,8 @@ class elections
 		
 		# Links explanation text
 		$linksExplanation  = "\n" . '<p>Here, you can enter one or more links that will appear after the question. This is helpful to give candidates some context or further reading matter.</p>';
-		$linksExplanation .= "\n" . '<p>You can enter each such link in one of two ways:</p>';
 		$linksExplanation .= "\n" . '<p>If you have two or more links, enter each on a separate line.</p>';
+		$linksExplanation .= "\n" . '<p>You can enter each such link in one of two ways:</p>';
 		$linksExplanation .= "\n" . '<ul class="spaced">';
 		$linksExplanation .= "\n\t" . '<li>Just the web address:<br /><tt>https://www.example.com/</tt><br />which will show as a bare URL:<br /><a href="https://www.example.com/">https://www.example.com/</a></li>';
 		$linksExplanation .= "\n\t" . '<li>Or the web address followed by a label, which is nicer:<br /><tt>https://www.example.com/ My example link</tt><br />which will show as:<br /><a href="https://www.example.com/">My example link</a></p>';
