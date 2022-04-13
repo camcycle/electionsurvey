@@ -2559,7 +2559,8 @@ class elections
 		$html .= "\n<p>You may instead wish to <a href=\"{$this->baseUrl}/{$this->actions['addcandidate']['url']}\">add in a single candidate</a>.</p>";
 		$html .= "\n<p>To import candidate data, you will need to prepare a spreadsheet containing it. This must include the following headings (in order): <strong>" . implode ('</strong>, <strong>', $requiredFields) . "</strong>. These headings must be present in the box below as the first line, so that the system knows which column is which.</p>";
 		$html .= "\n<p><strong>Please use this form carefully.</strong> The 'Replace' option below will disconnect any existing responses from candidates for the selected election. You should never use that option while an election is in progress.</p>";
-		$html .= "\n<p>This form will not do any e-mailing. If you are adding new candidates to the existing data, you will then need to use the 'Reissue e-mail facility individually for each new candidate.</p>";
+		$html .= "\n<p>If you are adding new candidates to the existing data, you will then need to use the 'Reissue e-mail' facility individually for each new candidate.</p>";
+		$html .= "\n<p>This form will not do any e-mailing.</p>";
 		
 		# Get all elections that are forthcoming, but not including those that have started, to prevent answers becoming misconnected to candidates who would have new IDs
 		if (!$elections = $this->getElections ($includeForthcoming = true, $excludeStarted = true)) {
@@ -2583,10 +2584,11 @@ class elections
 			'name'			=> 'action',
 			'title'			=> 'Action (please choose carefully)',
 			'values'		=> array (
-				'replace'	=> 'Replace: This will replace the existing candidate data for this election. NEVER use this when e-mails to candidates have already gone out, as it will break the link with existing answers.',
-				'add'		=> 'Add: This will add additional candidates, so should be used when the initial import was not complete. It is safe to do once the election in progress, as it will not delete existing candidates. Make sure you do not add candidates already loaded, as that will cause duplication.',
+				'replace'	=> '<strong>Replace all candidates</strong>: This will replace the existing candidate data for this election. NEVER use this option when e-mails to candidates have already gone out, as it will break the link with existing answers.',
+				'add'		=> '<strong>Add additional candidates</strong>: This will add additional candidates, so should be used when the initial import was not complete. It is safe to do once the election in progress, as it will not delete existing candidates. Make sure you do not add candidates already loaded, as that will cause duplication.',
 			),
 			'required'		=> true,
+			'entities'		=> false,
 		));
 		$form->textarea (array (
 			'name'			=> 'data',
