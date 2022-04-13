@@ -2726,6 +2726,11 @@ class elections
 		# Start the HTML
 		$html = '';
 		
+		# Get all elections, including forthcoming
+		#!# This reloading should be done generically - several places now require this
+		$this->elections = $this->getElections (true);
+		$this->election = ((isSet ($_GET['election']) && isSet ($this->elections[$_GET['election']])) ? $this->elections[$_GET['election']] : false);
+
 		# Ensure there is an election supplied
 		if (!$this->election) {
 			$html .= "\n<p>Please select which election:</p>";
