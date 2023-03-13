@@ -3011,6 +3011,7 @@ class elections
 			FROM {$this->settings['tablePrefix']}questions
 			LEFT JOIN {$this->settings['tablePrefix']}surveys ON {$this->settings['tablePrefix']}questions.id = {$this->settings['tablePrefix']}surveys.question
 			WHERE {$this->settings['tablePrefix']}surveys.question IS NULL
+			ORDER BY id DESC
 		;";
 		$unusedQuestions = $this->databaseConnection->getPairs ($query);
 		
