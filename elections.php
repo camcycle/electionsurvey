@@ -371,7 +371,7 @@ class elections
 		$this->candidate = false;
 		$this->candidates = array ();
 		if ($this->area) {
-			$this->candidates = $this->getCandidates (false, $this->area);
+			$this->candidates = $this->getCandidates ($this->election['id'], false, $this->area);
 			
 			# Determine which candidate
 			$this->candidate = ((isSet ($_GET['candidate']) && isSet ($this->areas[$_GET['candidate']])) ? $this->candidates[$_GET['candidate']] : false);
@@ -379,7 +379,7 @@ class elections
 		
 		# Determine if there are any restanding Cabinet members in this election
 		if ($this->election) {
-			$this->cabinetRestanding = $this->getCandidates (false, false, false, $requireCabinetRestanding = true);
+			$this->cabinetRestanding = $this->getCandidates ($this->election['id'], false, false, false, $requireCabinetRestanding = true);
 		}
 		
 		# Open the div surrounding the application
@@ -785,7 +785,7 @@ class elections
 		$areas = $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}surveys", $conditions, array ('id', 'areaId'));
 		
 		# Get the candidates having this question
-		$candidates = $this->getCandidates (false, false, $areas);
+		$candidates = $this->getCandidates ($this->election['id'], false, false, $areas);
 		
 		# Get the responses
 		$surveyIds = array_keys ($areas);
@@ -1139,7 +1139,7 @@ class elections
 	
 	
 	# Function to get candidates in an election
-	private function getCandidates ($all = false, $onlyArea = false, $inAreas = false, $requireCabinetRestanding = false)
+	private function getCandidates ($electionId, $all = false, $onlyArea = false, $inAreas = false, $requireCabinetRestanding = false)
 	{
 		# Get data
 		$query = "SELECT
@@ -1166,7 +1166,7 @@ class elections
 				" . ($requireCabinetRestanding ? " AND ({$this->settings['tablePrefix']}candidates.cabinetRestanding IS NOT NULL AND {$this->settings['tablePrefix']}candidates.cabinetRestanding != '')" : '') . "
 			ORDER BY " . ($inAreas ? 'affiliation,surname,forename' : ($all ? 'areaId,surname' : 'surname,forename')) . "
 		;";
-		$preparedStatementValues = array ('election' => $this->election['id']);
+		$preparedStatementValues = array ('election' => $electionId);
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas", true, $preparedStatementValues);
 		
 		# Add in the constructed complete name with affiliation
@@ -1883,7 +1883,7 @@ class elections
 		$html  = "\n<h2>List of respondents" . ($this->election['active'] ? ' (so far)' : '') .  '</h2>';
 		
 		# Ensure there are candidates loaded
-		if (!$allCandidates = $this->getCandidates (true)) {
+		if (!$allCandidates = $this->getCandidates ($this->election['id'], true)) {
 			$html .= "\n<p>The candidate list has not yet been loaded for this election. Please check back later.</p>";
 			return $html;
 		}
@@ -2747,7 +2747,7 @@ class elections
 		}
 		
 		# Get the candidates
-		if (!$candidates = $this->getCandidates (true)) {
+		if (!$candidates = $this->getCandidates ($this->election['id'], true)) {
 			$html .= '<p>There are no candidates at present.</p>';
 			return $html;
 		}
@@ -3325,7 +3325,7 @@ class elections
 		}
 		
 		# Get the candidates
-		if (!$candidates = $this->getCandidates (true)) {
+		if (!$candidates = $this->getCandidates ($this->election['id'], true)) {
 			$html .= '<p>There are no candidates at present.</p>';
 			return $html;
 		}
@@ -3510,7 +3510,7 @@ class elections
 		}
 		
 		# Get the candidates
-		if (!$candidates = $this->getCandidates (true)) {
+		if (!$candidates = $this->getCandidates ($this->election['id'], true)) {
 			$html .= '<p>There are no candidates at present.</p>';
 			return false;
 		}
@@ -3747,7 +3747,7 @@ class elections
 		}
 		
 		# Get the candidates
-		if (!$candidates = $this->getCandidates (true)) {
+		if (!$candidates = $this->getCandidates ($this->election['id'], true)) {
 			return $html .= '<p>There are no candidates at present.</p>';
 		}
 		
