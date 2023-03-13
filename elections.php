@@ -685,7 +685,7 @@ class elections
 		if ($this->userIsAdministrator) {
 			$html .= "\n<br />";
 			$html .= "\n<h2>Administrative options for this election</h2>";
-			$html .= "\n<p><a href=\"{$this->baseUrl}/{$this->election['id']}/admin/\">Administrative area for this election</a></p>";
+			$html .= "\n<p><a href=\"{$this->baseUrl}/{$election['id']}/admin/\">Administrative area for this election</a></p>";
 		}
 		
 		# Return the HTML
