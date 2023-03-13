@@ -379,7 +379,7 @@ class elections
 		
 		# Determine if there are any restanding Cabinet members in this election
 		if ($this->election) {
-			$this->cabinetRestanding = $this->getCandidates (false, false, false, $cabinetRestanding = true);
+			$this->cabinetRestanding = $this->getCandidates (false, false, false, $requireCabinetRestanding = true);
 		}
 		
 		# Open the div surrounding the application
@@ -1139,7 +1139,7 @@ class elections
 	
 	
 	# Function to get candidates in an election
-	private function getCandidates ($all = false, $onlyArea = false, $inAreas = false, $cabinetRestanding = false)
+	private function getCandidates ($all = false, $onlyArea = false, $inAreas = false, $requireCabinetRestanding = false)
 	{
 		# Get data
 		$query = "SELECT
@@ -1163,7 +1163,7 @@ class elections
 			WHERE
 				election = :election
 				" . ($inAreas ? " AND {$this->settings['tablePrefix']}candidates.areaId IN('" . implode ("','", $inAreas) . "')" : ($onlyArea ? "AND {$this->settings['tablePrefix']}candidates.areaId = '{$onlyArea['id']}'" : '')) . "
-				" . ($cabinetRestanding ? " AND ({$this->settings['tablePrefix']}candidates.cabinetRestanding IS NOT NULL AND {$this->settings['tablePrefix']}candidates.cabinetRestanding != '')" : '') . "
+				" . ($requireCabinetRestanding ? " AND ({$this->settings['tablePrefix']}candidates.cabinetRestanding IS NOT NULL AND {$this->settings['tablePrefix']}candidates.cabinetRestanding != '')" : '') . "
 			ORDER BY " . ($inAreas ? 'affiliation,surname,forename' : ($all ? 'areaId,surname' : 'surname,forename')) . "
 		;";
 		$preparedStatementValues = array ('election' => $this->election['id']);
