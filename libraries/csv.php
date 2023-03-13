@@ -1,6 +1,6 @@
 <?php
 
-# Version 1.3.15
+# Version 1.3.16
 
 # Load required libraries
 require_once ('application.php');
@@ -603,6 +603,11 @@ class csv
 			
 			# Create the cells
 			$cells = explode ("\t", $line);
+			
+			# Trim each cell, as trailing spaces often cause problems with data
+			foreach ($cells as $key => $value) {
+				$cells[$key] = trim ($value);
+			}
 			
 			# Create the header row
 			if ($rowNumber == 0) {

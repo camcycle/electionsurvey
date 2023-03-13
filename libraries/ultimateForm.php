@@ -52,8 +52,8 @@
  * 
  * @package ultimateForm
  * @license	https://opensource.org/licenses/gpl-license.php GNU Public License
- * @author	{@link http://www.geog.cam.ac.uk/contacts/webmaster.html Martin Lucas-Smith}, University of Cambridge
- * @copyright Copyright  2003-21, Martin Lucas-Smith, University of Cambridge
+ * @author	{@link https://www.geog.cam.ac.uk/contacts/webmaster/ Martin Lucas-Smith}, University of Cambridge
+ * @copyright Copyright  2003-23, Martin Lucas-Smith, University of Cambridge
  * @version See $version below
  */
 class form
@@ -89,7 +89,7 @@ class form
 	var $hiddenElementPresent = false;			// Flag for whether the form includes one or more hidden elements
 	var $antispamWait = 0;						// Time to wait in the event of spam attempt detection, in seconds
 	var $dataBinding = false;					// Whether dataBinding is in use; if so, this will become an array containing connection variables
-	var $jQueryLibraries = array ();			// Array of jQuery client library loading HTML tags, if any, which are treated as plain HTML
+	var $jsCssAssets = array ();				// Array of JS/CSS client library loading HTML tags, if any, which are treated as plain HTML
 	var $jQueryCode = array ();					// Array of jQuery client code, if any, which will get wrapped in a script tag
 	var $javascriptCode = array ();				// Array of javascript client code, if any, which will get wrapped in a script tag
 	var $formSave = false;						// Whether the submission is a save rather than a proper submission
@@ -111,7 +111,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.27.1';
+	var $version = '1.28.5';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -226,6 +226,12 @@ class form
 		'redirectGet'						=> false,							# On successful submission, redirect, simplifying with non-empty values as GET parameters
 		#!# This should be made automatic, once the system is used to a parse-settings-then-render pattern
 		'enableNativeRequired'				=> false,							# Whether to enable native HTML5 required attributes; this should be disabled when using Save and continue or expandable
+		'mapTileUrl'						=> 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+		'mapTileCopyrightHtml'				=> 'Map data &copy; <a href=\"https://openstreetmap.org/\">OpenStreetMap</a> contributors, ODbL',
+		'mapTileMaxZoom'					=> 18,
+		'mapGeocoder'						=> 'geocoder.js',	# Whether to enable geocoder, and if so, JS path
+		'mapGeocoderApiKey'					=> false,	# Geocoder API key for external provider
+		'mapGeocoderAutocompleteBbox'		=> '-6.6577,49.9370,1.7797,57.6924',	# Geocoder autocomplete bbox as W,S,E,N; default here is UK area
 	);
 	
 	
@@ -287,7 +293,7 @@ class form
 	 * Create a standard input widget
 	 * @param array $arguments Supplied arguments - see template
 	 */
-	function input ($suppliedArguments, $functionName = __FUNCTION__)
+	function input ($suppliedArguments, $functionName = __FUNCTION__, /* internal */ $additionalArgumentDefaults = array ())
 	{
 		# Specify available arguments as defaults or as NULL (to represent a required argument)
 		$argumentDefaults = array (
@@ -325,7 +331,7 @@ class form
 			'after'					=> false,	# Placing the widget after a specific other widget
 			'multiple'				=> false,	# For e-mail types only: whether the field can accept multiple e-mail addresses (separated with comma-space)
 			'autocomplete'			=> false,	# URL of data provider
-			'autocompleteOptions'	=> false,	# Autocomplete options; see: http://jqueryui.com/demos/autocomplete/#remote (this is the new plugin)
+			'autocompleteOptions'	=> false,	# Autocomplete options; see: https://jqueryui.com/autocomplete/#remote (this is the new plugin)
 			'tags'					=> false,	# Tags mode
 			'entities'				=> true,	# Convert HTML in value (useful only for editable=false)
 			'displayedValue'		=> false,	# When using editable=false, optional text that should be displayed instead of the value; can be made into HTML using entities=false
@@ -334,32 +340,15 @@ class form
 			'_visible--DONOTUSETHISFLAGEXTERNALLY'		=> true,	# DO NOT USE - this is present for internal use only and exists prior to refactoring
 		);
 		
-		# Add in password-specific defaults
-		#!# These blocks ought to be specifiable in the native password()/email()/etc. functions
-		if ($functionName == 'password') {
-			$argumentDefaults['generate'] = false;		# Whether to generate a password if no value supplied as default
-			$argumentDefaults['confirmation'] = false;	# Whether to generate a second confirmation password field
-		}
+		# Add any element type -specific argument defaults, overriding any existing ones
+		$argumentDefaults = array_merge ($argumentDefaults, $additionalArgumentDefaults);
 		
 		# Add in email-specific defaults
+		#!# These do not appear to do anything - should these be $suppliedArguments ?
 		if ($functionName == 'email') {
 			$argumentDefaults['confirmation'] = false;	# Whether to generate a second confirmation e-mail field
 		} else {
 			$argumentDefaults['multiple'] = false;	# Ensure this option is disabled for non-email types
-		}
-		
-		# Add in URL-specific defaults
-		if ($functionName == 'url') {
-			$argumentDefaults['regexpi'] = '^(http|https)://(.+)\.(.+)';
-		}
-		
-		# Add in Number-specific defaults
-		#!# This needs to have min/max/step value validation and restriction text, and make enforceNumeric set numeric
-		if (($functionName == 'number') || ($functionName == 'range')) {
-			$argumentDefaults['min'] = false;
-			$argumentDefaults['max'] = false;
-			$argumentDefaults['step'] = false;
-			$argumentDefaults['roundFloat'] = false;
 		}
 		
 		# If an element is expandable, if it is boolean true, convert to default string
@@ -654,12 +643,18 @@ class form
 	
 	/**
 	 * Create a password widget (same as an input widget but using the HTML 'password' type)
-	 * @param array $arguments Supplied arguments same as input type
+	 * @param array $arguments Supplied arguments same as input type plus those below
 	 */
 	function password ($suppliedArguments)
 	{
+		# Additional argument defaults
+		$additionalArgumentDefaults = array (
+			'generate' => false,		# Whether to generate a password if no value supplied as default
+			'confirmation' => false,	# Whether to generate a second confirmation password field
+		);
+		
 		# Pass through to the standard input widget, but in password mode
-		$this->input ($suppliedArguments, __FUNCTION__);
+		$this->input ($suppliedArguments, __FUNCTION__, $additionalArgumentDefaults);
 	}
 	
 	
@@ -676,12 +671,17 @@ class form
 	
 	/**
 	 * Create a URL widget (same as an input widget but using the HTML5 'url' type)
-	 * @param array $arguments Supplied arguments same as input type
+	 * @param array $arguments Supplied arguments same as input type plus those below
 	 */
 	function url ($suppliedArguments)
 	{
+		# Additional argument defaults
+		$additionalArgumentDefaults = array (
+			'regexpi' => '^(http|https)://(.+)\.(.+)',
+		);
+		
 		# Pass through to the standard input widget
-		$this->input ($suppliedArguments, __FUNCTION__);
+		$this->input ($suppliedArguments, __FUNCTION__, $additionalArgumentDefaults);
 	}
 	
 	
@@ -709,23 +709,41 @@ class form
 	
 	/**
 	 * Create a Number widget (same as an input widget but using the HTML5 'number' type)
-	 * @param array $arguments Supplied arguments same as input type
+	 * @param array $arguments Supplied arguments same as input type plus those below
 	 */
 	function number ($suppliedArguments)
 	{
+		# Additional argument defaults
+		#!# This needs to have min/max/step value validation and restriction text, and make enforceNumeric set numeric
+		$additionalArgumentDefaults = array (
+			'min' => false,
+			'max' => false,
+			'step' => false,
+			'roundFloat' => false,
+		);
+		
 		# Pass through to the standard input widget
-		$this->input ($suppliedArguments, __FUNCTION__);
+		$this->input ($suppliedArguments, __FUNCTION__, $additionalArgumentDefaults);
 	}
 	
 	
 	/**
 	 * Create a Range widget (same as an input widget but using the HTML5 'range' type)
-	 * @param array $arguments Supplied arguments same as input type
+	 * @param array $arguments Supplied arguments same as input type plus those below
 	 */
 	function range ($suppliedArguments)
 	{
+		# Additional argument defaults
+		#!# This needs to have min/max/step value validation and restriction text, and make enforceNumeric set numeric
+		$additionalArgumentDefaults = array (
+			'min' => false,
+			'max' => false,
+			'step' => false,
+			'roundFloat' => false,
+		);
+		
 		# Pass through to the standard input widget
-		$this->input ($suppliedArguments, __FUNCTION__);
+		$this->input ($suppliedArguments, __FUNCTION__, $additionalArgumentDefaults);
 	}
 	
 	
@@ -737,6 +755,523 @@ class form
 	{
 		# Pass through to the standard input widget, but in password mode
 		$this->input ($suppliedArguments, __FUNCTION__);
+	}
+	
+	
+	/**
+	 * Create a Map widget
+	 * @param array $arguments Supplied arguments same as input type plus those below
+	 */
+	public function map ($suppliedArguments)
+	{
+		# Specify available arguments as defaults or as NULL (to represent a required argument)
+		$argumentDefaults = array (
+			'name'						=> NULL,	# Name of the element
+			'editable'					=> true,	# Whether the widget is editable (if not, a hidden element will be substituted but the value displayed)
+			'title'						=> '',		# Introductory text
+			'description'				=> '',		# Description text
+			'append'					=> '',		# HTML appended to the widget
+			'prepend'					=> '',		# HTML prepended to the widget
+			'output'					=> array (),# Presentation format
+			'required'					=> false,	# Whether required or not
+			'default'					=> '',		# Default value (optional)
+			'regexp'					=> '',		# Case-sensitive regular expression against which the submission must validate
+			'regexpi'					=> '',		# Case-insensitive regular expression against which the submission must validate
+			'disallow'					=> false,	# Regular expression against which the submission must not validate
+			'antispam'					=> $this->settings['antispam'],		# Whether to switch on anti-spam checking
+			'discard'					=> false,	# Whether to process the input but then discard it in the results
+			'datatype'					=> false,	# Datatype used for database writing emulation (or caching an actual value)
+			'confirmation'				=> false,	# Whether to generate a confirmation field
+			'tabindex'					=> false,	# Tabindex if required; replace with integer between 0 and 32767 to create
+			'after'						=> false,	# Placing the widget after a specific other widget
+			'width'						=> 'auto',	# Map width in px, or string e.g. 'auto'
+			'height'					=> 400,		# Map height in px, or string value
+			'defaultLocationLatitude'	=> NULL,	# Default location: latitude
+			'defaultLocationLongitude'	=> NULL,	# Default location: longitude
+			'defaultLocationZoom'		=> NULL,	# Default location: zoom
+			#!# Currently these are set globally and if there is more than one map element, the first only is used
+			'tileUrl'					=> $this->settings['mapTileUrl'],
+			'tileCopyrightHtml'			=> $this->settings['mapTileCopyrightHtml'],
+			'tileMaxZoom'				=> $this->settings['mapTileMaxZoom'],
+			'geocoder'					=> $this->settings['mapGeocoder'],
+			'geocoderApiKey'			=> $this->settings['mapGeocoderApiKey'],
+			'geocoderAutocompleteBbox'	=> $this->settings['mapGeocoderAutocompleteBbox'],
+			'instructionsHtml'			=> '<p>Zoom in and click on the map to set the exact location:</p>',
+			'max'						=> 1,		# Max number of features that can be placed on the map
+			'propertiesEditable'		=> true,	# Whether the properties are editable in the popup
+			'popupHtml'					=> false,	# Customised HTML popup (in addition to standard deletion button); placeholders as '{properties.id}' can be used to populate data
+		);
+		
+		# Create a new form widget
+		$widget = new formWidget ($this, $suppliedArguments, $argumentDefaults, __FUNCTION__);
+		
+		$arguments = $widget->getArguments ();
+		
+		# If the widget is not editable, fix the form value to the default
+		if (!$arguments['editable']) {$this->form[$arguments['name']] = $arguments['default'];}
+		
+		# Obtain the value of the form submission (which may be empty)
+		$value = (isSet ($this->form[$arguments['name']]) ? $this->form[$arguments['name']] : '');
+		
+		# Set the value
+		$widget->setValue ($value);
+		
+		# Handle whitespace issues
+		$widget->handleWhiteSpace ();
+		
+		# Perform pattern checks
+		$regexpCheck = $widget->regexpCheck ();
+		
+		# Perform antispam checks
+		$widget->antispamCheck ();
+		
+		$elementValue = $widget->getValue ();
+		
+		# Assign the initial value if the form is not posted (this bypasses any checks, because there needs to be the ability for the initial value deliberately not to be valid)
+		if (!$this->formPosted) {$elementValue = $arguments['default'];}
+		
+		# Re-assign back the value
+		$this->form[$arguments['name']] = $elementValue;
+		
+		# Assemble the widget ID for use in script registration
+		$widgetId = $this->cleanId ($this->settings['name'] ? "{$this->settings['name']}[{$arguments['name']}]" : $arguments['name']);
+		
+		# Start the widget HTML
+		$widgetHtml = '';
+		
+		# Define the map JS/CSS; these are loaded only once even if there are multiple map widgets, so are namespaced
+		$this->jsCssAssets['mapCode']  = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />';
+		$this->jsCssAssets['mapCode'] .= '<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>';
+		$this->jsCssAssets['mapCode'] .= $this->mapCss ($arguments);
+		$this->jQueryCode['mapCode'] = $this->mapJs ($arguments);
+		
+		# Add geocoder if required; this input element is not related to the form itself but a standalone control
+		$geocoderHtml = '';
+		if ($arguments['geocoder']) {
+			$this->enableJqueryUi ();
+			$this->jsCssAssets['mapCode'] .= '<script src="' . htmlspecialchars ($arguments['geocoder']) . '"></script>';
+			$geocoderHtml .= "\n\t" . '<div class="mapgeocoder">';
+			$geocoderHtml .= "\n\t\t" . '<input id="' . $widgetId . '_geocoder" type="text" name="location" autocomplete="off" placeholder="Search locations and move map" spellcheck="false" />';
+			$geocoderHtml .= "\n\t" . '</div>';
+		}
+		
+		# Add instructions if required
+		if ($arguments['instructionsHtml']) {
+			$widgetHtml .= "\n\n" . $arguments['instructionsHtml'];
+		}
+		
+		# Assemble the form and map, which is a hidden input plus a Leaflet map div that writes into the field
+		$widgetHtml .= "\n" . '<textarea class="mapinput"' . $this->nameIdHtml ($arguments['name']) . $widget->tabindexHtml () . ' cols="60" rows="8"' . ($arguments['editable'] ? '' : ' readonly="readonly"') . '>' . htmlspecialchars ($this->form[$arguments['name']]) . '</textarea>';
+		$widgetHtml .= "\n" . '<div class="mapcontainer" style="width: ' . (is_int ($arguments['width']) ? $arguments['width'] . 'px' : $arguments['width']) . '; height: ' . (is_int ($arguments['height']) ? $arguments['height'] . 'px' : $arguments['height']) . ';">';
+		$widgetHtml .= $geocoderHtml;
+		$widgetHtml .= "\n\t" . '<div id="' . $widgetId . '_map" class="mapdiv" data-initiallocation="' . "{$arguments['defaultLocationZoom']}/{$arguments['defaultLocationLatitude']}/{$arguments['defaultLocationLongitude']}" . '" data-maxfeatures="' . (int) $arguments['max'] . '" data-propertieseditable="' . (int) $arguments['propertiesEditable'] . '"></div>';
+		$widgetHtml .= "\n" . '</div>';
+		
+		# If popupHtml is defined, add as hidden template so that the JS can pick it up and clone to the popup
+		if ($arguments['popupHtml']) {
+			$widgetHtml .= "\n" . '<div id="' . $widgetId . '_popuptemplate" class="popuptemplate">';
+			$widgetHtml .= "\n" . $arguments['popupHtml'];
+			$widgetHtml .= "\n" . '</div>';
+		}
+		
+		# Check for element problems
+		$problems = $widget->getElementProblems (isSet ($elementProblems) ? $elementProblems : false);
+		
+		# Get the posted data
+		if ($this->formPosted) {
+			$data['rawcomponents'] = json_encode (json_decode ($this->form[$arguments['name']]), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);		// Reformat for consistency
+			$data['compiled'] = 'Location on map';
+			//$data['presented'] = $widgetHtml;		// #!# Would need more work to implement, as jQuery code will get omitted
+		}
+		
+		# Add the widget to the master array for eventual processing
+		$this->elements[$arguments['name']] = array (
+			'type' => __FUNCTION__,
+			'html' => $arguments['prepend'] . $widgetHtml . $arguments['append'],
+			'title' => $arguments['title'],
+			'description' => $arguments['description'],
+			'restriction' => (isSet ($restriction) && $arguments['editable'] ? $restriction : false),
+			'problems' => $widget->getElementProblems (isSet ($elementProblems) ? $elementProblems : false),
+			'required' => $arguments['required'],
+			'requiredButEmpty' => $widget->requiredButEmpty (),
+			'suitableAsEmailTarget' => false,
+			'output' => $arguments['output'],
+			'discard' => $arguments['discard'],
+			'editable' => $arguments['editable'],
+			'data' => (isSet ($data) ? $data : NULL),
+			'datatype' => ($arguments['datatype'] ? $arguments['datatype'] : "`{$arguments['name']}` " . 'TEXT') . ($arguments['required'] ? ' NOT NULL' : '') . " COMMENT '" . (addslashes ($arguments['title'])) . "'",
+			'after' => $arguments['after'],
+		);
+	}
+	
+	
+	# Function to create the CSS for the map
+	private function mapCss ($arguments)
+	{
+		# Assemble the div, converting spaces to dots
+		$div = implode ('.', explode (' ', $this->settings['div']));
+		
+		# Define the CSS
+		$css = "
+			<style type=\"text/css\">
+				.{$div} .mapinput {display: none;}
+				.{$div} .mapcontainer {position: relative;}	/* Width/height is set on the element itself */
+				.{$div} .mapcontainer .mapdiv {display: block; width: 100%; height: 100%;}
+				.{$div} .mapcontainer .mapdiv a {text-decoration: none;}
+				.{$div} .mapcontainer .mapgeocoder {position: absolute; top: 10px; left: 55px; z-index: 450;}		/* Z-indexes at: https://leafletjs.com/reference.html#map-mappane */
+				.{$div} .mapcontainer .mapgeocoder input {width: 300px;}
+				.{$div} .ui-front {z-index: 999 !important;}
+				.{$div} .ui-autocomplete li.ui-menu-item, .ui-autocomplete li.ui-menu-item a {width: 100%; padding: 0; font-size: 0.9em; padding-bottom: 10px;}
+				.{$div} .ui-autocomplete li.ui-menu-item a span {color: gray;}
+				.{$div} .popuptemplate {display: none;}
+				.{$div} .mapremovelocationparagraph {display: inline;}
+			</style>
+		";
+		
+		# Return the CSS
+		return $css;
+	}
+	
+	
+	# Function to create the JS for the map(s)
+	private function mapJs ($arguments)
+	{
+		# Assemble the div, converting spaces to dots
+		$div = implode ('.', explode (' ', $this->settings['div']));
+		
+		# Define the JS, which will be wrapped in jQuery document ready
+		$js = "
+			ultimateFormMap ();
+			
+			function ultimateFormMap () {
+				
+				// Create each map with a matching div input on the page; see: https://stackoverflow.com/a/71349246/180733
+				$('.{$div} .mapinput').each (function() {
+					
+					// Create a closure, so that this.id is fixed for each handler, to avoid crosstalk; see: https://stackoverflow.com/a/21472993/180733
+					(function (widgetId) {		// this.id passed in
+						
+						// Determine the map ID
+						var mapId = widgetId + '_map';		// e.g. form_location1_map
+						
+						// Settings
+						var _settings = {
+							geocoderApiBaseUrl: 'https://api.cyclestreets.net/v2/geocoder',
+							geocoderApiKey: '" . htmlspecialchars ($arguments['geocoderApiKey']) . "',		// Obtain at https://www.cyclestreets.net/api/apply/
+							autocompleteBbox: '" . htmlspecialchars ($arguments['geocoderAutocompleteBbox']) . "',
+						};
+						
+						// Determine if the widget is editable
+						var isEditable = !($('#' + widgetId).is ('[readonly]'));
+						
+						// Get the initial location from the div
+						var initialLocation = $('#' + mapId).data ('initiallocation').split ('/');		// Zoom, lat, lon
+						
+						// Determine number of markers
+						var maxFeatures = $('#' + mapId).data ('maxfeatures');
+						
+						// Determine whether faeture properties are editable
+						var propertiesEditable = $('#' + mapId).data ('propertieseditable');
+						
+						// Create the map
+						var map = L.map (mapId).setView ([ initialLocation[1], initialLocation[2] ], initialLocation[0]);
+						L.tileLayer ('" . htmlspecialchars ($arguments['tileUrl']) . "', {
+							attribution: '" . $arguments['tileCopyrightHtml'] . "',
+							maxZoom: " . $arguments['tileMaxZoom'] . "
+						}).addTo (map);
+						
+						// Set required and minimum zoom for map marker
+						var requiredZoom = 16;
+						var maximumZoom = 18;
+						
+						// Add geocoder
+						var geocoderId = widgetId + '_geocoder';		// e.g. form_location1_geocoder
+						autocomplete.addTo ('input#' + geocoderId, {
+							sourceUrl: _settings.geocoderApiBaseUrl + '?key=' + _settings.geocoderApiKey + '&bounded=1&bbox=' + _settings.autocompleteBbox,
+							select: function (event, ui) {
+								var bbox = ui.item.feature.properties.bbox.split(',');
+								map.fitBounds ([ [bbox[1], bbox[0]], [bbox[3], bbox[2]] ]);
+								event.preventDefault();
+							}
+						});
+						
+						// Get initial data state
+						var geojson;
+						var initialData = $('#' + widgetId).val ();
+						if (initialData) {
+							geojson = JSON.parse (initialData);
+						} else {
+							geojson = {type: 'FeatureCollection', features: []};
+						}
+						
+						// Define initial GeoJSON data (e.g. initial state or after unsuccessful form result)
+						var markerLayer = L.geoJSON (geojson, {
+							
+							onEachFeature: function (feature, /* layer as */ marker) {
+								
+								// Set as draggable, and update the form value on update
+								marker.options.draggable = isEditable;
+								marker.on ('drag', function (e) {
+									updateFormValue ();
+								});
+								
+								// Enable auto-pan
+								marker.options.autoPan = true;
+								
+								// Bind popup
+								marker.bindPopup (popupHtml (feature));
+							}
+						}).addTo (map);
+						
+						// Set the bounds of the content, limited to the required zoom (to avoid a single location being very close)
+						if (markerLayer.getLayers ().length) {
+							map.fitBounds (markerLayer.getBounds (), {maxZoom: requiredZoom});
+						}
+						
+						// Add additional markers by clicking on the map (unless editing disabled)
+						if (isEditable) {
+							map.on ('click', function (e) {
+								
+								// NB Ideally we would treat a map click away from an open popup as an implicit close, but this cannot be detected as this is the built-in behaviour and thus too late to capture
+								
+								// Require high zoom level to ensure accuracy
+								var currentZoom = map.getZoom ();
+								if (currentZoom < requiredZoom) {
+									map.flyTo (e.latlng, (currentZoom + 2));
+									return;
+								}
+								
+								// Handle max features
+								if (maxFeatures) {
+									
+									// If a singleton, treat as implicit delete
+									if (maxFeatures == 1) {
+										markerLayer.clearLayers ();		// I.e. clear all layers before adding below
+									} else {
+										
+										// If the current number of markers has reached the limit, prevent addition; we cannot do any implicit delete as we do not know which to delete
+										var currentTotal = markerLayer.getLayers ().length;
+										if (currentTotal == maxFeatures) {
+											alert ('You have reached the maximum number of locations; please delete an existing location.');
+											return false;
+										}
+									}
+								}
+								
+								// Create the marker and set location
+								var marker = new L.marker (e.latlng, {
+									draggable: isEditable,
+									autoPan: true
+								});
+								marker.feature = {		// Create skeleton GeoJSON structure, which will get populated
+									type: 'Feature',
+									properties: {},
+									geometry: {}
+								};
+								marker.bindPopup (popupHtml (marker.feature));
+								marker.on ('drag', function (e) {
+									updateFormValue ();
+								});
+								markerLayer.addLayer (marker);
+								
+								// Update form
+								updateFormValue ();
+							});
+						}
+						
+						// Function to create the popup HTML
+						function popupHtml (feature)
+						{
+							// Start with deletion button
+							var popupHtml = popupDeletion (feature);
+							
+							// Prepend content from an HTML template if present, cloning it into the template
+							$(popupHtml).prepend (popupContent (feature));
+							
+							// Return the popup HTML
+							return popupHtml;
+						}
+						
+						// Function to handle popup deletion
+						function popupDeletion (feature, popupHtml)
+						{
+							// Obtain (or create) the object's internalId, so we can use this in a clickable deletion link within this popup
+							var internalId = L.Util.stamp (feature);
+							
+							// Define the delete popup content, with its own removal handler
+							var confirmRemove = (propertiesEditable);	// Require confirmation if there is property editing, as accidental deletion could be quite destructive
+							var paragraph = document.createElement ('p');
+							paragraph.className = 'small comment mapremovelocationparagraph';
+							paragraph.innerHTML = '<a href=\"#\" class=\"mapremovelocation\" data-internalid=\"' + internalId + '\">&#x1f5d1; Remove this location?' + (confirmRemove ? '&hellip;' : '') + '</a>';
+							paragraph.onclick = function (e) {
+								e.preventDefault ();
+								
+								// Confirm deletion
+								if (confirmRemove) {
+									if (!window.confirm ('Are you sure?')) {return;}
+								}
+								
+								// Identify the clicked item, which we can use to identify the marker from this feature
+								var clickedId = parseInt (e.target.dataset.internalid);	// See data-internalid above
+								
+								// Remove the matching marker
+								markerLayer.eachLayer (function (marker) {
+									thisMarkerInternalId = L.Util.stamp (marker.feature)
+									if (thisMarkerInternalId == clickedId) {
+										markerLayer.removeLayer (marker);
+									}
+								});
+								
+								// Update the form value, now that the marker has been deleted
+								updateFormValue ();
+							};
+							
+							// Create a div
+							var div = document.createElement ('div');
+							div.className = 'popupcontent';
+							
+							// Add the paragraph to the div
+							div.appendChild (paragraph);
+							
+							// Return the popup content div
+							return div;
+						}
+						
+						// Function to create the popup content
+						function popupContent (feature)
+						{
+							// Get the internal ID of this feature
+							var internalId = L.Util.stamp (feature);
+							
+							// Start the popup content
+							var popupContent;
+							
+							// If no template, auto-generate a table (if properties present)
+							var templateSelector = '#' + widgetId + '_popuptemplate';
+							if (!$(templateSelector).length) {
+								
+								// If no properties, add no content
+								if ($.isEmptyObject (feature.properties)) {return '';}
+								
+								// Render a table
+								popupContent = '<table>';
+								$.each (feature.properties, function (key, value) {
+									popupContent += '<tr><td>' + htmlspecialchars (key) + ':</td><td>' + htmlspecialchars (value) + '</td></tr>';
+								});
+								popupContent += '</table>';
+								
+								// Return the table
+								return popupContent;
+							}
+							
+							// Define a path parser, so that the template can define properties.foo which would obtain feature.properties.foo; see: https://stackoverflow.com/a/22129960
+							Object.resolve = function (path, obj) {
+								return path.split ('.').reduce (function (prev, curr) {
+									return (prev ? prev[curr] : undefined);
+								}, obj || self);
+							};
+							
+							// Get the template, which can include placeholders such as '{properties.id}'
+							template = $(templateSelector).html ();
+							
+							// Substitute template placeholders; see: https://stackoverflow.com/a/378000
+							popupContent = template.replace (/\{[^{}]+\}/g, function (path) {
+								var field = path.replace (/[{}]+/g, '');	// '{properties.id}' will have field 'properties.id'
+								var value = Object.resolve (field, feature) || '';
+								
+								// Convert the value to an editable input; these are not in a <form> to avoid a form within a form
+								if (propertiesEditable) {
+									value = '<input name=\"' + htmlspecialchars (field) + '\" value=\"' + htmlspecialchars (value) + '\" data-internalid=\"' + internalId + '\" class=\"mappropertiesinput_' + internalId + '\" />';
+								}
+								
+								// Return the value / input field with value
+								return value;
+							});
+							
+							// If the properties are editable, register a handler to manage changes to the input(s)
+							// #!# propertiesEditable is not being isolated between map instances - there is a general crosstalk issue here
+							if (propertiesEditable) {
+								
+								// Prevent return within the map properties inputs
+								$(document).on ('keydown', '.mappropertiesinput_' + internalId, function (e) {	// late binding
+									if (e.keyCode == 13) {
+										return false;
+									}
+								});
+								
+								// Function to assign a value within an object based on a string path; see: https://stackoverflow.com/a/13719799/180733
+								function objectAssignPathValue (obj, path, value) {
+									if (typeof path === 'string') {
+										path = path.split ('.');
+									}
+									if (path.length > 1) {
+										var e = path.shift ();
+										objectAssignPathValue (obj[e] = (Object.prototype.toString.call (obj[e]) === '[object Object]' ? obj[e] : {}), path, value);
+									} else {
+										obj[path[0]] = value;
+									}
+								}
+								
+								// On change (i.e. move away from element and it has changed), scan the form and write each value into the feature value
+								$(document).on ('change', '.mappropertiesinput_' + internalId, function (e) {		// late binding
+									
+									// We need to loop through each property field, to ensure a comlete set is written to the feature
+									// #!# This ought to be run on the popup creation, to ensure that a newly-created marker always has the properties set
+									$('.mappropertiesinput_' + internalId).each (function (index, input) {
+										
+										// Update the feature, by taking the path represented as the input name (e.g. 'properties.name') as a path string, and setting the value
+										var path = $(input).prop ('name');
+										var value = $(input).val ();
+										objectAssignPathValue (feature, path, value);
+									});
+									
+									// Feature seems to be a reference, so the form value can be updated directly rather than having to find which feature it is
+									updateFormValue ();
+								});
+							}
+							
+							// Return the table
+							return popupContent;
+						}
+						
+						// Function to make data entity-safe
+						function htmlspecialchars (string)
+						{
+							if (typeof string !== 'string') {return string;}
+							return string.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+						}
+						
+						// Capture value on marker location selection to form
+						function updateFormValue ()
+						{
+							// If no markers, set the form value to empty (as distinct from than a GeoJSON structure with zero features)
+							if (!markerLayer.getLayers ().length) {
+								$('#' + widgetId).val ('');
+								return;
+							}
+							
+							// Get the data
+							var geojson = markerLayer.toGeoJSON ();		// Default precision value is 6 decimal places
+							
+							// Strip any internal _leaflet_id references
+							$.each (geojson.features, function (index, feature) {
+								if (geojson.features[index].hasOwnProperty ('_leaflet_id')) {
+									delete geojson.features[index]._leaflet_id;
+								}
+							});
+							
+							// Stringify and write to the form value
+							$('#' + widgetId).val (JSON.stringify (geojson));
+						}
+						
+					}) (this.id);	// End of closure for this map
+					
+				});		// End foreach map ID
+			}
+		";
+		
+		# Return the JS
+		return $js;
 	}
 	
 	
@@ -778,7 +1313,7 @@ class form
 			'tabindex'				=> false,	# Tabindex if required; replace with integer between 0 and 32767 to create
 			'after'					=> false,	# Placing the widget after a specific other widget
 			'autocomplete'			=> false,	# URL of data provider
-			'autocompleteOptions'	=> false,	# Autocomplete options; see: http://jqueryui.com/demos/autocomplete/#remote (this is the new plugin)
+			'autocompleteOptions'	=> false,	# Autocomplete options; see: https://jqueryui.com/autocomplete/#remote (this is the new plugin)
 			'autocompleteTokenised'	=> false,	# URL of data provider
 			'entities'				=> true,	# Convert HTML in value (useful only for editable=false)
 			'displayedValue'		=> false,	# When using editable=false, optional text that should be displayed instead of the value; can be made into HTML using entities=false
@@ -1506,7 +2041,7 @@ class form
 			<!-- WYSIWYG editor; replace the <textarea> with a CKEditor instance -->
 			<textarea' . $this->nameIdHtml ($arguments['name']) . " style=\"width: {$arguments['config.width']}; height: {$arguments['config.height']}\"" . ($arguments['autofocus'] ? ' autofocus="autofocus"' : '') . '>' . htmlspecialchars ($elementValue) . '</textarea>
 			';
-			$this->jQueryLibraries['CKEditor'] = '<script src="' . $arguments['editorBasePath'] . 'ckeditor.js"></script>';
+			$this->jsCssAssets['CKEditor'] = '<script src="' . $arguments['editorBasePath'] . 'ckeditor.js"></script>';
 			$this->jQueryCode[__FUNCTION__ . $widgetId] = '
 				var editor = CKEDITOR.replace("' . $id . '", {
 					' . implode (",\n\t\t\t\t\t", $editorConfig) . '
@@ -1519,7 +2054,7 @@ class form
 			if ($arguments['editorFileBrowser']) {
 				
 				#!# startupFolderExpanded is not clear; see ticket: http://ckeditor.com/forums/Support/Documentation-suggestion-startupFolderExpanded-is-unclear
-				$this->jQueryLibraries['CKFinder'] = '<script src="' . $arguments['editorFileBrowser'] . 'ckfinder.js"></script>';
+				$this->jsCssAssets['CKFinder'] = '<script src="' . $arguments['editorFileBrowser'] . 'ckfinder.js"></script>';
 				$this->jQueryCode[__FUNCTION__ . $widgetId] .= '
 					// File manager settings
 					CKFinder.setupCKEditor( editor, {
@@ -1822,7 +2357,7 @@ class form
 			'onchangeSubmit'		=> false,	# Whether to submit the form onchange
 			'copyTo'				=> false,	# Whether to copy the value, onchange, to another form widget if that widget's value is currently empty
 			'autocomplete'			=> false,	# URL of data provider
-			'autocompleteOptions'	=> false,	# Autocomplete options; see: http://jqueryui.com/demos/autocomplete/#remote (this is the new plugin)
+			'autocompleteOptions'	=> false,	# Autocomplete options; see: https://jqueryui.com/autocomplete/#remote (this is the new plugin)
 			'entities'				=> true,	# Convert HTML in label to entity equivalents
 			'data'					=> array (),	# Values for data-* attributes
 			'tolerateInvalid'		=> false,	# Whether to tolerate an invalid default value, and reset the value to empty
@@ -1883,14 +2418,22 @@ class form
 				}
 			}
 			
-			# If a string (i.e. a URL), make sure the values list is empty, and when confirmed, 
+			# If a string (i.e. a URL), make sure the values list is empty, and when confirmed, fill with an arbitrary fixed set including the existing default
 			if (is_string ($arguments['autocomplete'])) {
 				if ($arguments['values'] === false) {
 					$autocompleteAutovaluesMode = true;
 					
 					# Create an array of arbitrary values to emulate a fixed supplied set
+					#!# Purpose of this is really not clear
 					$createValues = 200;	// Arbitrarily high number of (arbitrary) values to create; this is a little poor but it is otherwise hard to work out how many to create; it basically needs always to be at least one more than the current number of widgets being displayed
 					$arguments['values'] = array_fill (0, $createValues, $arbitraryValue = true);	// Create an arbitrary value(s) list, to ensure that the widget(s) get(s) created
+					
+					# Ensure the existing value is present
+					if ($arguments['default']) {
+						foreach ($arguments['default'] as $default) {
+							$arguments['values'][$default] = $default;
+						}
+					}
 					
 				} else {
 					$this->formSetupErrors['autocompleteValuesMismatch'] = "Autocomplete from an external data source is enabled for {$arguments['name']}. The values list must therefore be set to false, but this is not the case.";
@@ -2983,8 +3526,9 @@ class form
 		# Obtain the value of the form submission (which may be empty)  (ensure that a full date and time array exists to prevent undefined offsets in case an incomplete set has been posted)
 		$value = (isSet ($this->form[$arguments['name']]) ? $this->form[$arguments['name']] : array ());
 		$fields = array ('time', 'day', 'month', 'year', );
+		if (is_null ($value) || $value == '') {$value = array ();}
 		foreach ($fields as $field) {
-			if (!isSet ($value[$field])) {
+			if (!array_key_exists ($field, $value)) {
 				$value[$field] = '';
 			}
 		}
@@ -3138,7 +3682,7 @@ class form
 				$minDate = (($arguments['min'] && preg_match ('/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/', $arguments['min'], $matches)) ? "new Date({$matches[1]}, " . ($matches[2] - 1) . ', ' . (int) $matches[3] . ')' : 'null');	// e.g. 2012-07-22 becomes new Date(2012, 6, 22)
 				$maxDate = (($arguments['min'] && preg_match ('/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/', $arguments['max'], $matches)) ? "new Date({$matches[1]}, " . ($matches[2] - 1) . ', ' . (int) $matches[3] . ')' : 'null');
 				
-				# Add jQuery UI javascript for the date picker; see: http://jqueryui.com/demos/datepicker/
+				# Add jQuery UI javascript for the date picker; see: https://jqueryui.com/datepicker/
 				$this->enableJqueryUi ();
 				$widgetId = $this->cleanId ($this->settings['name'] ? "{$this->settings['name']}[{$arguments['name']}]" : $arguments['name']);
 				# NB This has to be done in Javascript rather than PHP because the main part of this is client-side testing of actual browser support rather than just a browser number
@@ -3156,7 +3700,7 @@ class form
 					}
 				}
 				if(!html5Support) {
-					var dateDefaultDate_{$arguments['name']} = " . ($elementValue['year'] ? "new Date({$elementValue['year']}, {$elementValue['month']} - 1, {$elementValue['day']})" : 'null') . ";	// http://stackoverflow.com/questions/1953840/datepickersetdate-issues-in-jquery
+					var dateDefaultDate_{$arguments['name']} = " . ($elementValue['year'] ? "new Date({$elementValue['year']}, {$elementValue['month']} - 1, {$elementValue['day']})" : 'null') . ";	// https://stackoverflow.com/questions/1953840/datepickersetdate-issues-in-jquery
 					$(function() {
 						$('#{$widgetId}').datepicker({
 							changeMonth: true,
@@ -3186,7 +3730,7 @@ class form
 					});
 				}";
 				
-				# Enable autosubmit if required; see: http://stackoverflow.com/questions/11532433 for the HTML5 picker, and http://stackoverflow.com/questions/6471959 for the jQuery picker
+				# Enable autosubmit if required; see: http://stackoverflow.com/questions/11532433 for the HTML5 picker, and https://stackoverflow.com/questions/6471959/ for the jQuery picker
 				if ($arguments['pickerAutosubmit']) {
 					$this->jQueryCode[__FUNCTION__ . $widgetId] .= "\n
 				// Date picker autosubmit (HTML/jQuery picker)
@@ -4109,7 +4653,7 @@ class form
 	# Function to inject a jQuery library loading
 	function addJQueryLibrary ($id, $code)
 	{
-		$this->jQueryLibraries[$id] = $code;
+		$this->jsCssAssets[$id] = $code;
 	}
 	
 	
@@ -4126,15 +4670,15 @@ class form
 		# Add the libraries, ensuring that the loading respects the protocol type (HTTP/HTTPS) of the current page, to avoid mixed content warnings
 		# Need to keep this in sync with a compatible jQuery version
 		if ($this->settings['jQueryUi']) {
-			$this->jQueryLibraries['jQueryUI'] = '
-				<script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-				<link href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" rel="stylesheet" type="text/css"/>
+			$this->jsCssAssets['jQueryUI'] = '
+				<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js" integrity="sha256-xLD7nhI62fcsEZK2/v8LsBcb4lG7dgULkuXoXB/j91c=" crossorigin="anonymous"></script>
+				<link href="https://code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css" rel="stylesheet" type="text/css"/>
 			';
 		}
 	}
 	
 	
-	# Function to add jQuery-based autocomplete; see: http://jqueryui.com/demos/autocomplete/#remote - this is the new jQueryUI plugin, not the old one; see also: http://www.learningjquery.com/2010/06/autocomplete-migration-guide
+	# Function to add jQuery-based autocomplete; see: https://jqueryui.com/autocomplete/#remote - this is the new jQueryUI plugin, not the old one; see also: https://learningjquery.com/2010/06/autocomplete-migration-guide
 	function autocompleteJQuery ($id, $data, $options = array (), $subwidgets = false)
 	{
 		# Ensure that jQuery UI is loaded
@@ -4188,11 +4732,11 @@ class form
 	function autocompleteTokenisedJQuery ($id, $jsonUrl, $optionsJsString = '', $singleLine = true)
 	{
 		# Add the main function
-		$this->jQueryLibraries[__FUNCTION__] = "\n\t\t\t" . '<script type="text/javascript" src="' . ($this->settings['scripts'] ? $this->settings['scripts'] : 'https://raw.github.com/chadisfaction/jQuery-Tokenizing-Autocomplete-Plugin/master/src/') . 'jquery.tokeninput.js"></script>';
+		$this->jsCssAssets[__FUNCTION__] = "\n\t\t\t" . '<script type="text/javascript" src="' . ($this->settings['scripts'] ? $this->settings['scripts'] : 'https://raw.github.com/chadisfaction/jQuery-Tokenizing-Autocomplete-Plugin/master/src/') . 'jquery.tokeninput.js"></script>';
 		
 		# Add the stylesheet
 		$uniqueFunctionId = __FUNCTION__ . ($singleLine ? '_singleline' : '_multiline');
-		$this->jQueryLibraries[$uniqueFunctionId] = "\n\t\t\t" . '<link rel="stylesheet" href="' . ($this->settings['scripts'] ? $this->settings['scripts'] : 'https://raw.github.com/chadisfaction/jQuery-Tokenizing-Autocomplete-Plugin/master/styles/') . ($singleLine ? 'token-input-facebook' : 'token-input') . '.css" type="text/css" />';
+		$this->jsCssAssets[$uniqueFunctionId] = "\n\t\t\t" . '<link rel="stylesheet" href="' . ($this->settings['scripts'] ? $this->settings['scripts'] : 'https://raw.github.com/chadisfaction/jQuery-Tokenizing-Autocomplete-Plugin/master/styles/') . ($singleLine ? 'token-input-facebook' : 'token-input') . '.css" type="text/css" />';
 		
 		# Compile the options; they are listed at https://raw.github.com/chadisfaction/jQuery-Tokenizing-Autocomplete-Plugin/master/src/jquery.tokeninput.js ; note that the final item in a list must not have a comma at the end
 		$functionOptions = array ();
@@ -6062,6 +6606,7 @@ class form
 		$messageText = ($this->settings['unsavedDataProtection'] === true ? 'Leaving this page will cause edits to be lost. Press the submit button on the page if you wish to save your data.' : $this->settings['unsavedDataProtection']);
 		
 		# Create the jQuery code
+		#!# Custom text return status is now deprecated: https://chromestatus.com/feature/5349061406228480
 		$this->jQueryCode[__FUNCTION__] = "
 			
 			// Navigate-away protection for general widgets
@@ -6438,16 +6983,17 @@ class form
 	function loadJavascriptCode ()
 	{
 		# End if no jQuery use
-		if (!$this->jQueryLibraries && !$this->jQueryCode && !$this->javascriptCode) {return false;}
+		if (!$this->jsCssAssets && !$this->jQueryCode && !$this->javascriptCode) {return false;}
 		
 		# Start the HTML
 		$html  = '';
 		
 		# Add the library if required
-		if ($this->jQueryLibraries || $this->jQueryCode) {
+		#!# Rework this function so that the subresource integrity can be included in the <script> URL
+		if ($this->jsCssAssets || $this->jQueryCode) {
 			if ($this->settings['jQuery']) {
 				if ($this->settings['jQuery'] === true) {	// If not a URL, use the default, respecting HTTP/HTTPS to avoid mixed content warnings
-					$this->settings['jQuery'] = '//code.jquery.com/jquery.min.js';
+					$this->settings['jQuery'] = 'https://code.jquery.com/jquery-3.6.1.min.js';
 				}
 				if ($this->settings['jQuery']) {
 					$html .= "\n<script type=\"text/javascript\" src=\"{$this->settings['jQuery']}\"></script>";
@@ -6456,7 +7002,7 @@ class form
 		}
 		
 		# Add plugin libraries
-		foreach ($this->jQueryLibraries as $key => $htmlCode) {
+		foreach ($this->jsCssAssets as $key => $htmlCode) {
 			$html .= "\n" . $htmlCode;
 		}
 		
@@ -6950,6 +7496,20 @@ class form
 				'screen'			=> array ('presented', 'compiled'), #, 'rawcomponents'
 				'processing'		=> array ('compiled'), #, 'rawcomponents'
 				'database'			=> array ('presented'),
+			),
+			
+			'map' => array (
+				'_descriptions' => array (
+					'rawcomponents'	=> 'GeoJSON string',
+					'compiled'		=> 'Textual summary of submitted map data',
+					//'presented'		=> 'Show as visual map',
+				),
+				'file'				=> array ('rawcomponents', 'compiled'),
+				'email'				=> array ('compiled', 'rawcomponents'),
+				'confirmationEmail'	=> array ('compiled', 'rawcomponents'),
+				'screen'			=> array (/* 'presented', */ 'compiled', 'rawcomponents'),
+				'processing'		=> array ('rawcomponents', 'compiled'),
+				'database'			=> array ('rawcomponents', 'compiled'),
 			),
 			
 			'radiobuttons' => array (
@@ -8898,12 +9458,12 @@ class formWidget
 		$this->form->enableJqueryUi ();
 		
 		# Add the main function
-		$this->form->jQueryLibraries[__FUNCTION__]  = "\n\t\t\t" . '<script type="text/javascript" src="' . $this->settings['scripts'] . 'tag-it/js/tag-it.js"></script>';	// https://rawgithub.com/aehlke/tag-it/master/js/tag-it.js
+		$this->form->jsCssAssets[__FUNCTION__]  = "\n\t\t\t" . '<script type="text/javascript" src="' . $this->settings['scripts'] . 'tag-it/js/tag-it.js"></script>';	// https://rawgithub.com/aehlke/tag-it/master/js/tag-it.js
 		
 		# Add the stylesheets
-		$this->form->jQueryLibraries[__FUNCTION__] .= "\n\t\t\t" . '<link rel="stylesheet" href="' . ($this->settings['scripts'] ? $this->settings['scripts'] : 'http://ajax.googleapis.com/ajax/libs') . '/jqueryui/1/themes/flick/jquery-ui.css" type="text/css" />';
-		$this->form->jQueryLibraries[__FUNCTION__] .= "\n\t\t\t" . '<link rel="stylesheet" href="' . $this->settings['scripts'] . 'tag-it/css/jquery.tagit.css" type="text/css" />';	// https://rawgithub.com/aehlke/tag-it/master/css/jquery.tagit.css
-		$this->form->jQueryLibraries[__FUNCTION__] .= "\n\t\t\t" . '<link rel="stylesheet" href="' . $this->settings['scripts'] . 'tag-it/css/tagit.ui-zendesk.css" type="text/css" />';	// https://rawgithub.com/aehlke/tag-it/master/css/tagit.ui-zendesk.css
+		$this->form->jsCssAssets[__FUNCTION__] .= "\n\t\t\t" . '<link rel="stylesheet" href="' . ($this->settings['scripts'] ? $this->settings['scripts'] : 'http://ajax.googleapis.com/ajax/libs') . '/jqueryui/1/themes/flick/jquery-ui.css" type="text/css" />';
+		$this->form->jsCssAssets[__FUNCTION__] .= "\n\t\t\t" . '<link rel="stylesheet" href="' . $this->settings['scripts'] . 'tag-it/css/jquery.tagit.css" type="text/css" />';	// https://rawgithub.com/aehlke/tag-it/master/css/jquery.tagit.css
+		$this->form->jsCssAssets[__FUNCTION__] .= "\n\t\t\t" . '<link rel="stylesheet" href="' . $this->settings['scripts'] . 'tag-it/css/tagit.ui-zendesk.css" type="text/css" />';	// https://rawgithub.com/aehlke/tag-it/master/css/tagit.ui-zendesk.css
 		
 		# Options
 		$functionOptions = array ();

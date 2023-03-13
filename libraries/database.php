@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-22
- * Version 4.0.1
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-23
+ * Version 4.1.0
  * Uses prepared statements (see https://stackoverflow.com/questions/60174/how-can-i-prevent-sql-injection-in-php ) where possible
  * Distributed under the terms of the GNU Public Licence - https://www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
@@ -50,6 +50,7 @@ class database
 		}
 		
 		# Enable native types if required; currently implemented and tested only for MySQL; note that this requires the pdo-mysqlnd driver to be installed
+		$driverOptions[PDO::ATTR_STRINGIFY_FETCHES] = true;	// NB This is the default behaviour anyway until PHP 8.1; see: https://www.php.net/manual/en/migration81.incompatible.php#migration81.incompatible.pdo.mysql
 		if ($nativeTypes) {
 			if (in_array ($vendor, array ('mysql', 'pgsql'))) {
 				$driverOptions[PDO::ATTR_EMULATE_PREPARES] = false;		// #!# This seems to cause problems with e.g. "SHOW DATABASES LIKE"; see point 3 at: http://stackoverflow.com/a/10455228/180733 and http://stackoverflow.com/a/12202218/180733
@@ -837,7 +838,7 @@ class database
 				}
 				$fields = $fieldsGrouped;
 		}
-
+		
 		# If returning as a total, convert to a count
 		if ($asTotal) {
 			$fields = count ($fields);
@@ -936,6 +937,9 @@ class database
 	# Function to detect values that should not be quoted
 	private function valueIsFunctionCall ($string)
 	{
+		# False if null
+		if (is_null ($string)) {return false;}
+		
 		# Normalise the string
 		$string = strtoupper ($string);
 		$string = str_replace (' (', '(', $string);
@@ -1273,7 +1277,7 @@ class database
 		}
 		
 		# Construct the columns part; if the key is numeric, assume it's not a key=>value pair, but that the value is the fieldname
-		#!# This section needs to quote all fieldnames - hotfix added for 'rank'
+		#!# This section needs to quote all fieldnames - hotfix added for 'rank' and 'when'
 		$what = '*';
 		if ($columns) {
 			$what = array ();
@@ -1281,6 +1285,7 @@ class database
 				foreach ($columns as $key => $value) {
 					if (is_numeric ($key)) {
 						if ($value == 'rank') {$value = "{$this->quote}{$value}{$this->quote}";}	// Hotfix - see above, added for MySQL 8 compatibility
+						if ($value == 'when') {$value = "{$this->quote}{$value}{$this->quote}";}	// Hotfix - see above, added for MySQL 8 compatibility
 						$what[] = $value;
 					} else {
 						$what[] = "{$key} AS {$value}";
@@ -1377,6 +1382,7 @@ class database
 				unset ($data[$key]);
 				continue;
 			}
+			#!# If the field has a space in, this will cause a failure
 			$preparedValuePlaceholders[] = ':' . $key;
 		}
 		$preparedValuePlaceholders = implode (', ', $preparedValuePlaceholders);
@@ -1587,6 +1593,7 @@ if (!$rows) {
 				continue;
 			}
 			$placeholder = "data_" . $key;	// The prefix ensures namespaced uniqueness within $dataUniqued
+			#!# If the field has a space in, this will cause a failure
 			$preparedValueUpdates[] = "{$this->quote}{$key}{$this->quote}= :" . $placeholder;
 			
 			# Save the data using the new placeholder
@@ -1605,6 +1612,7 @@ if (!$rows) {
 			$where = array ();
 			foreach ($conditions as $key => $value) {
 				$placeholder = 'conditions_' . $key;	// The prefix ensures namespaced uniqueness within $dataUniqued
+				#!# If the field has a space in, this will cause a failure
 				$where[] = ($this->strictWhere ? 'BINARY ' : '') . $this->quote . $key . "{$this->quote} = :" . $placeholder;
 				
 				# Save the data using the new placeholder
@@ -1814,17 +1822,19 @@ if (!$rows) {
 				$specification  = strtoupper ($field['Type']);
 				if (strlen ($field['Collation'])) {$specification .= ' collate ' . $field['Collation'];}
 				if (strtoupper ($field['Null']) == 'NO') {$specification .= ' NOT NULL';}
+				if (strlen ($field['Comment'])) {$specification .= ' COMMENT "' . str_replace ('"', '\"', $field['Comment']) . '"';}
+				if (isSet ($field['Extra']) && strtoupper ($field['Extra']) == 'AUTO_INCREMENT') {$specification .= ' AUTO_INCREMENT';}
 				if (strtoupper ($field['Key']) == 'PRI') {$specification .= ' PRIMARY KEY';}
 				if (strlen ($field['Default'])) {$specification .= ' DEFAULT ' . $field['Default'];}
 				$field = $specification;
 			}
 			
 			# Add the field
-			$fieldsSql[] = "{$fieldname} {$field}";
+			$fieldsSql[] = "{$this->quote}{$fieldname}{$this->quote} {$field}";
 		}
 		
 		# Compile the overall SQL; type is deliberately set to InnoDB so that rows are physically stored in the unique key order
-		$query = 'CREATE TABLE' . ($ifNotExists ? ' IF NOT EXISTS' : '') . " {$this->quote}{$database}{$this->quote}.{$this->quote}{$table}{$this->quote} (" . implode (', ', $fieldsSql) . ") ENGINE={$type} CHARACTER SET utf8 COLLATE utf8_unicode_ci;";
+		$query = 'CREATE TABLE' . ($ifNotExists ? ' IF NOT EXISTS' : '') . " {$this->quote}{$database}{$this->quote}.{$this->quote}{$table}{$this->quote} (" . implode (', ', $fieldsSql) . ") ENGINE={$type};";
 		
 		# Create the table
 		if ($this->_execute ($query) === false) {return false;}
@@ -1894,9 +1904,9 @@ if (!$rows) {
 		
 		# Archive the data, by creating the table and copying the data in
 		$sql = "CREATE TABLE {$archiveTable} LIKE {$table};";
-		$this->databaseConnection->execute ($sql);
+		$this->execute ($sql);
 		$sql = "INSERT INTO {$archiveTable} SELECT * FROM {$table};";
-		$this->databaseConnection->execute ($sql);
+		$this->execute ($sql);
 	}
 	
 	
@@ -2233,6 +2243,8 @@ if (!$rows) {
 		
 		# Add newline
 		$logEntry .= "\n";
+
+file_put_contents ('/websites/mysql-replay.sql', $logEntry, FILE_APPEND);
 		
 		# Log the change
 		file_put_contents ($this->logFile, $logEntry, FILE_APPEND);
@@ -2300,14 +2312,17 @@ if (!$rows) {
 				$key = ':' . $key;
 			}
 			switch (true) {
-				case ctype_digit ($value):
-					$values[$key] = $value;
-					break;
 				case is_null ($value):
 					$values[$key] = 'NULL';
 					break;
 				case $value == 'NOW()':
 					$values[$key] = 'NOW()';
+					break;
+				case is_int ($value):
+				case is_float ($value):
+				#!# Argument of type bool will be interpreted as string in the future
+				case ctype_digit ($value):
+					$values[$key] = $value;
 					break;
 				default:
 					$values[$key] = $this->quote ($value);
