@@ -75,7 +75,7 @@ class elections
 			),
 			'settings' => array (
 				'description' => 'Settings and configuration for this system',
-				'description' => 'System settings',
+				'description' => 'Overall system configuration',
 				'url' => 'admin/settings.html',
 				'administrator' => true,
 				'admingroup' => 'system',
@@ -2114,9 +2114,9 @@ class elections
 		# Define the groups
 		$groups = array (
 			'system' => array (
-				'title' => 'System settings',
+				'title' => 'Overall system configuration',
 				'icon' => 'cog',
-				'introduction' => 'Overall system configuration',
+				'introduction' => 'This section sets the overall system configuration that applies to all elections, e.g. main page text, e-mail settings and labelling.',
 			),
 			'election' => array (
 				'title' => '1. Overall election details',
