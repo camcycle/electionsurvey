@@ -3159,7 +3159,7 @@ class elections
 	# Function to get a list of area IDs and names
 	private function getAreaNames ()
 	{
-		return $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}areas", array (), array ('id', "CONCAT_WS(' ', prefix, areaName) AS name"), true, $orderBy = 'name');
+		return $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}areas", array (), array ('id', "CONCAT_WS(' ', prefix, areaName) AS name"), true, $orderBy = 'areaName');
 	}
 	
 	
