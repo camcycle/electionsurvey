@@ -545,7 +545,7 @@ class elections
 			  `id` varchar(255) NOT NULL COMMENT 'Unique key',
 			  `prefix` varchar(255) default NULL COMMENT 'Area name prefix',
 			  `areaName` varchar(255) NOT NULL COMMENT 'Area name',
-			  `districtCouncil` enum('','Cambridge City Council','South Cambridgeshire District Council','East Cambridgeshire District Council','Fenland District Council','Huntingdonshire District Council') default NULL COMMENT 'District council',
+			  `districtCouncil` enum('','Cambridge City Council','South Cambridgeshire District Council','East Cambridgeshire District Council','Fenland District Council','Huntingdonshire District Council','-') NOT NULL COMMENT 'District council area',
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Areas';
 			
@@ -1915,8 +1915,9 @@ class elections
 		$totalCandidates = count ($allCandidates);
 		$percentageReplied = round (($total / $totalCandidates) * 100);
 		
-		# Construct a table of response rates by district Council
-		$responseRatesByDistrictTable = $this->responseRatesByAspectTable ($allCandidates, $respondents, 'districtCouncil', 'district');
+		# Construct a table of response rates by district Council area
+		$responseRatesByDistrictTable = $this->responseRatesByAspectTable ($allCandidates, $respondents, 'districtCouncil', 'district area');
+		$responseRatesByDistrictTable = str_replace (' Council', '', $responseRatesByDistrictTable);	// These aren't always actual councils, e.g. County elections incorporates the areas but it is misleading to show the council name itself
 		
 		# Construct a table of response rates by affiliation (party)
 		$colours = array ();
@@ -2015,7 +2016,7 @@ class elections
 		$totalCandidates = 0;
 		foreach ($candidatesByAspectStanding as $grouping => $candidatesThisAspect) {
 			
-			# Exit if an aspect name is missing (e.g. missing District Council name)
+			# Exit if an aspect name is missing
 			#!# Need to report this to the Webmaster as indicating missing data
 			if (!strlen ($grouping)) {return false;}
 			
