@@ -546,10 +546,6 @@ class elections
 			  `prefix` varchar(255) default NULL COMMENT 'Area name prefix',
 			  `areaName` varchar(255) NOT NULL COMMENT 'Area name',
 			  `districtCouncil` enum('','Cambridge City Council','South Cambridgeshire District Council','East Cambridgeshire District Council','Fenland District Council','Huntingdonshire District Council') default NULL COMMENT 'District council',
-			  `countyCouncil` enum('','Cambridgeshire County Council') default NULL COMMENT 'County Council',
-			  `parishes` varchar(255) default NULL COMMENT 'Parishes incorporated',
-			  `districtCouncillors` tinyint(1) default NULL COMMENT 'How many district councillors',
-			  `countyCouncillors` tinyint(1) default NULL COMMENT 'How many County councillors',
 			  PRIMARY KEY  (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Areas';
 			
@@ -2373,7 +2369,7 @@ class elections
 	private function getAllAreas ()
 	{
 		# Get and return the data
-		$showFields = array ('id', 'prefix', 'areaName', 'districtCouncil', 'countyCouncil', 'parishes', 'districtCouncillors', 'countyCouncillors');
+		$showFields = array ('id', 'prefix', 'areaName', 'districtCouncil');
 		return $this->databaseConnection->select ($this->settings['database'], "{$this->settings['tablePrefix']}areas", array (), $showFields, true, $orderBy = 'areaName');
 	}
 	
