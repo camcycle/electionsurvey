@@ -1281,8 +1281,15 @@ class elections
 				$list[$i] .= $this->responsesBlock ($question, $this->candidates, $responses, false, $questionNumberAcrossElection);
 			}
 			
+			# Determine the next available question number, if on the all questions list
+			$nextAvailableHtml = '';
+			if (!$limitToArea) {
+				$nextAvailableHtml = "\n<p>NB The next available question number is: <strong>" . $this->getNextAvailableQuestionNumber () . '</strong>. This is useful if drafting a new spreadsheet of questions.</p>';
+			}
+			
 			# Construct the HTML
 			$questionsHtml .= "\n\n<p class=\"clearall\">Jump to question: " . implode (' ', $questionsJumplist) . '</p>';
+			$questionsHtml .= $nextAvailableHtml;
 			$questionsHtml .= implode ($list);
 		}
 		
@@ -1300,6 +1307,14 @@ class elections
 		
 		# Return the HTML
 		return $html;
+	}
+	
+	
+	# Function to get the next available question number
+	private function getNextAvailableQuestionNumber ()
+	{
+		$query = "SELECT MAX(id) + 1 AS nextId FROM {$this->settings['tablePrefix']}questions";
+		return $nextId = $this->databaseConnection->getOneField ($query, 'nextId');
 	}
 	
 	
