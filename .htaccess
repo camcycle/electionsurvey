@@ -19,7 +19,7 @@ RewriteRule ^login/(register|resetpassword)/([a-z0-9]{24})$ login/$1/$2/ [L,R=30
 RewriteRule ^login/logout/$ index.php?action=logoutinternal [L]
 RewriteRule ^login/logout$ $1/ [L,R=301]
 
-# Submission page (this uses / at the end rather than .php as some candidates seem not to type that correctly)
+# Submission page
 RewriteRule ^submit/$ index.php?action=submit [L]
 RewriteRule ^submit$ submit/ [R=301,L]
 
@@ -28,7 +28,7 @@ RewriteRule ^admin/$ index.php?action=admin [L]
 RewriteRule ^admin$ admin/ [R=301,L]
 RewriteRule ^([a-z0-9]+)/admin/$ index.php?action=admin&election=$1 [L]
 RewriteRule ^([a-z0-9]+)/admin$ $1/admin/ [R=301,L]
-RewriteRule ^admin/(settings|allquestions|allocations|letters|mailout|reminders|viewincoming|reissue|elected|addelection|editelection|addarea|showareas|addcandidate|addcandidates|addquestions|deletequestions|addsurveys|addaffiliations|showaffiliations).html$ index.php?action=$1 [L]
+RewriteRule ^admin/(settings|allquestions|allocations|letters|mailout|reminders|viewincoming|reissue|elected|addelection|editelection|addarea|showareas|addcandidate|addcandidates|candidates|addquestions|deletequestions|addsurveys|addaffiliations|showaffiliations).html$ index.php?action=$1 [L]
 RewriteRule ^admin/(editquestions).html$ index.php?action=$1 [L,QSA]
 RewriteRule ^admin/(editcandidate)/$ index.php?action=$1 [L]
 RewriteRule ^admin/(editcandidate)$ admin/$1/ [R=301,L]
@@ -42,7 +42,8 @@ RewriteRule ^([a-z0-9]+)/$ index.php?election=$1&action=overview [L]
 RewriteRule ^([a-z0-9]+)$ $1/ [R=301,L]
 
 # List of all/per-area questions available
-RewriteRule ^([a-z0-9]+)/(editelection|addcandidate|addcandidates|letters|mailout|reminders|reissue|respondents|cabinet|elected).html$ index.php?election=$1&action=$2 [L]
+RewriteRule ^([a-z0-9]+)/(editelection|addcandidate|addcandidates|candidates|letters|mailout|reminders|respondents|cabinet|elected).html$ index.php?election=$1&action=$2 [L]
+RewriteRule ^([a-z0-9]+)/(reissue).html$ index.php?election=$1&action=$2 [L,QSA]
 RewriteRule ^([a-z0-9]+)/(questions)/$ index.php?election=$1&action=$2 [L]
 RewriteRule ^([a-z0-9]+)/(questions)$ $1/$2/ [R=301,L]
 RewriteRule ^([a-z0-9]+)/(questions)/([0-9]{1,2})/$ index.php?election=$1&action=$2&question=$3 [L]

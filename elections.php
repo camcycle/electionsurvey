@@ -195,6 +195,13 @@ class elections
 				'admingroup' => 'candidates',
 				'election' => true,
 			),
+			'candidates'	=> array (
+				'description' => 'View candidates list',
+				'url' => 'admin/candidates.html',
+				'administrator' => true,
+				'admingroup' => 'candidates',
+				'election' => true,
+			),
 			'mailout'		=> array (
 				'description' => 'Send e-mail mailout to candidates containing the survey',
 				'url' => 'admin/mailout.html',
@@ -2597,6 +2604,56 @@ class elections
 	}
 	
 	
+	# Function to add a candidate for an election
+	public function candidates ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Get all elections, including forthcoming
+		#!# This reloading should be done generically - several places now require this
+		$this->elections = $this->getElections (true);
+		$this->election = ((isSet ($_GET['election']) && isSet ($this->elections[$_GET['election']])) ? $this->elections[$_GET['election']] : false);
+		
+		# Ensure there is an election supplied
+		if (!$this->election) {
+			$html .= "\n<p>Please select which election:</p>";
+			$html .= $this->listElections ($this->elections, true, false, __FUNCTION__ . '.html');
+			return $html;
+		}
+		
+		# Get candidates, or end
+		if (!$allCandidates = $this->getCandidates ($this->election['id'], true)) {
+			$html .= "\n<p>The candidate list has not yet been loaded for this election. Please check back later.</p>";
+			return $html;
+		}
+		
+		# Get the responses
+		$candidateIds = array_keys ($allCandidates);
+		$responses = $this->getResponses (false, $candidateIds);
+		
+		# Compile table
+		$table = array ();
+		foreach ($allCandidates as $candidate) {
+			$candidateResponded = (array_key_exists ($candidate['id'], $responses));
+			$table[] = array (
+				'Area' => "<a href=\"{$this->baseUrl}/{$this->election['id']}/{$candidate['areaId']}/\">" . htmlspecialchars ($candidate['areaName']) . '</a>',
+				'Name' => $candidate['_name'],		// Already HTML
+				'Verification ID' => $candidate['verification'],
+				'Responded?' => ($candidateResponded ? 'Yes' : ''),
+				'Reissue e-mail?' => ($candidateResponded ? '' : "<a href=\"{$this->baseUrl}/{$this->election['id']}/reissue.html?candidate={$candidate['id']}\">Reissue&hellip;</a>"),
+			);
+		}
+		
+		# Render as table
+		$html  = "\n<p>This table of candidates, available to administrations only, lists all candidates for this election and provides links to reissue an e-mail, so they can then <a href=\"{$this->baseUrl}/submit/\">submit</a> a response.</p>";
+		$html .= application::htmlTable ($table, array (), 'lines', $keyAsFirstColumn = false, false, true);
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
 	# Function to add (mass-import) candidates for an election
 	public function addcandidates ()
 	{
@@ -3409,6 +3466,7 @@ class elections
 			'title'			=> 'Candidate',
 			'values'		=> $areaCandidates,
 			'required'		=> true,
+			'get'			=> 'candidate',
 		));
 		$form->email (array (
 			'name'			=> 'email',
