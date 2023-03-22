@@ -209,6 +209,13 @@ class elections
 				'admingroup' => 'issue',
 				'election' => true,
 			),
+			'viewincoming'		=> array (
+				'description' => 'View responses as they come in',
+				'url' => 'admin/viewincoming.html',
+				'administrator' => true,
+				'admingroup' => 'during',
+				'election' => true,
+			),
 			'submit'		=> array (
 				'description' => 'Candidate survey response form',
 				'url' => 'submit/',
@@ -1608,6 +1615,29 @@ class elections
 		
 		# Return the responses
 		return $data;
+	}
+	
+	
+	# Admin function providing a simple link through to the main listings
+	public function viewincoming ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Get all elections, including forthcoming
+		$this->elections = $this->getElections (true);
+		$this->election = ((isSet ($_GET['election']) && isSet ($this->elections[$_GET['election']])) ? $this->elections[$_GET['election']] : false);
+		
+		# Introduce this area
+		$html .= "\n<p>As an administrator, you can view the incoming responses at any time.</p>";
+		$html .= "\n<p>The links below will take you to the public pages, but as a logged-in administrator you will see the responses before members of the public can see them.</p>";
+		
+		# Select the list of elections
+		$html .= "\n<p>Please select which election:</p>";
+		$html .= $this->listElections ($this->elections, true);
+		
+		# Return the HTML
+		return $html;
 	}
 	
 	
