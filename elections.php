@@ -209,24 +209,24 @@ class elections
 				'admingroup' => 'issue',
 				'election' => true,
 			),
-			'reminders'		=> array (
-				'description' => 'Send reminder e-mails to candidates who have not yet responded to the survey',
-				'url' => 'admin/reminders.html',
-				'administrator' => true,
-				'admingroup' => 'issue',
-				'election' => true,
+			'submit'		=> array (
+				'description' => 'Candidate survey response form',
+				'url' => 'submit/',
+				'admingroup' => 'during',
 			),
 			'reissue'		=> array (
 				'description' => 'Reissue an e-mail to a candidate',
 				'url' => 'admin/reissue.html',
 				'administrator' => true,
-				'admingroup' => 'issue',
+				'admingroup' => 'during',
 				'election' => true,
 			),
-			'submit'		=> array (
-				'description' => 'Candidate survey response form',
-				'url' => 'submit/',
-				'admingroup' => 'issue',
+			'reminders'		=> array (
+				'description' => 'Send reminder e-mails to candidates who have not yet responded to the survey',
+				'url' => 'admin/reminders.html',
+				'administrator' => true,
+				'admingroup' => 'during',
+				'election' => true,
 			),
 			'elected'		=> array (
 				'description' => 'Specify the elected candidates',
@@ -2171,8 +2171,13 @@ class elections
 			),
 			'issue' => array (
 				'title' => '7. Issue/manage the surveys',
-				'icon' => 'group',
-				'introduction' => 'At the start of the election, you can either e-mail or print out letters for each candidate, inviting them to contribute their answers. You can also send reminder e-mails, or reissue an e-mail. You can also check what a candidate sees when they visit the submission form. Candidates can submit responses at any time from the opening of the survey until the date of the election; they can also edit an existing response until the responses are made live.',
+				'icon' => 'email_go',
+				'introduction' => 'At the start of the election, you can either e-mail or print out letters for each candidate, inviting them to contribute their answers.',
+			),
+			'during' => array (
+				'title' => 'During the election',
+				'icon' => 'clock',
+				'introduction' => 'Candidates can submit responses at any time from the opening of the survey until the date of the election; they can also edit an existing response until the responses are made live. You can also send reminder e-mails, or reissue an e-mail. You can also check what a candidate sees when they visit the submission form.',
 			),
 			'postelection' => array (
 				'title' => 'After the election',
