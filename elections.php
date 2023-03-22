@@ -195,13 +195,6 @@ class elections
 				'admingroup' => 'candidates',
 				'election' => true,
 			),
-			'candidates'	=> array (
-				'description' => 'View candidates list',
-				'url' => 'admin/candidates.html',
-				'administrator' => true,
-				'admingroup' => 'candidates',
-				'election' => true,
-			),
 			'mailout'		=> array (
 				'description' => 'Send e-mail mailout to candidates containing the survey',
 				'url' => 'admin/mailout.html',
@@ -214,6 +207,13 @@ class elections
 				'url' => 'admin/letters.html',
 				'administrator' => true,
 				'admingroup' => 'issue',
+				'election' => true,
+			),
+			'candidates'	=> array (
+				'description' => 'View candidates list',
+				'url' => 'admin/candidates.html',
+				'administrator' => true,
+				'admingroup' => 'during',
 				'election' => true,
 			),
 			'viewincoming'		=> array (
