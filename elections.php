@@ -387,11 +387,6 @@ class elections
 			$this->candidate = ((isSet ($_GET['candidate']) && isSet ($this->areas[$_GET['candidate']])) ? $this->candidates[$_GET['candidate']] : false);
 		}
 		
-		# Determine if there are any restanding Cabinet members in this election
-		if ($this->election) {
-			$this->cabinetRestanding = $this->getCandidates ($this->election['id'], false, false, false, $requireCabinetRestanding = true);
-		}
-		
 		# Open the div surrounding the application
 		$html .= "\n<div id=\"elections\">";
 		
@@ -888,7 +883,7 @@ class elections
 		if (!$this->area) {
 			$table['Questions'] = "<a href=\"{$this->baseUrl}/{$election['id']}/questions/\">" . ($election['active'] ? '' : '<strong><img src="' . $this->baseUrl . '/images/icons/bullet_go.png" class="icon" /> ') . 'Index of all questions for this election' . ($election['active'] ? '' : '</strong>') .  '</a>';
 			$table['Respondents'] = "<a href=\"{$this->baseUrl}/{$election['id']}/respondents.html\">" . ($election['active'] ? '<strong><img src="' . $this->baseUrl . '/images/icons/bullet_go.png" class="icon" /> ' : '') . 'Index of all respondents' . ($election['active'] ? ' (so far)' : '') .  '</a>';
-			if ($this->cabinetRestanding) {
+			if ($cabinetRestanding = $this->getCandidates ($election['id'], false, false, false, $requireCabinetRestanding = true)) {
 				$table['Cabinet'] = "<a href=\"{$this->baseUrl}/{$election['id']}/cabinet.html\">Cabinet members in surveyed {$election['areaTypePlural']} restanding in this election</a>";
 			}
 		}
@@ -1055,7 +1050,7 @@ class elections
 			$list["{$this->baseUrl}/{$this->election['id']}/"] = 'Overview page';
 			$list["{$this->baseUrl}/{$this->election['id']}/questions/"] = 'Questions index';
 			$list["{$this->baseUrl}/{$this->election['id']}/respondents.html"] = 'Respondents';
-			if ($this->cabinetRestanding) {
+			if ($cabinetRestanding = $this->getCandidates ($this->election['id'], false, false, false, $requireCabinetRestanding = true)) {
 				$list["{$this->baseUrl}/{$this->election['id']}/cabinet.html"] = 'Cabinet restanding';
 			}
 			if ($this->election['votingToday']) {
@@ -2019,19 +2014,19 @@ class elections
 		}
 		
 		# End if no Cabinet members restanding in this election
-		if (!$this->cabinetRestanding) {
+		if (!$cabinetRestanding = $this->getCandidates ($this->election['id'], false, false, false, $requireCabinetRestanding = true)) {
 			header ('HTTP/1.1 404 Not Found');
 			$html .= "\n<p>There are no Cabinet members in {$this->election['areaTypePlural']} we are surveying restanding in this election. Please check the URL and try again.</p>";
 			return $html;
 		}
 		
 		# Get the responses
-		$candidateIds = array_keys ($this->cabinetRestanding);
+		$candidateIds = array_keys ($cabinetRestanding);
 		$responses = $this->getResponses (false, $candidateIds);
 		
 		# Create a table
 		$cabinetMembers = array ();
-		foreach ($this->cabinetRestanding as $candidateId => $candidate) {
+		foreach ($cabinetRestanding as $candidateId => $candidate) {
 			$surveyLink = "{$this->baseUrl}/{$this->election['id']}/{$candidate['areaId']}/";
 			$cabinetMembers[] = array (
 				'Candidate' => str_replace (' &nbsp;(', '<br />(', $candidate['_name']),
