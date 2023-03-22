@@ -2889,8 +2889,9 @@ class elections
 		$linksExplanation .= "\n" . '<p>If you have two or more links, enter each on a separate line.</p>';
 		$linksExplanation .= "\n" . '<p>You can enter each such link in one of two ways:</p>';
 		$linksExplanation .= "\n" . '<ul class="spaced">';
-		$linksExplanation .= "\n\t" . '<li>Just the web address:<br /><tt>https://www.example.com/</tt><br />which will show as a bare URL:<br /><a href="https://www.example.com/">https://www.example.com/</a></li>';
-		$linksExplanation .= "\n\t" . '<li>Or the web address followed by a label, which is nicer:<br /><tt>https://www.example.com/ My example link</tt><br />which will show as:<br /><a href="https://www.example.com/">My example link</a></p>';
+		$linksExplanation .= "\n\t" . '<li>The the web address followed by a label:<br /><tt>https://www.example.com/ My example link</tt><br />which will show as:<br /><a href="https://www.example.com/">My example link</a></p>';
+		$linksExplanation .= "\n\t" . '<li>Multiple: on each line, the web address followed by a label:<br /><tt>https://www.example.com/ My example link<br />https://www.example.org/ Another example link</tt><br />which will show as:<br /><a href="https://www.example.com/">My example link</a><br /><a href="https://www.example.org/">Another example link</a></p>';
+		$linksExplanation .= "\n\t" . '<li>[Not recommended] Just the web address:<br /><tt>https://www.example.com/</tt><br />which will show as a bare URL:<br /><a href="https://www.example.com/">https://www.example.com/</a></li>';
 		$linksExplanation .= "\n" . '</ul>';
 		
 		# Create a new form
