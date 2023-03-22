@@ -2912,7 +2912,7 @@ class elections
 			'size'	=> 80,	#!# This is here due to a bug in ultimateForm
 			'attributes' => array (
 				'question' => array ('heading' => array (3 => 'The question')),
-				'links' => array ('heading' => array (3 => 'Optional links', '' => $linksExplanation, )),
+				'links' => array ('heading' => array (3 => 'Optional link(s) (to appear under the question text)', '' => $linksExplanation, )),
 			),
 		));
 		$result = $form->process ($html);
