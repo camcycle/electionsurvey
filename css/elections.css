@@ -14,6 +14,7 @@
 #elections .jumplist {float: right; margin-left: 2em; margin-bottom: 1em; display: block;}
 #elections .navigation {float: right; background-color: white;}
 #elections p.directionsbutton {clear: right;}
+#elections p.clearall {clear: both;}
 #elections .graphic {clear: right; float: right;}
 #elections table.responserates th, #elections table.responserates tr:last-child td {background-color: #f7f7f7;}
 #elections table.responserates td:first-child {width: 20em;}

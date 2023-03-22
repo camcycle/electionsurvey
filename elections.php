@@ -30,6 +30,9 @@ class elections
 			
 			# Temporary override of admin privileges
 			'overrideAdmin' => false,
+			
+			# Define number of recent questions to show in some admin listings
+			'mostRecent' => 20,
 		);
 	}
 	
@@ -1261,9 +1264,15 @@ class elections
 			$list = array ();
 			foreach ($questions as $question) {
 				$i++;
-				$number = ($limitToArea ? $i : $question['id']);	// Index when showing an area-specific questionnaire, but the actual internal ID when showing everything
-				$link = 'question' . $number;
-				$questionsJumplist[] = "<strong><a href=\"#{$link}\">&nbsp;" . ($limitToArea ? $number : "#{$number}") . '&nbsp;</a></strong>';
+				
+				# Add to jumplist; when listing all, this shows only most recent, to avoid a massive list covering the page after many years
+				if ($limitToArea || (!$limitToArea && ($i <= $this->settings['mostRecent']))) {
+					$number = ($limitToArea ? $i : $question['id']);	// Index when showing an area-specific questionnaire, but the actual internal ID when showing everything
+					$link = 'question' . $number;
+					$questionsJumplist[] = "<strong><a href=\"#{$link}\">&nbsp;" . ($limitToArea ? $number : ($i != $this->settings['mostRecent'] ?  "#{$number}" : 'More&hellip;')) . '&nbsp;</a></strong>';
+				}
+				
+				# Add to list
 				$list[$i]  = "\n\n<h4 class=\"question\" id=\"{$link}\"><a href=\"#{$link}\">#</a> " . ($limitToArea ? 'Question ' : 'Question ID #') . $number . '</h4>';	// In all-listing mode (i.e. admins-only), show the IDs
 				$list[$i] .= $this->questionBox ($question);
 				
@@ -1273,13 +1282,13 @@ class elections
 			}
 			
 			# Construct the HTML
-			$questionsHtml .= "\n\n<p>Jump to question: " . implode (' ', $questionsJumplist) . '</p>';
+			$questionsHtml .= "\n\n<p class=\"clearall\">Jump to question: " . implode (' ', $questionsJumplist) . '</p>';
 			$questionsHtml .= implode ($list);
 		}
 		
 		# Add the questions HTML
 		if (!$limitToArea) {
-			$html .= "\n<p>Below is a list of " . ($this->election ? 'the questions allocated to each ' . $this->election['areaType'] : 'all questions available in the database') . ":</p>";
+			$html .= "\n<p>Below is a list of " . ($this->election ? 'the questions allocated to each ' . $this->election['areaType'] : 'all questions available in the database, listed most recent first') . ":</p>";
 			if ($this->election) {
 				$html .= application::htmlUl ($areasHtml);
 				if ($this->userIsAdministrator) {
@@ -2847,17 +2856,14 @@ class elections
 		# Start the HTML
 		$html = '';
 		
-		# Define number of recent questions to show
-		$mostRecent = 20;
-		
 		# Introductory text
 		$html .= "\n<p>In this section, you can add questions that can then be used in a survey. Note that questions have to be added one at a time.</p>";
-		$html .= "\n<p>The {$mostRecent} most recently-added questions are shown below.</p>";
+		$html .= "\n<p>The {$this->settings['mostRecent']} most recently-added questions are shown below.</p>";
 		
 		# Create the form
 		if (!$result = $this->questionForm (array (), $html)) {
 			#!# Need to check that highlight text appears in the question
-			$html .= $this->recentlyAddedQuestions ($mostRecent);
+			$html .= $this->recentlyAddedQuestions ($this->settings['mostRecent']);
 			return $html;
 		}
 		
@@ -2871,7 +2877,7 @@ class elections
 		# Confirm success
 		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The question has been added, as ID <strong>#{$questionId}</strong>, as shown below. It is now available to use when constructing surveys.</p>";
 		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">+ add another</a>?</p>";
-		$html .= $this->recentlyAddedQuestions ($mostRecent);
+		$html .= $this->recentlyAddedQuestions ($this->settings['mostRecent']);
 		
 		# Return the HTML
 		return $html;
