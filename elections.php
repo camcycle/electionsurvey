@@ -1634,7 +1634,7 @@ class elections
 		
 		# Select the list of elections
 		$html .= "\n<p>Please select which election:</p>";
-		$html .= $this->listElections ($this->elections, true);
+		$html .= $this->listElections ($this->elections, true, false, 'respondents.html');
 		
 		# Return the HTML
 		return $html;
