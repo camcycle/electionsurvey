@@ -492,7 +492,7 @@ class elections
 			  `surname` varchar(255) NOT NULL COMMENT 'Surname',
 			  `address` varchar(255) NOT NULL COMMENT 'Address',
 			  `email` varchar(255) DEFAULT NULL COMMENT 'E-mail address',
-			  `verification` varchar(6) NOT NULL COMMENT 'Verification number',
+			  `verification` varchar(6) NOT NULL COMMENT 'Verification ID',
 			  `affiliation` varchar(255) NOT NULL COMMENT 'Affiliation',
 			  `cabinetRestanding` varchar(255) DEFAULT NULL COMMENT 'Whether the candidate is a restanding Cabinet member, and if so, their current Cabinet post',
 			  `private` int(1) DEFAULT NULL,
@@ -1667,13 +1667,14 @@ class elections
 				'autofocus' => true,
 			));
 			$form->heading ('p', "<strong>Welcome</strong>, candidate. <strong>Thank you</strong> for responding to our survey.</p>\n<p>We've done this survey online so that constituents - including our {$this->settings['organisationConstituentsType']} - in each area can see what each candidate thinks. Voters can then take these views into account alongside other issues of concern to them. The questions we've posed are relevant/specific to each area.");
-			$form->heading ('p', '<br />Please firstly enter the verification number given in the letter/e-mail you received, which ensures the security of your response.');
+			$form->heading ('p', '<br />Please firstly enter the verification ID given in the letter/e-mail you received, which ensures the security of your response.');
 			$form->input (array (
 				'name'			=> 'number',
-				'title'			=> 'Verification number',
+				'title'			=> 'Verification ID',
 				'required'		=> true,
 				'maxlength'		=> 6,
-				'regexp'		=> '^([0-9]{6})$',
+				'size'			=> 20,
+				'regexp'		=> '^([a-f0-9]{6})$',
 			));
 			$form->select (array (
 				'name'			=> 'area',
@@ -2337,7 +2338,7 @@ class elections
 			'data'		=> $data,
 			'intelligence' => true,
 			'attributes' => array (
-				'id' => array ('editable' => (!$data), 'current' => $currentIds, 'regexp' => '^[a-z0-9]+$', 'placeholder' => 'E.g. ' . date ('Y') . 'election', ),
+				'id' => array ('editable' => (!$data), 'current' => $currentIds, 'regexp' => '^[a-f0-9]+$', 'placeholder' => 'E.g. ' . date ('Y') . 'election', ),
 				'name' => array ('placeholder' => 'E.g. Elections to Placeford Council, ' . date ('Y')),
 				'startDate' => array ('description' => 'This is the date when candidates can start to enter their responses, assuming that questions, areas, etc., are all loaded. This must not be before the start date of the election, to avoid accusations of unfairness from undeclared candidates.'),
 				'resultsDate' => array ('description' => 'This is the date when responses from candidates will become visible to the general public. Admins can log in and see responses before this date. Candidates can edit any existing response they have made until this date.'),
@@ -2577,8 +2578,8 @@ class elections
 		));
 		if ($result = $form->process ($html)) {
 			
-			# Generate a verification number
-			$result['verification'] = $this->generateVerificationNumber ();
+			# Generate a verification ID
+			$result['verification'] = $this->generateVerificationId ();
 			
 			# Insert the candidate
 			if (!$this->databaseConnection->insert ($this->settings['database'], "{$this->settings['tablePrefix']}candidates", $result)) {
@@ -2693,8 +2694,8 @@ class elections
 			# Add election ID
 			$data[$index]['election'] = $result['election'];
 			
-			# Add random verification number for candidate login; note that uniqueness across the dataset is not actually required
-			$data[$index]['verification'] = $this->generateVerificationNumber ();
+			# Add random verification ID for candidate login; note that uniqueness across the dataset is not actually required
+			$data[$index]['verification'] = $this->generateVerificationId ();
 		}
 		
 		# In replace mode, clear any existing data
@@ -2720,12 +2721,11 @@ class elections
 	}
 	
 	
-	# Helper function to generate a verification number
+	# Helper function to generate a verification ID
 	#!# Needs to do uniqueness check to avoid (unlikely) clashes
-	#!# Change to generating alpha-numeric
-	private function generateVerificationNumber ()
+	private function generateVerificationId ()
 	{
-		return rand (100000, 999999);
+		return application::generatePassword (6, $numeric = false);
 	}
 	
 	
@@ -3696,7 +3696,7 @@ class elections
 						<p>Dear candidate,</p>
 						<p>We are writing to you as one of the {$areaName} {$this->election['areaType']} candidates in the {$this->election['name']}.</p>
 						" . $this->election['organisationIntroductionHtml'] . "
-						<p>We ask candidates to submit their responses via the automated facility on our website. Just go to: <u>{$submissionUrl}</u> and enter your verification number: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
+						<p>We ask candidates to submit their responses via the automated facility on our website. Just go to: <u>{$submissionUrl}</u> and enter your verification ID: <strong>{$candidate['verification']}</strong>. The website version also contains links giving further information.</p>
 						" . $screenshotHtml . "
 						<p>If you are unable to complete this survey online or you require any other assistance please e-mail, phone or write to us and we will be happy to make alternative arrangements.</p>
 						<p>Many thanks for your time.<br />Yours sincerely,</p>
@@ -3752,7 +3752,7 @@ class elections
 		$text .= "\n";
 		$text .= "\n" . "{$submissionUrl}";
 		$text .= "\n";
-		$text .= "\n" . "You will need to use this verification number: {$candidate['verification']} .";
+		$text .= "\n" . "You will need to use this verification ID: {$candidate['verification']} .";
 		$text .= "\n";
 		$text .= "\n";
 		$text .= "\n" . 'Many thanks for your time.';
