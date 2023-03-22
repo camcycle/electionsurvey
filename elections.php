@@ -217,7 +217,7 @@ class elections
 				'election' => true,
 			),
 			'viewincoming'		=> array (
-				'description' => 'View responses as they come in',
+				'description' => 'View responses as they come in, including response rates',
 				'url' => 'admin/viewincoming.html',
 				'administrator' => true,
 				'admingroup' => 'during',
