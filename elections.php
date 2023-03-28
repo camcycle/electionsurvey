@@ -3192,6 +3192,33 @@ class elections
 		$html .= "\n<p>In this section, you can construct a survey for each area. Note that surveys have to be created one at a time.</p>";
 		$html .= "\n<p>The {$mostRecent} most recently-added questions are shown below.</p>";
 		
+		# Show the form, and recently-added questions for reference
+		if (!$result = $this->surveyForm ($html)) {
+			$html .= $this->recentlyAddedQuestions ($mostRecent);
+			return $html;
+		}
+		
+		# Clear any existing surveys data
+		$this->databaseConnection->delete ($this->settings['database'], "{$this->settings['tablePrefix']}surveys", $result['_constraints']);
+		
+		# Insert the data
+		if (!$this->databaseConnection->insertMany ($this->settings['database'], "{$this->settings['tablePrefix']}surveys", $result['_questionsProcessed'])) {
+			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
+			return $html;
+		}
+		
+		# Confirm success
+		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['election']}/{$result['areaId']}/\">survey</a> has been added.</p>";
+		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Survey form
+	private function surveyForm (&$html)
+	{
 		# Get all elections, including forthcoming
 		$elections = $this->getElections (true);
 		
@@ -3221,9 +3248,10 @@ class elections
 			'expandable'	=> true,
 			'output'		=> array ('processing' => 'compiled'),
 		));
+		
+		# Process the form, or end
 		if (!$result = $form->process ($html)) {
-			$html .= $this->recentlyAddedQuestions ($mostRecent);
-			return $html;
+			return false;
 		}
 		
 		# Post-process the multiple select output format in ultimateForm
@@ -3237,29 +3265,18 @@ class elections
 			'election'	=> $result['election'],
 			'areaId'	=> $result['areaId'],
 		);
+		$result['_constraints'] = $constraints;
 		
 		# Construct the list of entries for the survey
-		$data = array ();
+		$questionsProcessed = array ();
 		foreach ($result['questions'] as $index => $question) {
-			$data[$index] = $constraints;
-			$data[$index]['question'] = $question;
+			$questionsProcessed[$index] = $constraints;
+			$questionsProcessed[$index]['question'] = $question;
 		}
+		$result['_questionsProcessed'] = $questionsProcessed;
 		
-		# Clear any existing data
-		$this->databaseConnection->delete ($this->settings['database'], "{$this->settings['tablePrefix']}surveys", $constraints);
-		
-		# Insert the data
-		if (!$this->databaseConnection->insertMany ($this->settings['database'], "{$this->settings['tablePrefix']}surveys", $data)) {
-			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
-			return $html;
-		}
-		
-		# Confirm success
-		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['election']}/{$result['areaId']}/\">survey</a> has been added.</p>";
-		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
-		
-		# Return the HTML
-		return $html;
+		# Return the result
+		return $result;
 	}
 	
 	
