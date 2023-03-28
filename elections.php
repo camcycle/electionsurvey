@@ -2311,7 +2311,7 @@ class elections
 		# Process the form
 		if ($result = $this->electionForm ($this->election, array (), $html /* returned by reference */)) {
 			
-			# Insert the election
+			# Update the election
 			$this->databaseConnection->update ($this->settings['database'], "{$this->settings['tablePrefix']}elections", $result, array ('id' => $this->election['id']));
 			
 			# Confirm success
@@ -2345,7 +2345,7 @@ class elections
 			'data'		=> $data,
 			'intelligence' => true,
 			'attributes' => array (
-				'id' => array ('editable' => (!$data), 'current' => $currentIds, 'regexp' => '^[a-f0-9]+$', 'placeholder' => 'E.g. ' . date ('Y') . 'election', ),
+				'id' => array ('editable' => (!$data), 'current' => $currentIds, 'regexp' => '^[a-z0-9]+$', 'placeholder' => 'E.g. ' . date ('Y') . 'election', ),
 				'name' => array ('placeholder' => 'E.g. Elections to Placeford Council, ' . date ('Y')),
 				'startDate' => array ('description' => 'This is the date when candidates can start to enter their responses, assuming that questions, areas, etc., are all loaded. This must not be before the start date of the election, to avoid accusations of unfairness from undeclared candidates.'),
 				'resultsDate' => array ('description' => 'This is the date when responses from candidates will become visible to the general public. Admins can log in and see responses before this date. Candidates can edit any existing response they have made until this date.'),
