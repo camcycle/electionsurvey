@@ -3194,7 +3194,7 @@ class elections
 		}
 		
 		# Confirm success
-		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['election']}/{$result['areaId']}/\">survey</a> has been added.</p>";
+		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['electionId']}/{$result['areaId']}/\">survey</a> has been added.</p>";
 		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
 		
 		# Return the HTML
@@ -3203,7 +3203,7 @@ class elections
 	
 	
 	# Survey form, to present and process the data
-	private function surveyForm (&$html, $election = false, $areaId = false, $questionIds = array ())
+	private function surveyForm (&$html, $electionId = false, $areaId = false, $questionIds = array ())
 	{
 		# Get all elections, including forthcoming
 		$elections = $this->getElections (true);
@@ -3214,12 +3214,12 @@ class elections
 			'databaseConnection' => $this->databaseConnection,
 		));
 		$form->select (array (
-			'name'			=> 'election',
+			'name'			=> 'electionId',
 			'title'			=> 'Which election',
 			'values'		=> $this->getElectionNames ($elections),
 			'required'		=> true,
-			'default'		=> $election,
-			'editable'		=> (!$election),
+			'default'		=> $electionId,
+			'editable'		=> (!$electionId),
 		));
 		$form->select (array (
 			'name'			=> 'areaId',
@@ -3254,7 +3254,7 @@ class elections
 		
 		# Define standard data for each entry in the survey
 		$constraints = array (
-			'election'	=> $result['election'],
+			'election'	=> $result['electionId'],
 			'areaId'	=> $result['areaId'],
 		);
 		
