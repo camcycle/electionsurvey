@@ -3240,6 +3240,20 @@ class elections
 			'default'		=> $questionIds,
 		));
 		
+		# If adding a survey, prevent duplicate survey area creation
+		if (!$electionId) {
+			if ($data = $form->getUnfinalisedData ()) {
+				if (isSet ($data['electionId']) && isSet ($data['areaId'])) {
+					
+					# If the area is already present for this election, prevent addition
+					$surveyAreas = $this->getSurveyAreas ($data['electionId']);
+					if (array_key_exists ($data['areaId'], $surveyAreas)) {
+						$form->registerProblem ('areaexists', 'There is already a survey for ' . htmlspecialchars ($surveyAreas[$data['areaId']]) . ' for this election.', 'areaId');
+					}
+				}
+			}
+		}
+		
 		# Process the form, or end
 		if (!$result = $form->process ($html)) {
 			$html .= $this->recentlyAddedQuestions ($this->settings['mostRecent']);
