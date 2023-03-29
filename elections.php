@@ -159,10 +159,9 @@ class elections
 				'admingroup' => 'surveys',
 				//'election' => true,
 			),
-			#!# Not present
-			'editsurveys'	=> array (
+			'editsurvey'	=> array (
 				'description' => 'Show/edit existing surveys',
-				'url' => 'admin/editsurveys.html',
+				'url' => 'admin/editsurvey/',
 				'administrator' => true,
 				'admingroup' => 'surveys',
 				'election' => true,
@@ -3189,7 +3188,7 @@ class elections
 		$html .= "\n<p>In this section, you can construct a survey for each area. Note that surveys have to be created one at a time.</p>";
 		$html .= "\n<p>The {$this->settings['mostRecent']} most recently-added questions are shown below.</p>";
 		
-		# Show the form, and recently-added questions for reference
+		# Show the form (and recently-added questions for reference) and process the data
 		if (!$result = $this->surveyForm ($html)) {
 			return $html;
 		}
@@ -3204,7 +3203,7 @@ class elections
 	
 	
 	# Survey form, to present and process the data
-	private function surveyForm (&$html)
+	private function surveyForm (&$html, $election = false, $areaId = false, $questionIds = array ())
 	{
 		# Get all elections, including forthcoming
 		$elections = $this->getElections (true);
@@ -3219,12 +3218,16 @@ class elections
 			'title'			=> 'Which election',
 			'values'		=> $this->getElectionNames ($elections),
 			'required'		=> true,
+			'default'		=> $election,
+			'editable'		=> (!$election),
 		));
 		$form->select (array (
 			'name'			=> 'areaId',
 			'title'			=> 'Which area',
 			'values'		=> $this->getAreaNames (),
 			'required'		=> true,
+			'default'		=> $areaId,
+			'editable'		=> (!$areaId),
 		));
 		$form->select (array (
 			'name'			=> 'questions',
@@ -3234,6 +3237,7 @@ class elections
 			'multiple'		=> true,
 			'expandable'	=> true,
 			'output'		=> array ('processing' => 'compiled'),
+			'default'		=> $questionIds,
 		));
 		
 		# Process the form, or end
@@ -3272,6 +3276,110 @@ class elections
 		
 		# Return success
 		return $result;
+	}
+	
+	
+	# Function to edit an existing survey
+	public function editsurvey ()
+	{
+		# Start the HTML
+		$html = '';
+		
+		# Get all elections, including forthcoming
+		#!# This reloading should be done generically - several places now require this
+		$this->elections = $this->getElections (true);
+		$this->election = ((isSet ($_GET['election']) && isSet ($this->elections[$_GET['election']])) ? $this->elections[$_GET['election']] : false);
+
+		# Ensure there is an election supplied
+		if (!$this->election) {
+			$html .= "\n<p>Please select which election:</p>";
+			$html .= $this->listElections ($this->elections, true, false, __FUNCTION__ . '/');
+			return $html;
+		}
+		
+		# Not available once the election has started
+		if (date ('Y-m-d') >= $this->election['startDate']) {
+			return $html .= "\n<p>Editing surveys for this election (" . htmlspecialchars ($this->election['name']) . ") is not now available, as the surveys cannot be edited after the start date (" . date ('jS F, Y', strtotime ($this->election['startDate'] . ' 12:00:00')) . ') for this election.</p>';
+		}
+		
+		# Get the survey areas
+		if (!$surveyAreas = $this->getSurveyAreas ($this->election['id'])) {
+			$html .= '<p>There are no surveys at present.</p>';
+			return $html;
+		}
+		
+		# Determine if there is a valid area name supplied
+		$areaId = false;
+		if (isSet ($_GET['id'])) {
+			if (!array_key_exists ($_GET['id'], $surveyAreas)) {
+				$html = $this->pageNotFound ();
+				return $html;
+			}
+			$areaId = $_GET['id'];
+		}
+		
+		# Introduction
+		$html .= "\n<p>This form can be used to amend a survey.</p>";
+		
+		# If no area, start with the survey selection drop-down
+		if (!$areaId) {
+			require_once ('ultimateForm.php');
+			$form = new form (array (
+				'databaseConnection' => $this->databaseConnection,
+				'submitButtonText' => 'Edit survey &gt;',
+				'autofocus' => true,
+			));
+			$form->select (array (
+				'name'		=> 'id',
+				'title'		=> 'Survey',
+				'values'	=> $surveyAreas,
+			));
+			if ($result = $form->process ($html)) {
+				
+				# Redirect to same URL with ID
+				$redirectTo = $this->baseUrl . '/' . $this->election['id'] . '/' . $this->action . '/' . $result['id'] . '/';
+				$html = application::sendHeader (301, $redirectTo);
+			}
+			
+			# End, returning the HTML
+			return $html;
+		}
+		
+		# Get the question IDs for this survey
+		$questions = $this->getQuestions ($this->election['id'], $areaId, $groupByQuestionId = true);
+		$questionIds = array_keys ($questions);
+		
+		# Show the form (and recently-added questions for reference) and process the data
+		if (!$result = $this->surveyForm ($html, $this->election['id'], $areaId, $questionIds)) {
+			return $html;
+		}
+		
+		# Confirm success
+		$html  = "\n<p>✓ The survey for " . htmlspecialchars ($surveyAreas[$areaId]) . ' has now been updated.</p>';
+		$html .= "\n<p><a href=\"{$this->baseUrl}/admin/editsurvey/\">Return to the survey editing section.</a></p>";
+		$html .= "\n<p><a href=\"{$this->baseUrl}/admin/\">Or, return to the admin area.</a></p>";
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to get the survey areas for an election
+	private function getSurveyAreas ($electionId)
+	{
+		# Get the surveys
+		$query = "SELECT
+				DISTINCT areaId,
+				areaName
+			FROM {$this->settings['tablePrefix']}surveys
+			JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}surveys.areaId = {$this->settings['tablePrefix']}areas.id
+			WHERE election = :electionId
+			ORDER BY areaName
+		;";
+		$surveys = $this->databaseConnection->getPairs ($query, false, array ('electionId' => $electionId));
+		
+		# Return the data
+		return $surveys;
 	}
 	
 	
