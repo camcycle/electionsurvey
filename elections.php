@@ -3185,25 +3185,12 @@ class elections
 		# Start the HTML
 		$html = '';
 		
-		# Define number of recent questions to show
-		$mostRecent = 20;
-		
 		# Add introduction
 		$html .= "\n<p>In this section, you can construct a survey for each area. Note that surveys have to be created one at a time.</p>";
-		$html .= "\n<p>The {$mostRecent} most recently-added questions are shown below.</p>";
+		$html .= "\n<p>The {$this->settings['mostRecent']} most recently-added questions are shown below.</p>";
 		
 		# Show the form, and recently-added questions for reference
 		if (!$result = $this->surveyForm ($html)) {
-			$html .= $this->recentlyAddedQuestions ($mostRecent);
-			return $html;
-		}
-		
-		# Clear any existing surveys data
-		$this->databaseConnection->delete ($this->settings['database'], "{$this->settings['tablePrefix']}surveys", $result['_constraints']);
-		
-		# Insert the data
-		if (!$this->databaseConnection->insertMany ($this->settings['database'], "{$this->settings['tablePrefix']}surveys", $result['_questionsProcessed'])) {
-			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
 			return $html;
 		}
 		
@@ -3216,7 +3203,7 @@ class elections
 	}
 	
 	
-	# Survey form
+	# Survey form, to present and process the data
 	private function surveyForm (&$html)
 	{
 		# Get all elections, including forthcoming
@@ -3251,6 +3238,7 @@ class elections
 		
 		# Process the form, or end
 		if (!$result = $form->process ($html)) {
+			$html .= $this->recentlyAddedQuestions ($this->settings['mostRecent']);
 			return false;
 		}
 		
@@ -3265,7 +3253,6 @@ class elections
 			'election'	=> $result['election'],
 			'areaId'	=> $result['areaId'],
 		);
-		$result['_constraints'] = $constraints;
 		
 		# Construct the list of entries for the survey
 		$questionsProcessed = array ();
@@ -3273,9 +3260,17 @@ class elections
 			$questionsProcessed[$index] = $constraints;
 			$questionsProcessed[$index]['question'] = $question;
 		}
-		$result['_questionsProcessed'] = $questionsProcessed;
 		
-		# Return the result
+		# Clear any existing surveys data
+		$this->databaseConnection->delete ($this->settings['database'], "{$this->settings['tablePrefix']}surveys", $constraints);
+		
+		# Insert the questions
+		if (!$this->databaseConnection->insertMany ($this->settings['database'], "{$this->settings['tablePrefix']}surveys", $questionsProcessed)) {
+			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/cross.png\" class=\"icon\" /> Sorry, an error occured.</p>";
+			return false;
+		}
+		
+		# Return success
 		return $result;
 	}
 	
