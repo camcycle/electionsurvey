@@ -3925,13 +3925,12 @@ class elections
 	private function createEmail ($candidate, $type)
 	{
 		# Assemble the area name
-		$areaName = $this->areaName ($candidate);
+		$areaName = $this->areaName ($candidate, $convertEntities = false);
 		
 		# Define the submission URL
 		$submissionUrl = "https://{$_SERVER['SERVER_NAME']}{$this->baseUrl}/submit/";
 		
 		# Assemble the text
-		#!# Entities being shown in area name, e.g. "Sawston &amp; Shelford Division candidate,"
 		$text  = "\n";
 		if ($type == 'reminders') {
 			$text .= "\n" . 'Dear candidate - Just a reminder of this below - thanks in advance for your time.' . "\n\n--\n\n";
