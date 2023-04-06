@@ -3936,11 +3936,10 @@ class elections
 			$text .= "\n" . 'Dear candidate - Just a reminder of this below - thanks in advance for your time.' . "\n\n--\n\n";
 		}
 		$text .= "\n" . "Dear {$candidate['nameNaturalCase']},";
-		$text .= "\n" . "We are writing to you as one of the {$areaName} {$this->election['areaType']} candidates in the {$this->election['name']}.";
-		$text .= "\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace (' www', ' https://www', $this->election['organisationIntroductionHtml'])));
+		$text .= "\n\n" . "We are writing to you as one of the {$areaName} {$this->election['areaType']} candidates in the {$this->election['name']}.";
+		$text .= "\n\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace ("\n", "\n\n", str_replace (' www', ' https://www', $this->election['organisationIntroductionHtml']))));
 		$text .= "\n";
 		$text .= "\n" . 'Please access the survey and submit your responses online, here:';
-		$text .= "\n";
 		$text .= "\n" . "{$submissionUrl}";
 		$text .= "\n";
 		$text .= "\n" . "You will need to use this verification ID: {$candidate['verification']} .";
