@@ -3233,6 +3233,7 @@ class elections
 			'default'		=> $areaId,
 			'editable'		=> (!$areaId),
 		));
+		#!# Ordering of outputted $result['questions'] gets broken - when using multiple expandable, ultimateForm loops through the available options, thus providing back that order, rather than validating selected items, retaining their order
 		$form->select (array (
 			'name'			=> 'questions',
 			'title'			=> 'Questions, in order, for this survey',
@@ -3267,8 +3268,6 @@ class elections
 		# Post-process the multiple select output format in ultimateForm
 		#!# This annoyance in ultimateForm really needs to be fixed - 'rawcomponents' is usually wrong, and compiled is in an unhelpful format for processing
 		$result['questions'] = explode (",\n", $result['questions']);
-		
-		#!# Ordering gets broken
 		
 		# Define standard data for each entry in the survey
 		$constraints = array (
