@@ -1717,7 +1717,11 @@ class elections
 		
 		# End if election is over
 		if (!$this->election['active']) {
-			return $html .= "<p>The election is now over, so submissions cannot be made any longer.</p>";
+			if ($this->userIsAdministrator) {
+				$html .= "\n" . '<p class="warning">Note: You can only see the form below as you are logged in as an administrator, despite the election not currently being open.</p>';
+			} else {
+				return $html .= "<p>The election is now over, so submissions cannot be made any longer.</p>";
+			}
 		}
 		
 		# Show the candidate's data
