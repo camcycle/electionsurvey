@@ -903,7 +903,7 @@ class elections
 	
 	
 	# Function to get list of elections, including whether they are active
-	private function getElections ($includeForthcoming = false, $excludeStarted = false)
+	private function getElections ($includeForthcoming = false)
 	{
 		# Get data
 		$query = "SELECT
@@ -919,7 +919,6 @@ class elections
 			FROM {$this->settings['tablePrefix']}elections
 			WHERE 1=1
 			" . ($includeForthcoming ? '' : " AND startDate <= (CAST(NOW() AS DATE))") . "
-			" . ($excludeStarted ? " AND startDate > (CAST(NOW() AS DATE))" : '') . "
 			ORDER BY endDate DESC, isCounty DESC /* County before others if on same day */
 		;";
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}elections");
