@@ -2465,7 +2465,7 @@ class elections
 			'table'		=> $table,
 			'attributes' => array (
 				'id' => array ('current' => $currentIds, ),
-				'colour' => array ('type' => 'color', ),	#!# This should be done natively in ultimateForm
+				'colour' => array ('type' => 'color', 'disallow' => array ('#000000' => 'Pure black colour is not permitted, due to incompatibility with night mode'), ),	#!# This should be done natively in ultimateForm
 			),
 		));
 		if ($result = $form->process ($html)) {
