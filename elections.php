@@ -910,6 +910,7 @@ class elections
 				*,
 				IF(endDate>=(CAST(NOW() AS DATE)),1,0) AS active,
 				IF(endDate=(CAST(NOW() AS DATE)),1,0) AS votingToday,
+				IF(startDate>(CAST(NOW() AS DATE)),1,0) AS isForthcoming,
 				IF(((DATEDIFF(CAST(NOW() AS DATE),endDate) < 28) && endDate<(CAST(NOW() AS DATE))),1,0) AS isRecent,
 				IF(NOW()<CONCAT(resultsDate,' ',resultsVisibleTime),0,1) AS resultsVisible,
 				DATE_FORMAT(endDate,'%W %D %M %Y') AS 'polling date',
@@ -2663,6 +2664,27 @@ class elections
 		# Start the HTML
 		$html = '';
 		
+		# Get all elections, including forthcoming
+		#!# This reloading should be done generically - several places now require this
+		$this->elections = $this->getElections (true);
+		
+		# Filter only to elections that are forthcoming, so that only those are shown in the selection list; this is to prevent answers becoming misconnected to candidates who would have new IDs
+		foreach ($this->elections as $id => $election) {
+			if (!$election['isForthcoming']) {
+				unset ($this->elections[$id]);
+			}
+		}
+		
+		# Select the election
+		$this->election = ((isSet ($_GET['election']) && isSet ($this->elections[$_GET['election']])) ? $this->elections[$_GET['election']] : false);
+		
+		# Ensure there is an election supplied
+		if (!$this->election) {
+			$html .= "\n<p>Please select which election:</p>";
+			$html .= $this->listElections ($this->elections, true, false, __FUNCTION__ . '.html');
+			return $html;
+		}
+		
 		# Define the required fields
 		$requiredFields = array ('forename', 'surname', 'areaId', 'affiliation', 'address', 'email');
 		
@@ -2677,12 +2699,6 @@ class elections
 		$html .= "\n</ul>";
 		$html .= "\n<p>This form will not do any e-mailing.</p>";
 		
-		# Get all elections that are forthcoming, but not including those that have started, to prevent answers becoming misconnected to candidates who would have new IDs
-		if (!$elections = $this->getElections ($includeForthcoming = true, $excludeStarted = true)) {
-			$html .= "<p><em>There are no forthcoming surveys.</em></p>";
-			return $html;
-		}
-		
 		# Create a new form
 		require_once ('ultimateForm.php');
 		$form = new form (array (
@@ -2692,8 +2708,10 @@ class elections
 		$form->select (array (
 			'name'			=> 'election',
 			'title'			=> 'Which election',
-			'values'		=> $this->getElectionNames ($elections),
+			'values'		=> $this->getElectionNames ($this->elections),
 			'required'		=> true,
+			'default'		=> $this->election['id'],
+			'editable'		=> false,
 		));
 		$form->radiobuttons (array (
 			'name'			=> 'action',
