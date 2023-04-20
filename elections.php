@@ -911,7 +911,6 @@ class elections
 				IF(endDate>=(CAST(NOW() AS DATE)),1,0) AS active,
 				IF(endDate=(CAST(NOW() AS DATE)),1,0) AS votingToday,
 				IF(((DATEDIFF(CAST(NOW() AS DATE),endDate) < 28) && endDate<(CAST(NOW() AS DATE))),1,0) AS isRecent,
-				IF((CAST(NOW() AS DATE))<resultsDate,0,1) AS resultsVisible,
 				IF(NOW()<CONCAT(resultsDate,' ',resultsVisibleTime),0,1) AS resultsVisible,
 				DATE_FORMAT(endDate,'%W %D %M %Y') AS 'polling date',
 				CONCAT( LOWER( DATE_FORMAT(CONCAT(resultsDate,' ',resultsVisibleTime),'%l%p, ') ), DATE_FORMAT(CONCAT(resultsDate,' ',resultsVisibleTime),'%W %D %M %Y') ) AS visibilityDateTime,
