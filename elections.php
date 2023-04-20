@@ -908,14 +908,14 @@ class elections
 		# Get data
 		$query = "SELECT
 				*,
-				IF(endDate>=(CAST(NOW() AS DATE)),1,0) AS active,
-				IF(endDate=(CAST(NOW() AS DATE)),1,0) AS votingToday,
-				IF(startDate>(CAST(NOW() AS DATE)),1,0) AS isForthcoming,
-				IF(((DATEDIFF(CAST(NOW() AS DATE),endDate) < 28) && endDate<(CAST(NOW() AS DATE))),1,0) AS isRecent,
-				IF(NOW()<CONCAT(resultsDate,' ',resultsVisibleTime),0,1) AS resultsVisible,
+				IF(endDate >= (CAST(NOW() AS DATE)), 1, 0) AS active,
+				IF(endDate = (CAST(NOW() AS DATE)), 1, 0) AS votingToday,
+				IF(startDate > (CAST(NOW() AS DATE)), 1, 0) AS isForthcoming,
+				IF(((DATEDIFF(CAST(NOW() AS DATE), endDate) < 28) && endDate < (CAST(NOW() AS DATE))), 1, 0) AS isRecent,
+				IF(NOW() < CONCAT(resultsDate,' ',resultsVisibleTime), 0, 1) AS resultsVisible,
 				DATE_FORMAT(endDate,'%W %D %M %Y') AS 'polling date',
 				CONCAT( LOWER( REPLACE( DATE_FORMAT( CONCAT(resultsDate,' ',resultsVisibleTime),'%l.%i%p, ' ), '.00', '') ), DATE_FORMAT(CONCAT(resultsDate,' ',resultsVisibleTime),'%W %D %M %Y') ) AS visibilityDateTime,
-				IF(name LIKE '%county%',1,0) AS isCounty
+				IF(name LIKE '%county%', 1, 0) AS isCounty
 			FROM {$this->settings['tablePrefix']}elections
 			WHERE 1=1
 			" . ($includeForthcoming ? '' : " AND startDate <= (CAST(NOW() AS DATE))") . "
