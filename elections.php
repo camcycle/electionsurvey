@@ -908,17 +908,17 @@ class elections
 		# Get data
 		$query = "SELECT
 				*,
-				IF(endDate >= (CAST(NOW() AS DATE)), 1, 0) AS active,
-				IF(endDate = (CAST(NOW() AS DATE)), 1, 0) AS votingToday,
-				IF(startDate > (CAST(NOW() AS DATE)), 1, 0) AS isForthcoming,
-				IF(((DATEDIFF(CAST(NOW() AS DATE), endDate) < 28) && endDate < (CAST(NOW() AS DATE))), 1, 0) AS isRecent,
+				IF(endDate >= CURDATE(), 1, 0) AS active,
+				IF(endDate = CURDATE(), 1, 0) AS votingToday,
+				IF(startDate > CURDATE(), 1, 0) AS isForthcoming,
+				IF(((DATEDIFF(CURDATE(), endDate) < 28) && endDate < CURDATE()), 1, 0) AS isRecent,
 				IF(NOW() < CONCAT(resultsDate,' ',resultsVisibleTime), 0, 1) AS resultsVisible,
 				DATE_FORMAT(endDate,'%W %D %M %Y') AS 'polling date',
 				CONCAT( LOWER( REPLACE( DATE_FORMAT( CONCAT(resultsDate,' ',resultsVisibleTime),'%l.%i%p, ' ), '.00', '') ), DATE_FORMAT(CONCAT(resultsDate,' ',resultsVisibleTime),'%W %D %M %Y') ) AS visibilityDateTime,
 				IF(name LIKE '%county%', 1, 0) AS isCounty
 			FROM {$this->settings['tablePrefix']}elections
 			WHERE 1=1
-			" . ($includeForthcoming ? '' : " AND startDate <= (CAST(NOW() AS DATE))") . "
+			" . ($includeForthcoming ? '' : " AND startDate <= CURDATE()") . "
 			ORDER BY endDate DESC, isCounty DESC /* County before others if on same day */
 		;";
 		$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}elections");
@@ -1876,7 +1876,7 @@ class elections
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}elections ON {$this->settings['tablePrefix']}candidates.election = {$this->settings['tablePrefix']}elections.id
 			LEFT OUTER JOIN {$this->settings['tablePrefix']}areas ON {$this->settings['tablePrefix']}candidates.areaId = {$this->settings['tablePrefix']}areas.id
 			WHERE
-				{$this->settings['tablePrefix']}elections.endDate >= (CAST(NOW() AS DATE))
+				{$this->settings['tablePrefix']}elections.endDate >= CURDATE()
 			ORDER BY {$this->settings['tablePrefix']}areas.areaName
 		;";
 		if (!$data = $this->databaseConnection->getData ($query, "{$this->settings['database']}.{$this->settings['tablePrefix']}areas")) {
