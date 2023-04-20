@@ -3744,8 +3744,14 @@ class elections
 	# Function to compile a mailout, for either letters or e-mail
 	private function compileMailout ($type /* =letters/mailout/reminders */, &$html, &$emailsPreviewHtml = '')
 	{
-		# Start the general status HTML
+		# Start the HTML
 		$html = '';
+		
+		# Get all elections, including forthcoming
+		#!# This reloading should be done generically - several places now require this
+		$this->elections = $this->getElections (true);
+		$this->election = ((isSet ($_GET['election']) && isSet ($this->elections[$_GET['election']])) ? $this->elections[$_GET['election']] : false);
+		$this->areas = $this->getAreasForElection ($this->election['id']);
 		
 		# Ensure there is an election supplied
 		if (!$this->election) {
