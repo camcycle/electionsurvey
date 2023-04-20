@@ -1559,8 +1559,9 @@ class elections
 						$filename = $_SERVER['DOCUMENT_ROOT'] . str_replace (str_replace ('mirror.', 'www.', $_SERVER['SERVER_NAME']), '', $link) . (substr ($link, -1) == '/' ? 'index.html' : '');
 						if (is_readable ($filename)) {
 							$file = file_get_contents ($filename);
-							$title = application::getTitleFromFileContents ($file, 200);
-							$title = htmlspecialchars ($title);
+							if ($tryTitle = application::getTitleFromFileContents ($file, 200)) {
+								$title = htmlspecialchars ($tryTitle);
+							}
 						}
 					}
 				}
