@@ -209,7 +209,7 @@ class elections
 				'election' => true,
 			),
 			'candidates'	=> array (
-				'description' => 'View candidates list',
+				'description' => 'Manage/list candidates, including check status, get ID, and reissue e-mail',
 				'url' => 'admin/candidates.html',
 				'administrator' => true,
 				'admingroup' => 'during',
