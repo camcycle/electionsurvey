@@ -212,7 +212,7 @@ class elections
 				'description' => 'Manage/list candidates, including check status, get ID, and reissue e-mail',
 				'url' => 'admin/candidates.html',
 				'administrator' => true,
-				'admingroup' => 'during',
+				'admingroup' => array ('during', 'candidates'),
 				'election' => true,
 			),
 			'viewincoming'		=> array (
@@ -2228,7 +2228,7 @@ class elections
 			$html .= "\n\t<p>" . htmlspecialchars ($group['introduction']) . '</p>';
 			$html .= "\n\t<ul>";
 			foreach ($this->actions as $actionId => $action) {
-				if (isSet ($action['admingroup']) && $action['admingroup'] == $groupId) {
+				if (isSet ($action['admingroup']) && (is_string ($action['admingroup']) ? $action['admingroup'] == $groupId : in_array ($groupId, $action['admingroup']))) {
 					if ($this->election && isSet ($action['election']) && !$action['election']) {continue;}	// Skip if explicitly false
 					if (method_exists ($this, $actionId)) {
 						$url = "{$this->baseUrl}/" . ((isSet ($action['election']) && $this->election) ? str_replace ('admin/', "{$this->election['id']}/", $action['url']) : $action['url']);
