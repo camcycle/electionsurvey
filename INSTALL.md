@@ -4,7 +4,7 @@
 
 - Apache (should run on IIS but you will need to provide a URL rewriting solution)
 - MySQL server
-- PHP5 server with PDO-mysql installed
+- PHP server with PDO-mysql installed
 
 
 ## Installation summary
@@ -39,7 +39,7 @@ Some discrete third-parties libraries are supplied as part of the repository.
 
 ## PHP information
 
-The application is written as a self-contained PHP5 class.
+The application is written as a self-contained PHP class.
 
 The system should be error/warning/notice-free at error_reporting 2047.
 
