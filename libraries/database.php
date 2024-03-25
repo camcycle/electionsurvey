@@ -2,7 +2,7 @@
 
 /*
  * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-23
- * Version 4.1.0
+ * Version 4.1.2
  * Uses prepared statements (see https://stackoverflow.com/questions/60174/how-can-i-prevent-sql-injection-in-php ) where possible
  * Distributed under the terms of the GNU Public Licence - https://www.gnu.org/copyleft/gpl.html
  * Requires PHP 4.1+ with register_globals set to 'off'
@@ -137,6 +137,17 @@ class database
 		# Ignore this functionality if no callback
 		if (!$this->errorLoggerCallback) {return;}
 		
+		# Get the error status
+		$error = $this->error ();
+		
+		# If the error is that the server has gone away, do not attempt to log, as otherwise this will probably cause an infinite logging loop
+		if ($this->vendor == 'mysql') {
+			$errorCode = $error[1];
+			if ($errorCode == 2006) {	// $error[2] = "MySQL Server has gone away"
+				return false;		// Do nothing, as attempting to log will be pointless
+			}
+		}
+		
 		# Append forced error text if required
 		if ($forcedErrorText) {
 			$divider = ($this->errorLoggerCustomCodeText ? (substr ($this->errorLoggerCustomCodeText, -1) == '.' ? '' : ';') . ' ' : '');
@@ -147,10 +158,10 @@ class database
 		if (is_array ($this->errorLoggerCallback)) {
 			$class  = $this->errorLoggerCallback[0];
 			$method = $this->errorLoggerCallback[1];
-			$class->$method ($this->errorLoggerEntryFunction, $this->error (), $this->errorLoggerCustomCode, $this->errorLoggerCustomCodeText);
+			$class->$method ($this->errorLoggerEntryFunction, $error, $this->errorLoggerCustomCode, $this->errorLoggerCustomCodeText);
 		} else {
 			$callback = $this->errorLoggerCallback;
-			$callback ($this->errorLoggerEntryFunction, $this->error (), $this->errorLoggerCustomCode, $this->errorLoggerCustomCodeText);
+			$callback ($this->errorLoggerEntryFunction, $error, $this->errorLoggerCustomCode, $this->errorLoggerCustomCodeText);
 		}
 		
 		# Reset any custom error code and text
@@ -1103,6 +1114,7 @@ class database
 		# Rearrange
 		$tables = array ();
 		foreach ($data as $index => $attributes) {
+			#!# On MacOS, $database name may be present as lowercase
 			$tables[] = $attributes["Tables_in_{$database}"];
 		}
 		
@@ -2214,7 +2226,7 @@ if (!$rows) {
 	public function logChange ($result, $insertId = false)
 	{
 		# End if logging disabled
-#		if (!$this->logFile) {return false;}
+		if (!$this->logFile) {return false;}
 		
 		# Get the query
 		$query = $this->getQuery ();
@@ -2243,8 +2255,6 @@ if (!$rows) {
 		
 		# Add newline
 		$logEntry .= "\n";
-
-file_put_contents ('/websites/mysql-replay.sql', $logEntry, FILE_APPEND);
 		
 		# Log the change
 		file_put_contents ($this->logFile, $logEntry, FILE_APPEND);

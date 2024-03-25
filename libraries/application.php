@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-22
- * Version 1.8.2
+ * Coding copyright Martin Lucas-Smith, University of Cambridge, 2003-23
+ * Version 1.8.6
  * Distributed under the terms of the GNU Public Licence - https://www.gnu.org/licenses/gpl-3.0.html
  * Requires PHP 5.3+ with register_globals set to 'off'
  * Download latest from: https://download.geog.cam.ac.uk/projects/application/
@@ -114,6 +114,7 @@ class application
 				$redirectMessage = "\n" . '<p><a href="%s">Click here to continue to the next page.</a></p>';
 			}
 			#!# If using 'refresh' this will be invalid
+			#!# Invalid if contains e.g. %C - this needs to rethought
 			$redirectMessage = sprintf ($redirectMessage, $url);
 		}
 		
@@ -592,16 +593,12 @@ class application
 	public static function natsortField ($array, $fieldname)
 	{
 		# Create a function which creates an array of the two values, then compares the original array with a natsorted copy
-		$functionCode = '
-			$original = array ($a[\'' . $fieldname . '\'], $b[\'' . $fieldname . '\']);
+		uasort ($array, function ($a, $b) use ($fieldname) {
+			$original = array ($a[$fieldname], $b[$fieldname]);
 			$copy = $original;
 			natsort ($copy);
 			return ($copy === $original ? -1 : 1);
-		';
-		
-		# Do the comparison
-		$natsortFieldFunction = create_function ('$a,$b', $functionCode);
-		uasort ($array, $natsortFieldFunction);
+		});
 		
 		# Return the sorted list
 		return $array;
@@ -696,6 +693,24 @@ class application
 	}
 	
 	
+	# Function to obtain the unique entries from a field in a multi-dimensional array
+	public static function array_field_entries ($dataset, $field)
+	{
+		# Extract the values
+		$entries = array ();
+		foreach ($dataset as $record) {
+			$entries[] = $record[$field];
+		}
+		
+		# Unique and sort the values
+		$entries = array_unique ($entries);
+		sort ($entries);
+		
+		# Return the list
+		return $entries;
+	}
+	
+	
 	# Function to filter an array by a list of keys
 	public static function array_filter_keys ($array, $keys)
 	{
@@ -721,8 +736,9 @@ class application
 	# Function to return the duplicate values in an array
 	public static function array_duplicate_values ($array)
 	{
-		$checkKeysUniqueComparison = create_function ('$value', 'if ($value > 1) return true;');
-		$result = array_keys (array_filter (array_count_values ($array), $checkKeysUniqueComparison));
+		$result = array_keys (array_filter (array_count_values ($array), function ($value) {
+			if ($value > 1) {return true;}
+		}));
 		return $result;
 	}
 	
@@ -1170,7 +1186,7 @@ class application
 	
 	
 	# Wrapper for mail to make it UTF8 Unicode - see http://www.php.net/mail#92976 ; note that the From/To/Subject headers are only encoded to UTF-8 when they include non-ASCII characters (so that filtering is more likely to work)
-	public static function utf8Mail ($to, $subject, $message, $extraHeaders = false, $additionalParameters = NULL, $includeMimeContentTypeHeaders = true /* Set to true, the type, or false */, $attachments = array () /* array of filenames */, $forcePlainTextOnly = false)
+	public static function utf8Mail ($to, $subject, $message, $extraHeaders = false, $additionalParameters = '', $includeMimeContentTypeHeaders = true /* Set to true, the type, or false */, $attachments = array () /* array of filenames */, $forcePlainTextOnly = false)
 	{
 		# Add attachments if required, rewriting the message
 		if ($attachments) {
@@ -2726,7 +2742,7 @@ class application
 	{
 		# Start the GeoJSON
 		$geojson = array (
-			'type'		=> 'GeometryCollection',
+			'type'		=> 'FeatureCollection',
 			'features'	=> array (),
 		);
 		
@@ -3530,14 +3546,14 @@ class application
 	{
 		# Special cases
 		$specialCases = array (
-			"\u{00e4}"	 => 'ae',    // umlaut ä => ae
-			"\u{00f6}"	 => 'oe',    // umlaut ö => oe
-			"\u{00fc}"	 => 'ue',    // umlaut ü => ue
-			"\u{00c4}"	 => 'AE',    // umlaut Ä => AE
-			"\u{00d6}"	 => 'OE',    // umlaut Ö => OE
-			"\u{00dc}"	 => 'UE',    // umlaut Ü => UE
-			"\u{00f1}"	 => 'ny',    // ñ => ny
-			"\u{00ff}"	 => 'yu',    // ÿ => yu
+			"\u{00e4}"	 => 'ae',    // umlaut Ã¤ => ae
+			"\u{00f6}"	 => 'oe',    // umlaut Ã¶ => oe
+			"\u{00fc}"	 => 'ue',    // umlaut Ã¼ => ue
+			"\u{00c4}"	 => 'AE',    // umlaut Ã„ => AE
+			"\u{00d6}"	 => 'OE',    // umlaut Ã– => OE
+			"\u{00dc}"	 => 'UE',    // umlaut Ãœ => UE
+			"\u{00f1}"	 => 'ny',    // Ã± => ny
+			"\u{00ff}"	 => 'yu',    // Ã¿ => yu
 		);
 		$string = str_replace (array_keys ($specialCases), array_values ($specialCases), $string);
 		
@@ -3600,7 +3616,7 @@ class application
 	
 	
 	# Function to convert an HTML extract to a PDF; uses http://wkhtmltopdf.org/
-	public static function html2pdf ($html, $filename /* Either a filename used for temp download, or a trusted full path where the file will be saved; NB filename will be picked up by the browser if doing a save from an embedded PDF viewer */)
+	public static function html2pdf ($html, $filename /* Either a filename used for temp download, or a trusted full path where the file will be saved; NB filename will be picked up by the browser if doing a save from an embedded PDF viewer */, $pageMargin = true)
 	{
 		# Create the HTML as a tempfile
 		$inputFile = tempnam (sys_get_temp_dir (), 'tmp') . '.html';	// wkhtmltopdf requires a .html extension for the input file
@@ -3617,8 +3633,11 @@ class application
 			$outputFile = tempnam (sys_get_temp_dir (), 'tmp');		// Define a tempfile location for the created PDF
 		}
 		
+		# Determine page margin options; see: https://stackoverflow.com/questions/6057781/wkhtmltopdf-with-full-page-background
+		$pageMarginOptions = (!$pageMargin ? '--margin-top 0 --margin-bottom 0 --margin-left 0 --margin-right 0' : '');
+		
 		# Convert to PDF; see options at https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
-		$command = "wkhtmltopdf --enable-local-file-access --encoding 'utf-8' --print-media-type {$inputFile} {$outputFile}";
+		$command = "wkhtmltopdf --enable-local-file-access --encoding 'utf-8' {$pageMarginOptions} --print-media-type {$inputFile} {$outputFile}";
 		exec ($command, $output, $returnValue);
 		$result = (!$returnValue);
 		

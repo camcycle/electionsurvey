@@ -111,7 +111,7 @@ class form
 	var $displayTypes = array ('tables', 'css', 'paragraphs', 'templatefile');
 	
 	# Constants
-	var $version = '1.28.5';
+	var $version = '1.28.8';
 	var $timestamp;
 	var $minimumPhpVersion = 5;	// md5_file requires 4.2+; file_get_contents and is 4.3+; function process (&$html = NULL) requires 5.0
 	var $escapeCharacter = "'";		// Character used for escaping of output	#!# Currently ignored in derived code
@@ -192,6 +192,7 @@ class form
 		'richtextEditorToolbarSet'			=> 'pureContent',					# Global default setting for richtext editor toolbar set
 		'richtextEditorAreaCSS'				=> '',								# Global default setting for richtext editor CSS
 		'richtextEditorConfig.docType'		=> '<!DOCTYPE html>',				# Global default setting for richtext editor config.docType
+		'richtextEditorConfig.bodyClass'	=> false,							# Global default setting for richtext editor config.bodyClass
 		'richtextWidth'						=> '100%',							# Global default setting for richtext width; assumed to be px unless % specified
 		'richtextHeight'					=> 400,								# Global default setting for richtext height; assumed to be px unless % specified
 		'richtextEditorFileBrowser'			=> '/_ckfinder/',					# Global default setting for richtext file browser path (must have trailing slash), or false to disable
@@ -1571,14 +1572,14 @@ class form
 			'editorFileBrowserACL'				=> false,
 			'templates'							=> $this->settings['richtextTemplates'],
 			'snippets'							=> $this->settings['richtextSnippets'],
-			'width'								=> $this->settings['richtextWidth'],			// Same as config.width
-			'height'							=> $this->settings['richtextHeight'],			// Same as config.height
-			'config.width'						=> false,										// Takes precedence if 'width' also specified
-			'config.height'						=> false,										// Takes precedence if 'height' also specified
-			'config.contentsCss'				=> $this->settings['richtextEditorAreaCSS'],	// Or array of stylesheets
-			'config.skin'						=> 'moonocolor',								// NB Requires download from http://ckeditor.com/addon/moonocolor
-			'config.bodyId'						=> false,										// Apply value of <body id="..."> to editing window
-			'config.bodyClass'					=> false,										// Apply value of <body class="..."> to editing window
+			'width'								=> $this->settings['richtextWidth'],					// Same as config.width
+			'height'							=> $this->settings['richtextHeight'],					// Same as config.height
+			'config.width'						=> false,												// Takes precedence if 'width' also specified
+			'config.height'						=> false,												// Takes precedence if 'height' also specified
+			'config.contentsCss'				=> $this->settings['richtextEditorAreaCSS'],			// Or array of stylesheets
+			'config.skin'						=> 'moonocolor',										// NB Requires download from http://ckeditor.com/addon/moonocolor
+			'config.bodyId'						=> false,												// Apply value of <body id="..."> to editing window
+			'config.bodyClass'					=> $this->settings['richtextEditorConfig.bodyClass'],	// Apply value of <body class="..."> to editing window
 			'config.format_tags'				=> 'p;h1;h2;h3;h4;h5;h6;pre',
 			'config.stylesSet'					=> "[
 				{name: 'No paragraph style', element: 'p', attributes: {'class': ''}},
@@ -1804,11 +1805,15 @@ class form
 			//$extraPlugins[] = 'devtools';
 			
 			# HTML5 video; see: https://ckeditor.com/cke4/addon/html5video
-			$extraPlugins[] = 'html5video,widget,widgetselection,clipboard,lineutils';
+			if (substr_count ($arguments['config.toolbar'], 'Html5video')) {
+				$extraPlugins[] = 'html5video,widget,widgetselection,clipboard,lineutils';
+			}
 			
 			# YouTube; see: https://ckeditor.com/cke4/addon/youtube
-			$extraPlugins[] = 'youtube';
-			// videodetector: Basically doesn't work well, adding a rogue button in
+			if (substr_count ($arguments['config.toolbar'], 'Youtube')) {
+				$extraPlugins[] = 'youtube';
+				// videodetector: Basically doesn't work well, adding a rogue button in
+			}
 			
 			# Auto-embed - resolve URLs like YouTube videos and Twitter postings to HTML
 			$extraPlugins[] = 'embed,autoembed';
@@ -2924,7 +2929,8 @@ class form
 			'description'			=> '',			# Description text
 			'append'				=> '',			# HTML appended to the widget
 			'prepend'				=> '',			# HTML prepended to the widget
-			'output'				=> array (),		# Presentation format
+			'wrapOption'			=> '',			# Tag to wrap each option in, e.g. 'span'
+			'output'				=> array (),	# Presentation format
 			'required'				=> false,		# Whether required or not
 			'autofocus'				=> false,		# HTML5 autofocus (true/false)
 			'default'				=> array (),	# Pre-selected item
@@ -3053,8 +3059,11 @@ class form
 				$titleHtml = ($title ? ' title="' . htmlspecialchars ($title) . '"' : '');
 				
 				#!# Dagger hacked in - fix properly for other such characters; consider a flag somewhere to allow entities and HTML tags to be incorporated into the text (but then cleaned afterwards when printed/e-mailed)
-				$subelementsWidgetHtml[$value]  = '<input type="radio"' . $this->nameIdHtml ($arguments['name'], false, $value) . ' value="' . htmlspecialchars ($value) . '"' . ($value == $elementValue ? ' checked="checked"' : '') . (($arguments['autofocus'] && $firstItem) ? ' autofocus="autofocus"' : '') . (in_array ($value, $arguments['disabled'], true) ? ' disabled="disabled"' : '') . $titleHtml . $widget->tabindexHtml ($subwidgetIndex - 1) . ' />';
+				$subelementsWidgetHtml[$value]  = '';
+				$subelementsWidgetHtml[$value] .= ($arguments['wrapOption'] ? "<{$arguments['wrapOption']}>" : '');
+				$subelementsWidgetHtml[$value] .= '<input type="radio"' . $this->nameIdHtml ($arguments['name'], false, $value) . ' value="' . htmlspecialchars ($value) . '"' . ($value == $elementValue ? ' checked="checked"' : '') . (($arguments['autofocus'] && $firstItem) ? ' autofocus="autofocus"' : '') . (in_array ($value, $arguments['disabled'], true) ? ' disabled="disabled"' : '') . $titleHtml . $widget->tabindexHtml ($subwidgetIndex - 1) . ' />';
 				$subelementsWidgetHtml[$value] .= '<label for="' . $elementId . '"' . $titleHtml . '>' . ($arguments['entities'] ? htmlspecialchars ($visible) : $visible) . '</label>';
+				$subelementsWidgetHtml[$value] .= ($arguments['wrapOption'] ? "</{$arguments['wrapOption']}>" : '');
 				$widgetHtml .= "\n\t\t\t" . $subelementsWidgetHtml[$value];
 				$firstItem = false;
 				
@@ -4837,6 +4846,7 @@ class form
 		}
 		
 		# For an array of defaults, check through each
+		$missingValues = array ();
 		foreach ($arguments['default'] as $defaultValue) {
 			if (!in_array ($defaultValue, array_keys ($arguments['values']))) {
 				$missingValues[] = $defaultValue;
@@ -4844,7 +4854,7 @@ class form
 		}
 		
 		# Construct the warning message
-		if (isSet ($missingValues)) {
+		if ($missingValues) {
 			
 			# Construct the message
 			$totalMissingValues = count ($missingValues);
@@ -8657,10 +8667,12 @@ Work-in-progress implementation for callback; need to complete: (i) form setup c
 				}
 				
 				# Website fields - for fieldnames containing 'url/website/http'
-				if (preg_match ('/(website|http)/i', $fieldName) || preg_match ('/.+Url$/', $fieldName) || $fieldName == 'url') {
-					$forceType = 'url';
-					$standardAttributes['regexp'] = '^(http|https)://';
-					$standardAttributes['description'] = 'Must begin https://';	// ' or http://' not added to this description just to keep it simple
+				if ($forceType != 'email') {	// E.g. 'websiteEmail' results in email, not url
+					if (preg_match ('/(website|http)/i', $fieldName) || preg_match ('/.+Url$/', $fieldName) || $fieldName == 'url') {
+						$forceType = 'url';
+						$standardAttributes['regexp'] = '^(http|https)://';
+						$standardAttributes['description'] = 'Must begin https://';	// ' or http://' not added to this description just to keep it simple
+					}
 				}
 				
 				# Upload fields - fieldname containing photograph/upload or starting/ending with file/document
