@@ -5,6 +5,25 @@
 # Class to create an elections lobbying system
 class elections
 {
+	# Class properties
+	private $defaults;
+	private $baseUrl;
+	private $errors;
+	private $settings;
+	private $databaseConnection;
+	private $actions;
+	private $action;
+	private $internalAuthClass;
+	private $user;
+	private $userIsAdministrator;
+	private $elections;
+	private $election;
+	private $area;
+	private $areas;
+	private $candidate;
+	private $candidates;
+	
+	
 	# Defaults; NULL indicates a required argument
 	public function defaults ()
 	{
