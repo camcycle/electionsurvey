@@ -3981,7 +3981,7 @@ class elections
 		}
 		$text .= "\n" . "Dear {$candidate['nameNaturalCase']},";
 		$text .= "\n\n" . "We are writing to you as one of the {$areaName} {$this->election['areaType']} candidates in the {$this->election['name']}.";
-		$text .= "\n\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace ("\n", "\n\n", str_replace (' www', ' https://www', $this->election['organisationIntroductionHtml']))));
+		$text .= "\n\n" . preg_replace ("|\n\s+|", "\n\n", strip_tags (str_replace ("\n", "\n\n", str_replace (' www', ' https://www', str_replace ('&#64;', '@', $this->election['organisationIntroductionHtml'])))));
 		$text .= "\n";
 		$text .= "\n" . 'Please access the survey and submit your responses online, here:';
 		$text .= "\n" . "{$submissionUrl}";
