@@ -2692,6 +2692,13 @@ class elections
 			}
 		}
 		
+		# End if no elections forthcoming
+		if (!$this->elections) {
+			$html .= "\n<p>There are no elections forthcoming.</p>";
+			$html .= "\n<p>If you have recently set up an election, make sure that the start date is tomorrow or later, as mass-importing data for an election that has already started is not supported.</p>";
+			return $html;
+		}
+		
 		# Select the election
 		$this->election = ((isSet ($_GET['election']) && isSet ($this->elections[$_GET['election']])) ? $this->elections[$_GET['election']] : false);
 		
