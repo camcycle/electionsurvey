@@ -3728,7 +3728,7 @@ class elections
 	}
 	
 	
-	# Function to send the e-mails and report the outcome
+	# Function to send the e-mails and report the outcome; this currently sends plain text only, but e-mail clients will hyperlink addresses/e-mails in the text
 	private function sendEmails ($emails)
 	{
 		# Prevent timeouts as the script may run for a long time if there are a lot of candidates
