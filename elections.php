@@ -2418,7 +2418,7 @@ class elections
 			
 			# Confirm success
 			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The area has been added.</p>";
-			$html .= "\n<p>Add another?</p>";
+			$html .= "\n<p><a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . '.html">Add another?</a></p>';
 		}
 		
 		# Show existing areas
@@ -2501,7 +2501,7 @@ class elections
 			
 			# Confirm success
 			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The affiliation has been added.</p>";
-			$html .= "\n<p><a href=\"{$this->baseUrl}/admin/addaffiliations.html\">Add another?</a></p>";
+			$html .= "\n<p><a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . '.html">Add another?</a></p>';
 		}
 		
 		# Show existing parties/groups
@@ -2617,7 +2617,7 @@ class elections
 			
 			# Confirm success
 			$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The candidate has been added.</p>";
-			$html .= "\n<p>Add another?</p>";
+			$html .= "\n<p><a href=\"{$this->baseUrl}/{$this->election['id']}/" . __FUNCTION__ . '.html">Add another?</a></p>';
 		}
 		
 		# Return the HTML
@@ -3016,7 +3016,7 @@ class elections
 		
 		# Confirm success
 		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The question has been added, as ID <strong>#{$questionId}</strong>, as shown below. It is now available to use when constructing surveys.</p>";
-		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">+ add another</a>?</p>";
+		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . '.html">+ add another</a>?</p>';
 		$html .= $this->recentlyAddedQuestions ($this->settings['mostRecent']);
 		
 		# Return the HTML
@@ -3234,7 +3234,7 @@ class elections
 		
 		# Confirm success
 		$html  = "\n<p><img src=\"{$this->baseUrl}/images/icons/tick.png\" class=\"icon\" /> The <a href=\"{$this->baseUrl}/{$result['electionId']}/{$result['areaId']}/\">survey</a> has been added.</p>";
-		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . ".html\">add another</a>?</p>";
+		$html .= "\n<p>Do you wish to <a href=\"{$this->baseUrl}/admin/" . __FUNCTION__ . '.html">add another</a>?</p>';
 		
 		# Return the HTML
 		return $html;
