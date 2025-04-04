@@ -2970,11 +2970,12 @@ class elections
 			'table'			=> "{$this->settings['tablePrefix']}candidates",
 			'includeOnly'	=> array_keys ($data),
 			'data'			=> $data,
-			'intelligence'	=> true,
+			//'intelligence'	=> true,	// Intelligence can't be used as it forces e-mail type, handled below
 			'attributes'	=> array (
 				'data'			=> $data,
 				'id'			=> array ('type' => 'select', 'title' => 'Candidate', 'values' => $candidatesByArea, 'editable' => false, ),
 				'affiliation'	=> array ('type' => 'select', 'values' => $this->getAffiliationNames ()),
+				'email'			=> array ('type' => ($data['email'] == '-' ? 'text' : 'email'), ),	// Tolerate - in e-mail field
 			),
 		));
 		if ($result = $form->process ($html)) {
