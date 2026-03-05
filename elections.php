@@ -306,12 +306,6 @@ class elections
 	# Constructor
 	public function __construct ($settings = array ())
 	{
-		# Load external libraries
-		ini_set ('include_path', ini_get ('include_path') . PATH_SEPARATOR . './libraries/');
-		require_once ('application.php');
-		require_once ('database.php');
-		require_once ('pureContent.php');
-		
 		# Load defaults
 		$this->defaults = $this->defaults ();
 		
@@ -1676,9 +1670,6 @@ class elections
 		# Determine whether a (validly-structured) second-stage submission has been made
 		$secondStagePosted = (isSet ($_POST['questions']) && is_array ($_POST['questions']) && isSet ($_POST['questions']['verification']) && is_array ($_POST['questions']['verification']) && isSet ($_POST['questions']['verification']['number']) && isSet ($_POST['questions']['verification']['area']));
 		
-		# Load the form
-		require_once ('ultimateForm.php');
-		
 		# Run verification first
 		if (!$secondStagePosted) {
 			
@@ -2349,7 +2340,6 @@ class elections
 	private function electionForm ($data, $currentIds, &$html)
 	{
 		# Create a new form
-		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'databaseConnection' => $this->databaseConnection,
 			'displayRestrictions' => false,
@@ -2396,7 +2386,6 @@ class elections
 		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], "{$this->settings['tablePrefix']}areas", array (), array ('id'), true, $orderBy = 'id');
 		
 		# Create a new form
-		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'databaseConnection' => $this->databaseConnection,
 			'displayRestrictions' => false,
@@ -2474,7 +2463,6 @@ class elections
 		$currentIds = $this->databaseConnection->selectPairs ($this->settings['database'], $table, array (), array ('id'), true, $orderBy = 'id');
 		
 		# Create a new form
-		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'databaseConnection' => $this->databaseConnection,
 			'displayRestrictions' => false,
@@ -2583,7 +2571,6 @@ class elections
 		}
 		
 		# Create a new form
-		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'div' => 'ultimateform ' . __FUNCTION__,
 			'databaseConnection' => $this->databaseConnection,
@@ -2721,7 +2708,6 @@ class elections
 		$html .= "\n<p>This form will not do any e-mailing.</p>";
 		
 		# Create a new form
-		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'databaseConnection' => $this->databaseConnection,
 			'picker' => true,
@@ -2832,7 +2818,6 @@ class elections
 	private function getTsvData ($tsv, $requiredFields, &$errorMessage = '')
 	{
 		# Parse the TSV string
-		require_once ('csv.php');
 		if (!$data = csv::tsvToArray (trim ($tsv), $firstColumnIsId = false, $firstColumnIsIdIncludeInData = true, $errorMessage)) {
 			return array ();
 		}
@@ -2926,7 +2911,6 @@ class elections
 		
 		# If no ID, start with the candidate selection drop-down
 		if (!$id) {
-			require_once ('ultimateForm.php');
 			$form = new form (array (
 				'databaseConnection' => $this->databaseConnection,
 				'submitButtonText' => 'Edit candidate details &gt;',
@@ -2949,7 +2933,6 @@ class elections
 		}
 		
 		# Show the candidate details editing form, now that a valid ID is known
-		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'databaseConnection' => $this->databaseConnection,
 			'submitButtonText' => 'Update candidate details',
@@ -3043,7 +3026,6 @@ class elections
 		$linksExplanation .= "\n" . '</ul>';
 		
 		# Create a new form
-		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'databaseConnection' => $this->databaseConnection,
 			'display' => 'paragraphs',
@@ -3092,7 +3074,6 @@ class elections
 		if (!$id) {
 			
 			# Create the form
-			require_once ('ultimateForm.php');
 			$form = new form (array (
 				'databaseConnection' => $this->databaseConnection,
 				'formCompleteText' => false,
@@ -3170,7 +3151,7 @@ class elections
 			return $html;
 		}
 		
-		require_once ('ultimateForm.php');
+		# Start the form
 		$form = new form (array (
 			'databaseConnection' => $this->databaseConnection,
 			'formCompleteText' => false,
@@ -3253,7 +3234,6 @@ class elections
 		$elections = $this->getElections (true);
 		
 		# Create a new form
-		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'databaseConnection' => $this->databaseConnection,
 		));
@@ -3380,7 +3360,6 @@ class elections
 		
 		# If no area, start with the survey selection drop-down
 		if (!$areaId) {
-			require_once ('ultimateForm.php');
 			$form = new form (array (
 				'databaseConnection' => $this->databaseConnection,
 				'submitButtonText' => 'Edit survey &gt;',
@@ -3485,7 +3464,6 @@ class elections
 		$elections = $this->getElections (true);
 		
 		# Create the form
-		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'formCompleteText' => false,
 		));
@@ -3630,7 +3608,6 @@ class elections
 		}
 		
 		# Create a form
-		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'displayRestrictions'	=> false,
 			'nullText' => false,
@@ -3756,7 +3733,6 @@ class elections
 		$html = '';
 		
 		# Create the form
-		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'formCompleteText' => false,
 			'nullText' => false,
@@ -4056,7 +4032,6 @@ class elections
 		}
 		
 		# Create a form
-		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'displayRestrictions'	=> false,
 			'nullText' => false,
@@ -4133,7 +4108,6 @@ class elections
 		);
 		
 		# Load the user account system
-		require_once ('userAccount.php');
 		$this->internalAuthClass = new userAccount ($internalAuthSettings, $this->databaseConnection);
 	}
 	
@@ -4236,7 +4210,6 @@ class elections
 		);
 		
 		# Databind a form
-		require_once ('ultimateForm.php');
 		$form = new form (array (
 			'databaseConnection'	=> $this->databaseConnection,
 			'div' => 'ultimateform settings horizontalonly',

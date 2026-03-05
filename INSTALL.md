@@ -5,11 +5,13 @@
 - Apache (should run on IIS but you will need to provide a URL rewriting solution)
 - MySQL server
 - PHP server with PDO-mysql installed
+- Composer
 
 
 ## Installation summary
 
 1. Clone this repo to a folder called elections, e.g. `git clone https://github.com/camcycle/electionsurvey/ elections`
+1. Run `composer install` to install the dependencies.
 1. Create the .htaccess file, and change the RewriteBase if your installation is not in a folder called /elections/.
 1. Create a database in MySQL and a user with SELECT,INSERT,UPDATE,DELETE rights, which will be the runtime user.
 1. Create the config file, as noted below, containing the system settings.
@@ -31,11 +33,6 @@ The settings noted in the class at $defaults are available, with NULL representi
 
 Use the .htaccess file supplied.
 	
-
-## Libraries
-
-Some discrete third-parties libraries are supplied as part of the repository.
-
 
 ## PHP information
 

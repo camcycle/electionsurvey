@@ -41,6 +41,6 @@ Pull requests welcome.
 
 ## Authors
 
-Martin Lucas-Smith, Camcycle and CycleStreets, 2007-21.
+Martin Lucas-Smith, Camcycle and CycleStreets, 2007-26.
 
 

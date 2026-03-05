@@ -4,8 +4,511 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dacd0ec054d9ce7e9c67895bfd9feeb1",
-    "packages": [],
+    "content-hash": "8e57709ac7dd1cffb769a962b1192f27",
+    "packages": [
+        {
+            "name": "libpurecontent/application",
+            "version": "v1.9.9",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/libpurecontent/application.git",
+                "reference": "5ce25a1e86453e32b138e955ac7029423b78502e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/libpurecontent/application/zipball/5ce25a1e86453e32b138e955ac7029423b78502e",
+                "reference": "5ce25a1e86453e32b138e955ac7029423b78502e",
+                "shasum": ""
+            },
+            "require": {
+                "libpurecontent/database": "^4.2",
+                "pear/mail": "^2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "application": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "mvl22"
+                }
+            ],
+            "description": "PHP library application within the pureContent library suite",
+            "support": {
+                "issues": "https://github.com/libpurecontent/application/issues",
+                "source": "https://github.com/libpurecontent/application/tree/v1.9.9"
+            },
+            "time": "2026-02-24T12:08:05+00:00"
+        },
+        {
+            "name": "libpurecontent/csv",
+            "version": "v1.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/libpurecontent/csv.git",
+                "reference": "69bf5fc837f9efbe9d3a5925b3d435e63ea0126c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/libpurecontent/csv/zipball/69bf5fc837f9efbe9d3a5925b3d435e63ea0126c",
+                "reference": "69bf5fc837f9efbe9d3a5925b3d435e63ea0126c",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "csv": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "mvl22"
+                }
+            ],
+            "description": "PHP library csv within the pureContent library suite",
+            "support": {
+                "issues": "https://github.com/libpurecontent/csv/issues",
+                "source": "https://github.com/libpurecontent/csv/tree/v1.5.0"
+            },
+            "time": "2024-01-15T17:05:49+00:00"
+        },
+        {
+            "name": "libpurecontent/database",
+            "version": "v4.2.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/libpurecontent/database.git",
+                "reference": "363f5964f30903b90212a1931ac4c1f2c49c551f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/libpurecontent/database/zipball/363f5964f30903b90212a1931ac4c1f2c49c551f",
+                "reference": "363f5964f30903b90212a1931ac4c1f2c49c551f",
+                "shasum": ""
+            },
+            "require": {
+                "libpurecontent/application": "^1.9",
+                "libpurecontent/csv": "^1.5",
+                "libpurecontent/pagination": "^1.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "database": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "mvl22"
+                }
+            ],
+            "description": "PHP library database within the pureContent library suite",
+            "support": {
+                "issues": "https://github.com/libpurecontent/database/issues",
+                "source": "https://github.com/libpurecontent/database/tree/v4.2.3"
+            },
+            "time": "2025-01-14T15:16:17+00:00"
+        },
+        {
+            "name": "libpurecontent/pagination",
+            "version": "v1.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/libpurecontent/pagination.git",
+                "reference": "8fd430cfa0af4bf20361420b2169e9ad99097ba3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/libpurecontent/pagination/zipball/8fd430cfa0af4bf20361420b2169e9ad99097ba3",
+                "reference": "8fd430cfa0af4bf20361420b2169e9ad99097ba3",
+                "shasum": ""
+            },
+            "require": {
+                "libpurecontent/application": "^1.9",
+                "libpurecontent/ultimateform": "^1.29"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "pagination": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "mvl22"
+                }
+            ],
+            "description": "PHP library pagination within the pureContent library suite",
+            "support": {
+                "issues": "https://github.com/libpurecontent/pagination/issues",
+                "source": "https://github.com/libpurecontent/pagination/tree/v1.1.2"
+            },
+            "time": "2024-01-26T18:39:17+00:00"
+        },
+        {
+            "name": "libpurecontent/timedate",
+            "version": "v1.4.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/libpurecontent/timedate.git",
+                "reference": "a7da0b3ad68a5b8ce7556b3051cfcb7628b87535"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/libpurecontent/timedate/zipball/a7da0b3ad68a5b8ce7556b3051cfcb7628b87535",
+                "reference": "a7da0b3ad68a5b8ce7556b3051cfcb7628b87535",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "timedate": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "mvl22"
+                }
+            ],
+            "description": "PHP library timedate within the pureContent library suite",
+            "support": {
+                "issues": "https://github.com/libpurecontent/timedate/issues",
+                "source": "https://github.com/libpurecontent/timedate/tree/v1.4.1"
+            },
+            "time": "2025-01-21T16:31:43+00:00"
+        },
+        {
+            "name": "libpurecontent/ultimateform",
+            "version": "v1.31.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/libpurecontent/ultimateform.git",
+                "reference": "44598db3226ce9f381742aacb803a4d278b3e9bf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/libpurecontent/ultimateform/zipball/44598db3226ce9f381742aacb803a4d278b3e9bf",
+                "reference": "44598db3226ce9f381742aacb803a4d278b3e9bf",
+                "shasum": ""
+            },
+            "require": {
+                "libpurecontent/application": "^1.9.7",
+                "libpurecontent/database": "^4.2",
+                "libpurecontent/timedate": "^1.3"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/ultimateForm.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "mvl22"
+                }
+            ],
+            "description": "PHP library ultimateForm within the pureContent library suite",
+            "support": {
+                "issues": "https://github.com/libpurecontent/ultimateform/issues",
+                "source": "https://github.com/libpurecontent/ultimateform/tree/v1.31.7"
+            },
+            "time": "2026-02-24T16:52:24+00:00"
+        },
+        {
+            "name": "libpurecontent/useraccount",
+            "version": "v1.9.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/libpurecontent/useraccount.git",
+                "reference": "cff8a656bb00ee5feab339903ec820752dfa56f8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/libpurecontent/useraccount/zipball/cff8a656bb00ee5feab339903ec820752dfa56f8",
+                "reference": "cff8a656bb00ee5feab339903ec820752dfa56f8",
+                "shasum": ""
+            },
+            "require": {
+                "libpurecontent/application": "^1.9",
+                "libpurecontent/database": "^4.2",
+                "libpurecontent/ultimateform": "^1.29"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "userAccount": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "mvl22"
+                }
+            ],
+            "description": "PHP library userAccount within the pureContent library suite",
+            "support": {
+                "issues": "https://github.com/libpurecontent/useraccount/issues",
+                "source": "https://github.com/libpurecontent/useraccount/tree/v1.9.1"
+            },
+            "time": "2025-01-14T18:31:53+00:00"
+        },
+        {
+            "name": "pear/console_getopt",
+            "version": "v1.4.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pear/Console_Getopt.git",
+                "reference": "a41f8d3e668987609178c7c4a9fe48fecac53fa0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pear/Console_Getopt/zipball/a41f8d3e668987609178c7c4a9fe48fecac53fa0",
+                "reference": "a41f8d3e668987609178c7c4a9fe48fecac53fa0",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Console": "./"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "include-path": [
+                "./"
+            ],
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Andrei Zmievski",
+                    "email": "andrei@php.net",
+                    "role": "Lead"
+                },
+                {
+                    "name": "Stig Bakken",
+                    "email": "stig@php.net",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Greg Beaver",
+                    "email": "cellog@php.net",
+                    "role": "Helper"
+                }
+            ],
+            "description": "More info available on: http://pear.php.net/package/Console_Getopt",
+            "support": {
+                "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=Console_Getopt",
+                "source": "https://github.com/pear/Console_Getopt"
+            },
+            "abandoned": true,
+            "time": "2019-11-20T18:27:48+00:00"
+        },
+        {
+            "name": "pear/mail",
+            "version": "v2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pear/Mail.git",
+                "reference": "eb053f8b74f4f3178105fcf001626e63068c0dbc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pear/Mail/zipball/eb053f8b74f4f3178105fcf001626e63068c0dbc",
+                "reference": "eb053f8b74f4f3178105fcf001626e63068c0dbc",
+                "shasum": ""
+            },
+            "require": {
+                "pear/pear-core-minimal": "~1.9",
+                "php": ">=5.2.1"
+            },
+            "require-dev": {
+                "pear/pear": "*"
+            },
+            "suggest": {
+                "pear/net_smtp": "Install optionally via your project's composer.json"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Mail": "./"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "include-path": [
+                "./"
+            ],
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Chuck Hagenbuch",
+                    "email": "chuck@horde.org",
+                    "role": "Lead"
+                },
+                {
+                    "name": "Armin Graefe",
+                    "email": "schengawegga@gmail.com",
+                    "role": "Lead"
+                },
+                {
+                    "name": "Richard Heyes",
+                    "email": "richard@phpguru.org",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Aleksander Machniak",
+                    "email": "alec@alec.pl",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Class that provides multiple interfaces for sending emails.",
+            "homepage": "http://pear.php.net/package/Mail",
+            "support": {
+                "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=Mail",
+                "source": "https://github.com/pear/Mail"
+            },
+            "time": "2024-01-15T21:56:23+00:00"
+        },
+        {
+            "name": "pear/pear-core-minimal",
+            "version": "v1.10.18",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pear/pear-core-minimal.git",
+                "reference": "c7b55789d01de0ce090d289b73f1bbd6a2f113b1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pear/pear-core-minimal/zipball/c7b55789d01de0ce090d289b73f1bbd6a2f113b1",
+                "reference": "c7b55789d01de0ce090d289b73f1bbd6a2f113b1",
+                "shasum": ""
+            },
+            "require": {
+                "pear/console_getopt": "~1.4",
+                "pear/pear_exception": "~1.0",
+                "php": ">=5.4"
+            },
+            "replace": {
+                "rsky/pear-core-min": "self.version"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "include-path": [
+                "src/"
+            ],
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Christian Weiske",
+                    "email": "cweiske@php.net",
+                    "role": "Lead"
+                }
+            ],
+            "description": "Minimal set of PEAR core files to be used as composer dependency",
+            "support": {
+                "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=PEAR",
+                "source": "https://github.com/pear/pear-core-minimal"
+            },
+            "time": "2025-12-14T20:37:07+00:00"
+        },
+        {
+            "name": "pear/pear_exception",
+            "version": "v1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pear/PEAR_Exception.git",
+                "reference": "b14fbe2ddb0b9f94f5b24cf08783d599f776fff0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pear/PEAR_Exception/zipball/b14fbe2ddb0b9f94f5b24cf08783d599f776fff0",
+                "reference": "b14fbe2ddb0b9f94f5b24cf08783d599f776fff0",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.2.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "<9"
+            },
+            "type": "class",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "classmap": [
+                    "PEAR/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "include-path": [
+                "."
+            ],
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Helgi Thormar",
+                    "email": "dufuz@php.net"
+                },
+                {
+                    "name": "Greg Beaver",
+                    "email": "cellog@php.net"
+                }
+            ],
+            "description": "The PEAR Exception base class.",
+            "homepage": "https://github.com/pear/PEAR_Exception",
+            "keywords": [
+                "exception"
+            ],
+            "support": {
+                "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=PEAR_Exception",
+                "source": "https://github.com/pear/PEAR_Exception"
+            },
+            "time": "2021-03-21T15:43:46+00:00"
+        }
+    ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
