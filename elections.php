@@ -338,7 +338,7 @@ class elections
 		if (!$this->databaseConnection->connection) {
 			$errorInfo = $this->databaseConnection->error ();
 			$message = 'There was a problem with initalising the election facility at the database connection stage. The database server said: ' . $errorInfo['error'] . '.';
-			mail ($this->settings['webmaster'], 'Problem with election system on ' . $_SERVER['SERVER_NAME'], wordwrap ($message));
+			application::utf8Mail ($this->settings['webmaster'], 'Problem with election system on ' . $_SERVER['SERVER_NAME'], wordwrap ($message), 'From: ' . $this->settings['webmaster']);
 			$html .= "<p class=\"warning\">Apologies - this facility is currently unavailable, as a technical error occured. The Webmaster has been informed and will investigate.</p>";
 			$html = $this->settings['headerHtml'] . $html . $this->settings['footerHtml'];
 			echo $html;
