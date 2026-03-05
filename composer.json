@@ -1,0 +1,11 @@
+{
+    "name": "camcycle/electionsurvey",
+    "description": "Election survey system",
+    "type": "project",
+    "license": "GPL-3.0-only",
+    "minimum-stability": "stable",
+    "require": {},
+    "autoload": {
+        "files": ["elections.php"]
+    }
+}
