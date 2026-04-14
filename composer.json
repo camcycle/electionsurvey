@@ -8,10 +8,13 @@
         "libpurecontent/application": "^1.9",
         "libpurecontent/database": "^4.2",
         "libpurecontent/ultimateform": "^1.31",
-        "libpurecontent/csv": "^1.5",
+        "libpurecontent/csv": "^1.6",
         "libpurecontent/useraccount": "^1.9"
     },
     "autoload": {
         "files": ["elections.php"]
+    },
+    "replace": {
+        "phpoffice/phpspreadsheet": "*"
     }
 }
